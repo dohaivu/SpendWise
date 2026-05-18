@@ -39,6 +39,8 @@ pinyin4j = "2.5.1"
 kuromoji = "0.9.0"
 readability4k = "0.2.0"
 markdownRenderer = "0.40.2"
+vico = "3.1.0"
+calendar = "2.10.1"
 
 mockk = "1.14.9"
 turbine = "1.2.1"
@@ -106,6 +108,9 @@ pinyin4j = { module = "com.belerweb:pinyin4j", version.ref = "pinyin4j" }
 kuromoji = { module = "com.atilika.kuromoji:kuromoji-ipadic", version.ref = "kuromoji" }
 readability4k = { module = "com.github.Sermilion.readability4k:readability4k", version.ref = "readability4k" }
 markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+calendar-compose = { module = "com.kizitonwose.calendar:compose-multiplatform", version.ref = "calendar" }
 
 # compose multiplatform
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }

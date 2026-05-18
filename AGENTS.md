@@ -13,9 +13,6 @@ Kotlin Multiplatform app for expenses. Targets Android and iOS with shared Compo
 # Shared tests
 ./gradlew :shared:allTests
 
-# Android instrumented tests
-./gradlew :androidApp:connectedDebugAndroidTest
-
 # iOS framework
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
