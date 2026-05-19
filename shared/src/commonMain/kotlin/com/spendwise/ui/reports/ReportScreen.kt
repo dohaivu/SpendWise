@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.reports
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +39,14 @@ import com.patrykandpatrick.vico.compose.pie.data.pieSeries
 import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryReportRow
+import com.spendwise.ui.ReportPeriod
+import com.spendwise.ui.SpendWiseUiState
+import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.TagFilterBar
+import com.spendwise.ui.formatCompactMoney
+import com.spendwise.ui.formatMoney
+import com.spendwise.ui.monthTitle
+import com.spendwise.ui.signedMoney
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -86,7 +94,12 @@ internal fun ReportScreen(
                 }
             }
             Text(
-                "${if (state.selectedReportPeriod == ReportPeriod.Month) monthTitle(state.selectedMonth) else state.selectedMonth.year.toString()} total ${formatMoney(reportTotal, state.baseCurrencyCode)}",
+                "${if (state.selectedReportPeriod == ReportPeriod.Month) monthTitle(state.selectedMonth) else state.selectedMonth.year.toString()} total ${
+                    formatMoney(
+                        reportTotal,
+                        state.baseCurrencyCode
+                    )
+                }",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.spendwise.ui.AppLanguage
+import com.spendwise.ui.SpendWiseUiState
+import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.TagUsageSort
+import com.spendwise.ui.formatMoney
+import com.spendwise.ui.supportedCurrencies
 
 private val categoryColors = listOf(
     0xFFE76F51,

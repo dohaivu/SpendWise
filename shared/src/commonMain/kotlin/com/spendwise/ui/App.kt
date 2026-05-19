@@ -22,6 +22,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.spendwise.ui.reports.ReportScreen
+import com.spendwise.ui.settings.OthersScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

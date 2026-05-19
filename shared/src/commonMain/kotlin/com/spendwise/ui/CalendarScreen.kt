@@ -32,10 +32,8 @@ import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.minusMonths
 import com.kizitonwose.calendar.core.plusMonths
 import com.spendwise.domain.DailyExpenseTotal
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.yearMonth
 
 @Composable
