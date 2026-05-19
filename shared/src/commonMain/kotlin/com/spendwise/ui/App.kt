@@ -464,7 +464,7 @@ private fun CategoryPie(rows: List<CategoryReportRow>) {
     val pieChart = rememberPieChart(
         sliceProvider = PieChart.SliceProvider.series(
             rows.ifEmpty { emptyList() }.map { row ->
-                PieChart.Slice(fill = Fill(Color(row.category.color.toULong())))
+                PieChart.Slice(fill = Fill(Color(row.category.color.toInt())))
             }.ifEmpty {
                 listOf(PieChart.Slice(fill = Fill(Color.Transparent)))
             }
@@ -492,7 +492,7 @@ private fun CategoryPie(rows: List<CategoryReportRow>) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                 rows.take(4).forEach { row ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(10.dp).background(Color(row.category.color.toULong()), CircleShape))
+                        Box(Modifier.size(10.dp).background(Color(row.category.color.toInt()), CircleShape))
                         Spacer(Modifier.width(8.dp))
                         Text(row.category.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text("${(row.percentage * 100).toInt()}%")
