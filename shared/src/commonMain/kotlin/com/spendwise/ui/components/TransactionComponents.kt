@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +26,9 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
+import com.spendwise.ui.SpendWiseUiState
+import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.supportedCurrencies
 
 @Composable
 internal fun TransactionFiltersPanel(
@@ -134,7 +137,9 @@ internal fun TransactionRow(
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(category?.name ?: "Category", fontWeight = FontWeight.SemiBold)
-                Text(expense.note.ifBlank { "No note" }, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (expense.note.isNotBlank()) {
+                    Text(expense.note, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 if (expense.tags.isNotEmpty()) {
                     Text(expense.tags.joinToString(" ") { "#$it" }, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }

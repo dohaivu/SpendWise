@@ -32,6 +32,12 @@ import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.minusMonths
 import com.kizitonwose.calendar.core.plusMonths
 import com.spendwise.domain.DailyExpenseTotal
+import com.spendwise.ui.components.TagFilterBar
+import com.spendwise.ui.components.TransactionFiltersPanel
+import com.spendwise.ui.components.TransactionRow
+import com.spendwise.ui.components.formatCompactAmount
+import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.components.monthTitle
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.yearMonth
@@ -52,7 +58,7 @@ internal fun CalendarScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -84,7 +90,7 @@ internal fun CalendarScreen(
             )
         }
         item {
-            Text("Transactions on ${state.selectedDate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+            Text("${state.selectedDate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
         }
         items(selectedDayExpenses) { expense ->
             TransactionRow(expense, state.snapshot.categories, state.baseCurrencyCode, viewModel::editExpense)
@@ -108,7 +114,7 @@ private fun MonthCalendar(
     )
 
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth()) {
                 daysOfWeek().forEach {
                     Text(
@@ -121,14 +127,14 @@ private fun MonthCalendar(
             }
             HorizontalCalendar(
                 state = calendarState,
-                userScrollEnabled = false,
+                userScrollEnabled = true,
                 dayContent = { day ->
                     val date = day.date
                     val isMonthDate = day.position == DayPosition.MonthDate
                     val total = totalsByDate[date]
                     Box(
                         modifier = Modifier
-                            .aspectRatio(0.68f)
+                            .aspectRatio(0.8f)
                             .background(
                                 color = when {
                                     !isMonthDate -> Color.Transparent
@@ -139,7 +145,7 @@ private fun MonthCalendar(
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable(enabled = isMonthDate) { onDateSelected(date) }
-                            .padding(8.dp)
+                            .padding(2.dp)
                     ) {
                         if (isMonthDate) {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

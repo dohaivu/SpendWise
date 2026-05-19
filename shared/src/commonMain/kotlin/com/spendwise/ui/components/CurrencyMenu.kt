@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.spendwise.ui.supportedCurrencies
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

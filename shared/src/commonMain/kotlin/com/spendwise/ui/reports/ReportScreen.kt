@@ -42,11 +42,11 @@ import com.spendwise.domain.CategoryReportRow
 import com.spendwise.ui.ReportPeriod
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
-import com.spendwise.ui.TagFilterBar
-import com.spendwise.ui.formatCompactMoney
-import com.spendwise.ui.formatMoney
-import com.spendwise.ui.monthTitle
-import com.spendwise.ui.signedMoney
+import com.spendwise.ui.components.TagFilterBar
+import com.spendwise.ui.components.formatCompactMoney
+import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.components.monthTitle
+import com.spendwise.ui.components.signedMoney
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

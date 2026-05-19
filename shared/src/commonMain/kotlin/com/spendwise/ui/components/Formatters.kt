@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.components
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

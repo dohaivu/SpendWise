@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -7,8 +7,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.spendwise.ui.SpendWiseUiState
+import com.spendwise.ui.SpendWiseViewModel
 
 @Composable
 internal fun TagFilterBar(state: SpendWiseUiState, viewModel: SpendWiseViewModel) {

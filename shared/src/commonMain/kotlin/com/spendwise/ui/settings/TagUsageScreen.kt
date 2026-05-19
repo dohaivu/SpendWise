@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
 import com.spendwise.ui.TagUsageSort
-import com.spendwise.ui.formatMoney
+import com.spendwise.ui.components.formatMoney
 
 @Composable
 internal fun TagUsageScreen(
