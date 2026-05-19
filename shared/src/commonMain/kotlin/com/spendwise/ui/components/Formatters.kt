@@ -34,6 +34,18 @@ internal fun formatCompactAmount(cents: Long): String {
     }
 }
 
+internal fun formatAmount(cents: Long): String {
+    val sign = if (cents < 0) "-" else ""
+    val absolute = cents.absoluteValue
+    val whole = absolute / 100
+    val fraction = absolute % 100
+    return if (fraction == 0L) {
+        "$sign$whole"
+    } else {
+        "$sign$whole.${fraction.toString().padStart(2, '0')}"
+    }
+}
+
 internal fun signedMoney(cents: Long, currencyCode: String): String {
     val prefix = if (cents >= 0) "+" else "-"
     return prefix + formatMoney(cents.absoluteValue, currencyCode)

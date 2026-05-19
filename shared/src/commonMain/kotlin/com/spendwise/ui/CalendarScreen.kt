@@ -2,6 +2,8 @@ package com.spendwise.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.DayPosition
@@ -35,7 +39,7 @@ import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.ui.components.TagFilterBar
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.TransactionRow
-import com.spendwise.ui.components.formatCompactAmount
+import com.spendwise.ui.components.formatAmount
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.monthTitle
 import kotlinx.datetime.LocalDate
@@ -118,10 +122,12 @@ private fun MonthCalendar(
             Row(Modifier.fillMaxWidth()) {
                 daysOfWeek().forEach {
                     Text(
-                        it.name.take(1),
+                        it.name.take(3),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -152,10 +158,16 @@ private fun MonthCalendar(
                                 Text("${date.day}", fontWeight = FontWeight.Medium)
                                 if (total != null) {
                                     Text(
-                                        formatCompactAmount(total.totalBaseAmountCents),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
+                                        text = formatAmount(total.totalBaseAmountCents),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        ),
+                                        maxLines = 1,
+                                        autoSize = TextAutoSize.StepBased(
+                                            minFontSize = 6.sp,
+                                            maxFontSize = MaterialTheme.typography.labelSmall.fontSize
+                                        )
                                     )
                                 }
                             }
