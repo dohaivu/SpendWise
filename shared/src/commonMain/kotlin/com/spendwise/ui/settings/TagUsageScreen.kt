@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
 import com.spendwise.ui.TagUsageSort
+import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.formatMoney
 
 @Composable
@@ -69,7 +70,7 @@ internal fun TagUsageScreen(
                         Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                         Text("${usage.expenseCount} uses")
                         Spacer(Modifier.width(14.dp))
-                        Text(formatMoney(usage.totalBaseAmountCents, state.baseCurrencyCode))
+                        MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode)
                     }
                     Text(
                         "This month ${formatMoney(usage.currentMonthAmountCents, state.baseCurrencyCode)} • Previous ${formatMoney(usage.previousMonthAmountCents, state.baseCurrencyCode)}",

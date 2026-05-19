@@ -18,6 +18,7 @@ import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.UserSettings
 import com.spendwise.domain.usecase.SpendWiseUseCases
+import com.spendwise.ui.components.currencyDisplayFormats
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -490,7 +491,7 @@ class SpendWiseViewModel(
     }
 }
 
-val supportedCurrencies = listOf("USD", "VND", "CNY", "EUR", "JPY", "SGD")
+val supportedCurrencies = currencyDisplayFormats.map { it.code }
 
 fun today(): LocalDate =
     Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

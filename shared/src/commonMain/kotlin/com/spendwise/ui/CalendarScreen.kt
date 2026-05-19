@@ -39,7 +39,6 @@ import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.ui.components.TagFilterBar
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.TransactionRow
-import com.spendwise.ui.components.formatAmount
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.monthTitle
 import kotlinx.datetime.LocalDate
@@ -81,6 +80,7 @@ internal fun CalendarScreen(
                 month = state.selectedMonth,
                 selectedDate = state.selectedDate,
                 totalsByDate = totalsByDate,
+                currencyCode = state.baseCurrencyCode,
                 onDateSelected = viewModel::selectDate
             )
         }
@@ -107,6 +107,7 @@ private fun MonthCalendar(
     month: LocalDate,
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
+    currencyCode: String,
     onDateSelected: (LocalDate) -> Unit
 ) {
     val currentMonth = month.yearMonth
@@ -158,7 +159,7 @@ private fun MonthCalendar(
                                 Text("${date.day}", fontWeight = FontWeight.Medium)
                                 if (total != null) {
                                     Text(
-                                        text = formatAmount(total.totalBaseAmountCents),
+                                        text = formatMoney(total.totalBaseAmountCents, currencyCode),
                                         modifier = Modifier.fillMaxWidth(),
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             color = MaterialTheme.colorScheme.onSurface

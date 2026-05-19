@@ -42,6 +42,7 @@ import com.spendwise.domain.CategoryReportRow
 import com.spendwise.ui.ReportPeriod
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TagFilterBar
 import com.spendwise.ui.components.formatCompactMoney
 import com.spendwise.ui.components.formatMoney
@@ -177,7 +178,11 @@ private fun CategoryReportRowView(row: CategoryReportRow, currencyCode: String) 
                 Text(row.category.name, fontWeight = FontWeight.SemiBold)
                 Text("${(row.percentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(formatMoney(row.totalBaseAmountCents, currencyCode), fontWeight = FontWeight.SemiBold)
+            MoneyText(
+                amountCents = row.totalBaseAmountCents,
+                currencyCode = currencyCode,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

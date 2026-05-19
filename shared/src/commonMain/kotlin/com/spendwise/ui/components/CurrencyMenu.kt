@@ -36,8 +36,9 @@ internal fun CurrencyMenu(
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             supportedCurrencies.forEach { currency ->
+                val format = currencyDisplayFormat(currency)
                 DropdownMenuItem(
-                    text = { Text(currency) },
+                    text = { Text("${format.symbol} $currency") },
                     onClick = {
                         expanded = false
                         onSelected(currency)
@@ -47,4 +48,3 @@ internal fun CurrencyMenu(
         }
     }
 }
-

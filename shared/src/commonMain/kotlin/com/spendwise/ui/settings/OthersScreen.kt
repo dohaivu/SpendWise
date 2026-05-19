@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.ui.AppLanguage
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.components.currencyDisplayFormat
+import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.supportedCurrencies
 
 private enum class OthersPane {
@@ -155,10 +157,11 @@ private fun SettingsRow(
 @Composable
 private fun CurrencySettings(state: SpendWiseUiState, viewModel: SpendWiseViewModel) {
     var showDialog by remember { mutableStateOf(false) }
+    val format = currencyDisplayFormat(state.baseCurrencyCode)
 
     SettingValueRow(
         title = "Base currency",
-        value = state.baseCurrencyCode,
+        value = "${format.symbol} ${format.code}",
         onClick = { showDialog = true }
     )
     if (showDialog) {
@@ -224,8 +227,8 @@ private fun CurrencySelectionDialog(
         text = {
             Column {
                 supportedCurrencies.forEach { currency ->
-                    SelectionRow(
-                        text = currency,
+                    CurrencySelectionRow(
+                        currencyCode = currency,
                         selected = selected == currency,
                         onClick = { onSelected(currency) }
                     )
@@ -269,6 +272,39 @@ private fun LanguageSelectionDialog(
 }
 
 @Composable
+private fun CurrencySelectionRow(
+    currencyCode: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val format = currencyDisplayFormat(currencyCode)
+    Card(onClick = onClick) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                format.symbol,
+                modifier = Modifier.weight(0.4f),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Column(modifier = Modifier.weight(1.8f)) {
+                Text(formatMoney(CURRENCY_FORMAT_SAMPLE_CENTS, currencyCode))
+                Text(
+                    "${format.code} • ${format.name}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            RadioButton(
+                selected = selected,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
 private fun SelectionRow(
     text: String,
     selected: Boolean,
@@ -287,3 +323,5 @@ private fun SelectionRow(
         }
     }
 }
+
+private const val CURRENCY_FORMAT_SAMPLE_CENTS = 12_345_678_900L

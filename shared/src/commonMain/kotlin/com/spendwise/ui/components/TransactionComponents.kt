@@ -87,10 +87,11 @@ internal fun TransactionFiltersPanel(
                     label = { Text("All currencies") }
                 )
                 supportedCurrencies.forEach { currency ->
+                    val format = currencyDisplayFormat(currency)
                     FilterChip(
                         selected = state.transactionFilters.currencyCode == currency,
                         onClick = { viewModel.updateTransactionCurrency(currency) },
-                        label = { Text(currency) }
+                        label = { Text("${format.symbol} $currency") }
                     )
                 }
                 AssistChip(onClick = viewModel::clearTransactionFilters, label = { Text("Reset") })
@@ -151,7 +152,11 @@ internal fun TransactionRow(
                     )
                 }
             }
-            Text(formatMoney(expense.baseAmountCents, currencyCode), fontWeight = FontWeight.SemiBold)
+            MoneyText(
+                amountCents = expense.baseAmountCents,
+                currencyCode = currencyCode,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
