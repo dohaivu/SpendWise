@@ -12,16 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -33,20 +36,62 @@ import com.spendwise.ui.TagUsageSort
 import com.spendwise.ui.formatMoney
 import com.spendwise.ui.supportedCurrencies
 
-private val categoryColors = listOf(
-    0xFFE76F51,
-    0xFF2A9D8F,
-    0xFF457B9D,
-    0xFFE9C46A,
-    0xFF6D597A,
-    0xFF43AA8B
-)
+private enum class OthersPane {
+    Home,
+    CategoryList,
+    CategoryEditor
+}
 
 @Composable
 internal fun OthersScreen(
     state: SpendWiseUiState,
     viewModel: SpendWiseViewModel,
     modifier: Modifier = Modifier
+) {
+    var pane by remember { mutableStateOf(OthersPane.Home) }
+
+    when (pane) {
+        OthersPane.Home -> OthersHomeScreen(
+            state = state,
+            viewModel = viewModel,
+            modifier = modifier,
+            onEditCategories = {
+                viewModel.cancelCategoryEdit()
+                pane = OthersPane.CategoryList
+            }
+        )
+
+        OthersPane.CategoryList -> EditCategoriesScreen(
+            state = state,
+            viewModel = viewModel,
+            modifier = modifier,
+            onBack = { pane = OthersPane.Home },
+            onAdd = {
+                viewModel.cancelCategoryEdit()
+                pane = OthersPane.CategoryEditor
+            },
+            onEdit = { category ->
+                viewModel.editCategory(category)
+                pane = OthersPane.CategoryEditor
+            }
+        )
+
+        OthersPane.CategoryEditor -> CategoryEditorScreen(
+            state = state,
+            viewModel = viewModel,
+            modifier = modifier,
+            onBack = { pane = OthersPane.CategoryList },
+            onSaved = { pane = OthersPane.CategoryList }
+        )
+    }
+}
+
+@Composable
+private fun OthersHomeScreen(
+    state: SpendWiseUiState,
+    viewModel: SpendWiseViewModel,
+    modifier: Modifier,
+    onEditCategories: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(16.dp),
@@ -55,7 +100,13 @@ internal fun OthersScreen(
         item {
             Text("Others", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
         }
-        item { CategoryManagement(state, viewModel) }
+        item {
+            SettingsRow(
+                title = "Edit Categories",
+                subtitle = "${state.snapshot.categories.count { !it.archived }} active categories",
+                onClick = onEditCategories
+            )
+        }
         item { CurrencySettings(state, viewModel) }
         item { LanguageSettings(state, viewModel) }
         item {
@@ -100,59 +151,21 @@ internal fun OthersScreen(
 }
 
 @Composable
-private fun CategoryManagement(state: SpendWiseUiState, viewModel: SpendWiseViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Categories", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = state.categoryDraft.icon,
-                onValueChange = viewModel::updateCategoryIcon,
-                label = { Text("Icon") },
-                singleLine = true,
-                modifier = Modifier.width(88.dp)
-            )
-            OutlinedTextField(
-                value = state.categoryDraft.name,
-                onValueChange = viewModel::updateCategoryName,
-                label = { Text("Name") },
-                singleLine = true,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            categoryColors.forEach { color ->
-                FilterChip(
-                    selected = state.categoryDraft.color == color,
-                    onClick = { viewModel.updateCategoryColor(color) },
-                    label = { Text(colorName(color)) }
-                )
+private fun SettingsRow(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Card(onClick = onClick) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.SemiBold)
+                Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = viewModel::saveCategory, modifier = Modifier.weight(1f)) {
-                Text(if (state.categoryDraft.editingCategoryId == null) "Add category" else "Update category")
-            }
-            if (state.categoryDraft.editingCategoryId != null) {
-                OutlinedButton(onClick = viewModel::cancelCategoryEdit, modifier = Modifier.weight(1f)) {
-                    Text("Cancel")
-                }
-            }
-        }
-        state.snapshot.categories.forEach { category ->
-            Card {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("${category.icon} ${category.name}", modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
-                    AssistChip(onClick = { viewModel.moveCategoryUp(category.id) }, label = { Text("Up") })
-                    Spacer(Modifier.width(6.dp))
-                    AssistChip(onClick = { viewModel.moveCategoryDown(category.id) }, label = { Text("Down") })
-                    Spacer(Modifier.width(6.dp))
-                    AssistChip(onClick = { viewModel.editCategory(category) }, label = { Text("Edit") })
-                    if (!category.archived) {
-                        Spacer(Modifier.width(6.dp))
-                        AssistChip(onClick = { viewModel.archiveCategory(category.id) }, label = { Text("Archive") })
-                    }
-                }
-            }
+            Icon(Icons.Default.ChevronRight, contentDescription = null)
         }
     }
 }
@@ -189,15 +202,6 @@ private fun LanguageSettings(state: SpendWiseUiState, viewModel: SpendWiseViewMo
             }
         }
     }
-}
-
-private fun colorName(color: Long): String = when (color) {
-    0xFFE76F51 -> "Coral"
-    0xFF2A9D8F -> "Teal"
-    0xFF457B9D -> "Blue"
-    0xFFE9C46A -> "Gold"
-    0xFF6D597A -> "Plum"
-    else -> "Green"
 }
 
 private fun TagUsageSort.label(): String = when (this) {
