@@ -91,7 +91,8 @@ data class ExpenseTagEntity(
 data class CurrencySettingsEntity(
     @PrimaryKey
     val id: Int = 1,
-    val baseCurrencyCode: String = "USD"
+    val baseCurrencyCode: String = "USD",
+    val languageCode: String = "en"
 )
 
 @Entity(
@@ -137,4 +138,3 @@ fun buildSpendWiseDatabase(
         .setDriver(BundledSQLiteDriver())
         .build()
 }
-

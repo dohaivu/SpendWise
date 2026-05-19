@@ -14,6 +14,9 @@ interface SpendWiseDao {
     @Query("SELECT * FROM categories ORDER BY sortOrder, name")
     fun observeCategories(): Flow<List<CategoryEntity>>
 
+    @Query("SELECT * FROM categories ORDER BY sortOrder, name")
+    suspend fun getAllCategoriesOnce(): List<CategoryEntity>
+
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun countCategories(): Int
 
@@ -29,8 +32,14 @@ interface SpendWiseDao {
     @Query("UPDATE categories SET archived = 1 WHERE id = :id")
     suspend fun archiveCategory(id: Long)
 
+    @Query("SELECT * FROM categories WHERE id = :id")
+    suspend fun getCategory(id: Long): CategoryEntity?
+
     @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
     fun observeExpenses(): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expenses WHERE id = :id")
+    suspend fun getExpense(id: Long): ExpenseEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpense(expense: ExpenseEntity): Long
@@ -66,10 +75,35 @@ interface SpendWiseDao {
         return expenseId
     }
 
+    @Transaction
+    suspend fun updateExpenseWithTags(expense: ExpenseEntity, tags: List<TagEntity>) {
+        updateExpense(expense)
+        deleteTagsForExpense(expense.id)
+        if (tags.isNotEmpty()) {
+            upsertTags(tags)
+            insertExpenseTags(tags.map { ExpenseTagEntity(expenseId = expense.id, tagName = it.normalizedName) })
+        }
+    }
+
+    @Query(
+        """
+        SELECT * FROM exchange_rates 
+        WHERE fromCurrencyCode = :fromCurrencyCode AND toCurrencyCode = :toCurrencyCode 
+        ORDER BY effectiveDateEpochDay DESC 
+        LIMIT 1
+        """
+    )
+    suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): ExchangeRateEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertExchangeRate(rate: ExchangeRateEntity)
+
     @Query("SELECT * FROM currency_settings WHERE id = 1")
     fun observeCurrencySettings(): Flow<CurrencySettingsEntity?>
+
+    @Query("SELECT * FROM currency_settings WHERE id = 1")
+    suspend fun getCurrencySettingsOnce(): CurrencySettingsEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCurrencySettings(settings: CurrencySettingsEntity)
 }
-

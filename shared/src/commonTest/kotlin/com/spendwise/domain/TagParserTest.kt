@@ -24,5 +24,11 @@ class TagParserTest {
 
         assertEquals("Lunch #work ", TagParser.replaceActiveToken("Lunch #wo", token!!, "work"))
     }
-}
 
+    @Test
+    fun ignoresIncompleteTagsAndStopsAtPunctuation() {
+        val tags = TagParser.parse("Taxi # #trip, coffee #work.")
+
+        assertEquals(listOf("trip", "work"), tags)
+    }
+}

@@ -5,9 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.spendwise.data.ExpenseRepository
 import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.AddExpenseInput
+import com.spendwise.domain.Category
+import com.spendwise.domain.CategoryReportRow
+import com.spendwise.domain.CategoryDraft
+import com.spendwise.domain.DailyExpenseTotal
+import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
+import com.spendwise.domain.MonthComparisonRow
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
+import com.spendwise.domain.TagUsage
+import com.spendwise.domain.TransactionFilters
+import com.spendwise.domain.UserSettings
+import com.spendwise.domain.usecase.SpendWiseUseCases
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,18 +47,43 @@ enum class ReportPeriod {
 enum class AppLanguage(val label: String) {
     English("English"),
     Vietnamese("Tiếng Việt"),
-    Chinese("中文")
+    Chinese("中文");
+
+    val code: String
+        get() = when (this) {
+            English -> "en"
+            Vietnamese -> "vi"
+            Chinese -> "zh"
+        }
+
+    companion object {
+        fun fromCode(code: String): AppLanguage = when (code) {
+            "vi" -> Vietnamese
+            "zh" -> Chinese
+            else -> English
+        }
+    }
+}
+
+enum class TagUsageSort {
+    MostUsed,
+    HighestSpending,
+    RecentlyUsed,
+    Alphabetical
 }
 
 data class SpendWiseUiState(
     val selectedTab: SpendWiseTab = SpendWiseTab.Input,
     val snapshot: SpendWiseSnapshot = SpendWiseSnapshot(),
     val draft: ExpenseDraft = ExpenseDraft(spentAtMillis = Clock.System.now().toEpochMilliseconds()),
+    val categoryDraft: CategoryDraft = CategoryDraft(),
+    val transactionFilters: TransactionFilters = TransactionFilters(),
     val baseCurrencyCode: String = "USD",
     val selectedMonth: LocalDate = today().firstDayOfMonth(),
     val selectedDate: LocalDate = today(),
     val selectedReportPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedTags: Set<String> = emptySet(),
+    val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val activeTagToken: ActiveTagToken? = null,
     val tagSuggestions: List<String> = emptyList(),
     val language: AppLanguage = AppLanguage.English,
@@ -56,7 +91,8 @@ data class SpendWiseUiState(
 )
 
 class SpendWiseViewModel(
-    private val repository: ExpenseRepository
+    private val repository: ExpenseRepository,
+    private val useCases: SpendWiseUseCases
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SpendWiseUiState())
     val uiState: StateFlow<SpendWiseUiState> = _uiState.asStateFlow()
@@ -70,7 +106,9 @@ class SpendWiseViewModel(
                         ?: snapshot.categories.firstOrNull { !it.archived }?.id
                     state.copy(
                         snapshot = snapshot,
-                        draft = state.draft.copy(categoryId = categoryId)
+                        draft = state.draft.copy(categoryId = categoryId),
+                        baseCurrencyCode = snapshot.settings.baseCurrencyCode,
+                        language = AppLanguage.fromCode(snapshot.settings.languageCode)
                     )
                 }
             }
@@ -90,6 +128,7 @@ class SpendWiseViewModel(
             val rate = if (value == state.baseCurrencyCode) "1.0" else state.draft.exchangeRateText
             state.copy(draft = state.draft.copy(currencyCode = value, exchangeRateText = rate))
         }
+        refreshExchangeRate()
     }
 
     fun updateCategory(id: Long) {
@@ -102,7 +141,7 @@ class SpendWiseViewModel(
             state.copy(
                 draft = state.draft.copy(note = value),
                 activeTagToken = token,
-                tagSuggestions = suggestionsFor(token, state.snapshot)
+                tagSuggestions = useCases.getTagAutocompleteSuggestions(token, state.snapshot)
             )
         }
     }
@@ -121,6 +160,14 @@ class SpendWiseViewModel(
 
     fun updateExchangeRate(value: String) {
         _uiState.update { it.copy(draft = it.draft.copy(exchangeRateText = value.filterAmountInput())) }
+    }
+
+    fun selectTodayForDraft() {
+        _uiState.update { it.copy(draft = it.draft.copy(spentAtMillis = Clock.System.now().toEpochMilliseconds())) }
+    }
+
+    fun selectYesterdayForDraft() {
+        _uiState.update { it.copy(draft = it.draft.copy(spentAtMillis = Clock.System.now().toEpochMilliseconds() - 86_400_000L)) }
     }
 
     fun selectMonth(month: LocalDate) {
@@ -159,8 +206,13 @@ class SpendWiseViewModel(
         _uiState.update { it.copy(selectedTags = emptySet()) }
     }
 
+    fun setTagUsageSort(sort: TagUsageSort) {
+        _uiState.update { it.copy(tagUsageSort = sort) }
+    }
+
     fun setLanguage(language: AppLanguage) {
         _uiState.update { it.copy(language = language) }
+        persistSettings()
     }
 
     fun setBaseCurrency(currency: String) {
@@ -170,6 +222,7 @@ class SpendWiseViewModel(
                 draft = it.draft.copy(currencyCode = currency, exchangeRateText = "1.0")
             )
         }
+        viewModelScope.launch { useCases.updateBaseCurrency(currency) }
     }
 
     fun saveExpense() {
@@ -185,35 +238,204 @@ class SpendWiseViewModel(
         } else {
             state.draft.exchangeRateText.toDoubleOrNull() ?: 1.0
         }
-        val baseAmountCents = (amountCents * rate).roundToLong()
-        val tags = TagParser.parse(state.draft.note)
+        val baseAmountCents = useCases.convertToBaseCurrency(
+            amountCents = amountCents,
+            sourceCurrencyCode = state.draft.currencyCode,
+            baseCurrencyCode = state.baseCurrencyCode,
+            exchangeRate = rate
+        )
+        val tags = useCases.parseTagsFromNote(state.draft.note)
 
         viewModelScope.launch {
-            repository.addExpense(
-                AddExpenseInput(
-                    originalAmountCents = amountCents,
-                    originalCurrencyCode = state.draft.currencyCode,
-                    baseAmountCents = baseAmountCents,
-                    baseCurrencyCode = state.baseCurrencyCode,
-                    exchangeRate = rate,
-                    categoryId = categoryId,
-                    note = state.draft.note,
-                    tags = tags,
-                    spentAtMillis = state.draft.spentAtMillis
-                )
+            val input = AddExpenseInput(
+                id = state.draft.editingExpenseId,
+                originalAmountCents = amountCents,
+                originalCurrencyCode = state.draft.currencyCode,
+                baseAmountCents = baseAmountCents,
+                baseCurrencyCode = state.baseCurrencyCode,
+                exchangeRate = rate,
+                categoryId = categoryId,
+                note = state.draft.note,
+                tags = tags,
+                spentAtMillis = state.draft.spentAtMillis
             )
+            if (state.draft.editingExpenseId == null) {
+                useCases.addExpense(input)
+            } else {
+                useCases.updateExpense(input)
+            }
             _uiState.update {
                 it.copy(
-                    draft = ExpenseDraft(
-                        currencyCode = it.baseCurrencyCode,
-                        categoryId = it.snapshot.categories.firstOrNull { category -> !category.archived }?.id,
-                        spentAtMillis = Clock.System.now().toEpochMilliseconds()
-                    ),
+                    draft = emptyDraft(it),
                     activeTagToken = null,
                     tagSuggestions = emptyList(),
-                    message = "Expense saved"
+                    message = if (state.draft.editingExpenseId == null) "Expense saved" else "Expense updated"
                 )
             }
+        }
+    }
+
+    fun editExpense(expense: Expense) {
+        _uiState.update {
+            it.copy(
+                selectedTab = SpendWiseTab.Input,
+                draft = ExpenseDraft(
+                    editingExpenseId = expense.id,
+                    amountText = centsToAmountText(expense.originalAmountCents),
+                    currencyCode = expense.originalCurrencyCode,
+                    categoryId = expense.categoryId,
+                    note = expense.note,
+                    spentAtMillis = expense.spentAtMillis,
+                    exchangeRateText = expense.exchangeRate.toString()
+                ),
+                activeTagToken = null,
+                tagSuggestions = emptyList()
+            )
+        }
+    }
+
+    fun cancelExpenseEdit() {
+        _uiState.update { it.copy(draft = emptyDraft(it), activeTagToken = null, tagSuggestions = emptyList()) }
+    }
+
+    fun deleteEditingExpense() {
+        val id = _uiState.value.draft.editingExpenseId ?: return
+        viewModelScope.launch {
+            useCases.deleteExpense(id)
+            _uiState.update { it.copy(draft = emptyDraft(it), message = "Expense deleted") }
+        }
+    }
+
+    fun updateTransactionQuery(value: String) {
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(query = value)) }
+    }
+
+    fun updateTransactionCategory(categoryId: Long?) {
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(categoryId = categoryId)) }
+    }
+
+    fun updateTransactionCurrency(currencyCode: String?) {
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(currencyCode = currencyCode)) }
+    }
+
+    fun clearTransactionFilters() {
+        _uiState.update { it.copy(transactionFilters = TransactionFilters()) }
+    }
+
+    fun editCategory(category: Category) {
+        _uiState.update {
+            it.copy(
+                categoryDraft = CategoryDraft(
+                    editingCategoryId = category.id,
+                    name = category.name,
+                    icon = category.icon,
+                    color = category.color
+                )
+            )
+        }
+    }
+
+    fun updateCategoryName(value: String) {
+        _uiState.update { it.copy(categoryDraft = it.categoryDraft.copy(name = value)) }
+    }
+
+    fun updateCategoryIcon(value: String) {
+        _uiState.update { it.copy(categoryDraft = it.categoryDraft.copy(icon = value.take(4))) }
+    }
+
+    fun updateCategoryColor(value: Long) {
+        _uiState.update { it.copy(categoryDraft = it.categoryDraft.copy(color = value)) }
+    }
+
+    fun saveCategory() {
+        val draft = _uiState.value.categoryDraft
+        if (draft.name.isBlank()) {
+            _uiState.update { it.copy(message = "Category name is required") }
+            return
+        }
+        viewModelScope.launch {
+            useCases.saveCategory(draft)
+            _uiState.update { it.copy(categoryDraft = CategoryDraft(), message = "Category saved") }
+        }
+    }
+
+    fun cancelCategoryEdit() {
+        _uiState.update { it.copy(categoryDraft = CategoryDraft()) }
+    }
+
+    fun archiveCategory(id: Long) {
+        viewModelScope.launch {
+            useCases.archiveCategory(id)
+            _uiState.update { it.copy(message = "Category archived") }
+        }
+    }
+
+    fun moveCategoryUp(id: Long) {
+        viewModelScope.launch { useCases.moveCategory(id, -1) }
+    }
+
+    fun moveCategoryDown(id: Long) {
+        viewModelScope.launch { useCases.moveCategory(id, 1) }
+    }
+
+    fun getDailyExpenseTotals(timeZone: TimeZone): List<DailyExpenseTotal> {
+        return useCases.getDailyExpenseTotals(_uiState.value.snapshot.expenses, timeZone)
+    }
+
+    fun getTransactionsForSelectedDate(timeZone: TimeZone): List<Expense> {
+        val state = _uiState.value
+        return useCases.getTransactionsByDate(
+            expenses = state.snapshot.expenses,
+            date = state.selectedDate,
+            timeZone = timeZone,
+            selectedTags = state.selectedTags,
+            filters = state.transactionFilters
+        )
+    }
+
+    fun getFilteredTransactions(): List<Expense> {
+        val state = _uiState.value
+        return useCases.getTransactionsByFilters(
+            expenses = state.snapshot.expenses,
+            filters = state.transactionFilters,
+            selectedTags = state.selectedTags
+        )
+    }
+
+    fun getCategoryReport(expenses: List<Expense>): List<CategoryReportRow> {
+        val state = _uiState.value
+        return useCases.getCategoryPieReport(expenses, state.snapshot.categories, state.selectedTags)
+    }
+
+    fun getYearlyCategoryReport(year: Int, timeZone: TimeZone): List<CategoryReportRow> {
+        val state = _uiState.value
+        return useCases.getYearlyCategoryReport(
+            expenses = state.snapshot.expenses,
+            categories = state.snapshot.categories,
+            year = year,
+            selectedTags = state.selectedTags,
+            timeZone = timeZone
+        )
+    }
+
+    fun getMonthOverMonthReport(timeZone: TimeZone): List<MonthComparisonRow> {
+        val state = _uiState.value
+        return useCases.getMonthOverMonthCategoryReport(
+            expenses = state.snapshot.expenses,
+            categories = state.snapshot.categories,
+            selectedMonth = state.selectedMonth,
+            selectedTags = state.selectedTags,
+            timeZone = timeZone
+        )
+    }
+
+    fun getSortedTagUsage(): List<TagUsage> {
+        val state = _uiState.value
+        return when (state.tagUsageSort) {
+            TagUsageSort.MostUsed -> state.snapshot.tagUsage.sortedWith(compareByDescending<TagUsage> { it.expenseCount }.thenBy { it.name })
+            TagUsageSort.HighestSpending -> state.snapshot.tagUsage.sortedByDescending { it.totalBaseAmountCents }
+            TagUsageSort.RecentlyUsed -> state.snapshot.tagUsage.sortedByDescending { it.lastUsedAtMillis }
+            TagUsageSort.Alphabetical -> state.snapshot.tagUsage.sortedBy { it.name }
         }
     }
 
@@ -221,15 +443,27 @@ class SpendWiseViewModel(
         _uiState.update { it.copy(message = null) }
     }
 
-    private fun suggestionsFor(token: ActiveTagToken?, snapshot: SpendWiseSnapshot): List<String> {
-        if (token == null) return emptyList()
-        return snapshot.tagUsage
-            .asSequence()
-            .filter { it.name.startsWith(token.query, ignoreCase = true) }
-            .sortedByDescending { it.expenseCount }
-            .map { it.name }
-            .take(5)
-            .toList()
+    private fun persistSettings() {
+        val state = _uiState.value
+        viewModelScope.launch {
+            repository.saveSettings(
+                UserSettings(
+                    baseCurrencyCode = state.baseCurrencyCode,
+                    languageCode = state.language.code
+                )
+            )
+        }
+    }
+
+    private fun refreshExchangeRate() {
+        val state = _uiState.value
+        if (state.draft.currencyCode == state.baseCurrencyCode) return
+        viewModelScope.launch {
+            val rate = useCases.getExchangeRate(state.draft.currencyCode, state.baseCurrencyCode)
+            if (rate != null) {
+                _uiState.update { it.copy(draft = it.draft.copy(exchangeRateText = rate.toString())) }
+            }
+        }
     }
 }
 
@@ -239,6 +473,19 @@ fun today(): LocalDate =
     Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
 fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
+
+fun centsToAmountText(cents: Long): String {
+    val whole = cents / 100
+    val fraction = cents % 100
+    return if (fraction == 0L) whole.toString() else "$whole.${fraction.toString().padStart(2, '0')}"
+}
+
+private fun emptyDraft(state: SpendWiseUiState): ExpenseDraft =
+    ExpenseDraft(
+        currencyCode = state.baseCurrencyCode,
+        categoryId = state.snapshot.categories.firstOrNull { category -> !category.archived }?.id,
+        spentAtMillis = Clock.System.now().toEpochMilliseconds()
+    )
 
 private fun String.filterAmountInput(): String =
     filter { it.isDigit() || it == '.' }.let { value ->
