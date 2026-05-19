@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
@@ -104,9 +105,21 @@ class SpendWiseViewModel(
                 _uiState.update { state ->
                     val categoryId = state.draft.categoryId
                         ?: snapshot.categories.firstOrNull { !it.archived }?.id
+                    val draft = if (state.draft.editingExpenseId == null &&
+                        state.draft.amountText.isBlank() &&
+                        state.draft.note.isBlank()
+                    ) {
+                        state.draft.copy(
+                            categoryId = categoryId,
+                            currencyCode = snapshot.settings.baseCurrencyCode,
+                            exchangeRateText = "1.0"
+                        )
+                    } else {
+                        state.draft.copy(categoryId = categoryId)
+                    }
                     state.copy(
                         snapshot = snapshot,
-                        draft = state.draft.copy(categoryId = categoryId),
+                        draft = draft,
                         baseCurrencyCode = snapshot.settings.baseCurrencyCode,
                         language = AppLanguage.fromCode(snapshot.settings.languageCode)
                     )
@@ -135,9 +148,9 @@ class SpendWiseViewModel(
         _uiState.update { it.copy(draft = it.draft.copy(categoryId = id)) }
     }
 
-    fun updateNote(value: String) {
+    fun updateNote(value: String, cursor: Int = value.length) {
         _uiState.update { state ->
-            val token = TagParser.activeToken(value, value.length)
+            val token = TagParser.activeToken(value, cursor)
             state.copy(
                 draft = state.draft.copy(note = value),
                 activeTagToken = token,
@@ -168,6 +181,11 @@ class SpendWiseViewModel(
 
     fun selectYesterdayForDraft() {
         _uiState.update { it.copy(draft = it.draft.copy(spentAtMillis = Clock.System.now().toEpochMilliseconds() - 86_400_000L)) }
+    }
+
+    fun selectDateForDraft(date: LocalDate) {
+        val millis = date.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+        _uiState.update { it.copy(draft = it.draft.copy(spentAtMillis = millis)) }
     }
 
     fun selectMonth(month: LocalDate) {
@@ -382,14 +400,19 @@ class SpendWiseViewModel(
         return useCases.getDailyExpenseTotals(_uiState.value.snapshot.expenses, timeZone)
     }
 
-    fun getTransactionsForSelectedDate(timeZone: TimeZone): List<Expense> {
+    fun getTransactionsForSelectedDate(timeZone: TimeZone, ignoreCurrencyFilter: Boolean = false): List<Expense> {
         val state = _uiState.value
+        val filters = if (ignoreCurrencyFilter) {
+            state.transactionFilters.copy(currencyCode = null)
+        } else {
+            state.transactionFilters
+        }
         return useCases.getTransactionsByDate(
             expenses = state.snapshot.expenses,
             date = state.selectedDate,
             timeZone = timeZone,
             selectedTags = state.selectedTags,
-            filters = state.transactionFilters
+            filters = filters
         )
     }
 

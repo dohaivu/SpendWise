@@ -48,7 +48,7 @@ internal fun CalendarScreen(
     val monthTotal = dailyTotals
         .filter { it.date.year == state.selectedMonth.year && it.date.month == state.selectedMonth.month }
         .sumOf { it.totalBaseAmountCents }
-    val selectedDayExpenses = viewModel.getTransactionsForSelectedDate(timeZone)
+    val selectedDayExpenses = viewModel.getTransactionsForSelectedDate(timeZone, ignoreCurrencyFilter = true)
 
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(16.dp),
@@ -71,12 +71,18 @@ internal fun CalendarScreen(
                 month = state.selectedMonth,
                 selectedDate = state.selectedDate,
                 totalsByDate = totalsByDate,
-                currencyCode = state.baseCurrencyCode,
                 onDateSelected = viewModel::selectDate
             )
         }
         item { TagFilterBar(state, viewModel) }
-        item { TransactionFiltersPanel(state, viewModel) }
+        item {
+            TransactionFiltersPanel(
+                state = state,
+                viewModel = viewModel,
+                showCurrencyFilter = false,
+                singleLineCategories = true
+            )
+        }
         item {
             Text("Transactions on ${state.selectedDate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
         }
@@ -91,7 +97,6 @@ private fun MonthCalendar(
     month: LocalDate,
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
-    currencyCode: String,
     onDateSelected: (LocalDate) -> Unit
 ) {
     val currentMonth = month.yearMonth
@@ -123,7 +128,7 @@ private fun MonthCalendar(
                     val total = totalsByDate[date]
                     Box(
                         modifier = Modifier
-                            .aspectRatio(0.82f)
+                            .aspectRatio(0.68f)
                             .background(
                                 color = when {
                                     !isMonthDate -> Color.Transparent
@@ -134,16 +139,16 @@ private fun MonthCalendar(
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable(enabled = isMonthDate) { onDateSelected(date) }
-                            .padding(6.dp)
+                            .padding(8.dp)
                     ) {
                         if (isMonthDate) {
-                            Column {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text("${date.day}", fontWeight = FontWeight.Medium)
                                 if (total != null) {
                                     Text(
-                                        formatCompactMoney(total.totalBaseAmountCents, currencyCode),
+                                        formatCompactAmount(total.totalBaseAmountCents),
                                         style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1,
+                                        maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 }

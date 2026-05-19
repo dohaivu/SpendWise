@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -28,7 +30,9 @@ import com.spendwise.domain.usecase.filterByTransactionFilters
 @Composable
 internal fun TransactionFiltersPanel(
     state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel
+    viewModel: SpendWiseViewModel,
+    showCurrencyFilter: Boolean = true,
+    singleLineCategories: Boolean = false
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
@@ -38,33 +42,57 @@ internal fun TransactionFiltersPanel(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = state.transactionFilters.categoryId == null,
-                onClick = { viewModel.updateTransactionCategory(null) },
-                label = { Text("All categories") }
-            )
-            state.snapshot.categories.forEach { category ->
+        if (singleLineCategories) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 FilterChip(
-                    selected = state.transactionFilters.categoryId == category.id,
-                    onClick = { viewModel.updateTransactionCategory(category.id) },
-                    label = { Text("${category.icon} ${category.name}") }
+                    selected = state.transactionFilters.categoryId == null,
+                    onClick = { viewModel.updateTransactionCategory(null) },
+                    label = { Text("All categories") }
                 )
+                state.snapshot.categories.forEach { category ->
+                    FilterChip(
+                        selected = state.transactionFilters.categoryId == category.id,
+                        onClick = { viewModel.updateTransactionCategory(category.id) },
+                        label = { Text("${category.icon} ${category.name}") }
+                    )
+                }
+            }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = state.transactionFilters.categoryId == null,
+                    onClick = { viewModel.updateTransactionCategory(null) },
+                    label = { Text("All categories") }
+                )
+                state.snapshot.categories.forEach { category ->
+                    FilterChip(
+                        selected = state.transactionFilters.categoryId == category.id,
+                        onClick = { viewModel.updateTransactionCategory(category.id) },
+                        label = { Text("${category.icon} ${category.name}") }
+                    )
+                }
             }
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = state.transactionFilters.currencyCode == null,
-                onClick = { viewModel.updateTransactionCurrency(null) },
-                label = { Text("All currencies") }
-            )
-            supportedCurrencies.forEach { currency ->
+        if (showCurrencyFilter) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = state.transactionFilters.currencyCode == currency,
-                    onClick = { viewModel.updateTransactionCurrency(currency) },
-                    label = { Text(currency) }
+                    selected = state.transactionFilters.currencyCode == null,
+                    onClick = { viewModel.updateTransactionCurrency(null) },
+                    label = { Text("All currencies") }
                 )
+                supportedCurrencies.forEach { currency ->
+                    FilterChip(
+                        selected = state.transactionFilters.currencyCode == currency,
+                        onClick = { viewModel.updateTransactionCurrency(currency) },
+                        label = { Text(currency) }
+                    )
+                }
+                AssistChip(onClick = viewModel::clearTransactionFilters, label = { Text("Reset") })
             }
+        } else {
             AssistChip(onClick = viewModel::clearTransactionFilters, label = { Text("Reset") })
         }
     }
