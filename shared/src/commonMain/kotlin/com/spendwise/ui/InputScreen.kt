@@ -1,5 +1,6 @@
 package com.spendwise.ui
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -32,9 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.components.CurrencyMenu
+import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -67,13 +70,21 @@ internal fun InputScreen(
             )
         }
         item {
+            val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = state.draft.amountText,
                     onValueChange = viewModel::updateAmount,
                     label = { Text("Amount") },
                     modifier = Modifier.weight(1f),
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = if (currencyFormat.fractionDigits > 0) {
+                            KeyboardType.Decimal
+                        } else {
+                            KeyboardType.Number
+                        }
+                    )
                 )
                 CurrencyMenu(
                     selected = state.draft.currencyCode,

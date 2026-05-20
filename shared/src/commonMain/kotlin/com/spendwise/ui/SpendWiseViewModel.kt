@@ -18,6 +18,7 @@ import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.UserSettings
 import com.spendwise.domain.usecase.SpendWiseUseCases
+import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.currencyDisplayFormats
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -134,13 +135,26 @@ class SpendWiseViewModel(
     }
 
     fun updateAmount(value: String) {
-        _uiState.update { it.copy(draft = it.draft.copy(amountText = value.filterAmountInput())) }
+        _uiState.update { state ->
+            state.copy(
+                draft = state.draft.copy(
+                    amountText = sanitizeAmountTextForCurrency(value, state.draft.currencyCode)
+                )
+            )
+        }
     }
 
     fun updateCurrency(value: String) {
         _uiState.update { state ->
             val rate = if (value == state.baseCurrencyCode) "1.0" else state.draft.exchangeRateText
-            state.copy(draft = state.draft.copy(currencyCode = value, exchangeRateText = rate))
+            val fractionDigits = currencyDisplayFormat(value).fractionDigits
+            state.copy(
+                draft = state.draft.copy(
+                    currencyCode = value,
+                    amountText = state.draft.amountText.filterCurrencyAmountInput(fractionDigits),
+                    exchangeRateText = rate
+                )
+            )
         }
         refreshExchangeRate()
     }
@@ -173,7 +187,7 @@ class SpendWiseViewModel(
     }
 
     fun updateExchangeRate(value: String) {
-        _uiState.update { it.copy(draft = it.draft.copy(exchangeRateText = value.filterAmountInput())) }
+        _uiState.update { it.copy(draft = it.draft.copy(exchangeRateText = value.filterDecimalInput())) }
     }
 
     fun selectTodayForDraft() {
@@ -300,7 +314,7 @@ class SpendWiseViewModel(
                 selectedTab = SpendWiseTab.Input,
                 draft = ExpenseDraft(
                     editingExpenseId = expense.id,
-                    amountText = centsToAmountText(expense.originalAmountCents),
+                    amountText = centsToAmountText(expense.originalAmountCents, expense.originalCurrencyCode),
                     currencyCode = expense.originalCurrencyCode,
                     categoryId = expense.categoryId,
                     note = expense.note,
@@ -498,10 +512,17 @@ fun today(): LocalDate =
 
 fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
 
-fun centsToAmountText(cents: Long): String {
+fun centsToAmountText(cents: Long, currencyCode: String): String {
+    val fractionDigits = currencyDisplayFormat(currencyCode).fractionDigits
     val whole = cents / 100
     val fraction = cents % 100
+    if (fractionDigits == 0) return whole.toString()
     return if (fraction == 0L) whole.toString() else "$whole.${fraction.toString().padStart(2, '0')}"
+}
+
+internal fun sanitizeAmountTextForCurrency(value: String, currencyCode: String): String {
+    val fractionDigits = currencyDisplayFormat(currencyCode).fractionDigits
+    return value.filterCurrencyAmountInput(fractionDigits)
 }
 
 private fun emptyDraft(state: SpendWiseUiState): ExpenseDraft =
@@ -511,7 +532,19 @@ private fun emptyDraft(state: SpendWiseUiState): ExpenseDraft =
         spentAtMillis = Clock.System.now().toEpochMilliseconds()
     )
 
-private fun String.filterAmountInput(): String =
+private fun String.filterCurrencyAmountInput(fractionDigits: Int): String {
+    if (fractionDigits == 0) return filter { it.isDigit() }
+
+    val value = filter { it.isDigit() || it == '.' }
+    val firstDot = value.indexOf('.')
+    if (firstDot < 0) return value
+
+    val whole = value.take(firstDot + 1)
+    val fraction = value.drop(firstDot + 1).replace(".", "").take(fractionDigits)
+    return whole + fraction
+}
+
+private fun String.filterDecimalInput(): String =
     filter { it.isDigit() || it == '.' }.let { value ->
         val firstDot = value.indexOf('.')
         if (firstDot < 0) value else value.take(firstDot + 1) + value.drop(firstDot + 1).replace(".", "")
