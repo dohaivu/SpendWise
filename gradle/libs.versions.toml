@@ -38,7 +38,7 @@ ksoup = "0.6.0"
 pinyin4j = "2.5.1"
 kuromoji = "0.9.0"
 readability4k = "0.2.0"
-markdownRenderer = "0.40.2"
+markdownRenderer = "0.41.0"
 vico = "3.1.0"
 calendar = "2.10.1"
 
@@ -133,7 +133,7 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 koin-test = { module = "io.insert-koin:koin-test" }
 koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
-androidx-compose-bom = { module = "androidx.compose:compose-bom", version = "2026.05.00" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version = "2026.05.01" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 

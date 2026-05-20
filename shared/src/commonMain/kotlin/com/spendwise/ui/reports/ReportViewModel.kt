@@ -1,0 +1,111 @@
+package com.spendwise.ui.reports
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.spendwise.data.ExpenseRepository
+import com.spendwise.domain.CategoryReportRow
+import com.spendwise.domain.Expense
+import com.spendwise.domain.MonthlyExpenseTotal
+import com.spendwise.domain.TagParser
+import com.spendwise.domain.usecase.SpendWiseUseCases
+import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.firstDayOfMonth
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+
+class ReportViewModel(
+    repository: ExpenseRepository,
+    private val useCases: SpendWiseUseCases
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(ReportUiState())
+    val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.observeSnapshot().collect { snapshot ->
+                _uiState.update {
+                    it.copy(
+                        expenses = snapshot.expenses,
+                        categories = snapshot.categories,
+                        tagUsage = snapshot.tagUsage,
+                        baseCurrencyCode = snapshot.settings.baseCurrencyCode
+                    )
+                }
+            }
+        }
+    }
+
+    fun previousMonth() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.Companion.MONTH)) }
+    }
+
+    fun nextMonth() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.Companion.MONTH)) }
+    }
+
+    fun previousYear() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.Companion.YEAR)) }
+    }
+
+    fun nextYear() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.Companion.YEAR)) }
+    }
+
+    fun toggleTagFilter(tag: String) {
+        val normalized = TagParser.normalize(tag)
+        _uiState.update {
+            val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
+            it.copy(selectedTags = next)
+        }
+    }
+
+    fun openReportCategory(categoryId: Long) {
+        _uiState.update { it.copy(selectedReportCategoryId = categoryId) }
+    }
+
+    fun closeReportCategory() {
+        _uiState.update { it.copy(selectedReportCategoryId = null) }
+    }
+
+    fun clearTagFilters() {
+        _uiState.update { it.copy(selectedTags = emptySet()) }
+    }
+
+    fun getCategoryReport(expenses: List<Expense>): List<CategoryReportRow> {
+        val state = _uiState.value
+        return useCases.getCategoryPieReport(expenses, state.categories, state.selectedTags)
+    }
+
+    fun getYearlyCategoryReport(year: Int, timeZone: TimeZone): List<CategoryReportRow> {
+        val state = _uiState.value
+        return useCases.getYearlyCategoryReport(
+            expenses = state.expenses,
+            categories = state.categories,
+            year = year,
+            selectedTags = state.selectedTags,
+            timeZone = timeZone
+        )
+    }
+
+    fun getAnnualMonthlyReport(year: Int, timeZone: TimeZone): List<MonthlyExpenseTotal> {
+        val state = _uiState.value
+        return useCases.getAnnualMonthlyReport(
+            expenses = state.expenses,
+            year = year,
+            selectedTags = state.selectedTags,
+            timeZone = timeZone
+        )
+    }
+
+    fun selectMonth(month: LocalDate) {
+        _uiState.update { it.copy(selectedMonth = month.firstDayOfMonth()) }
+    }
+}
