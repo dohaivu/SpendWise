@@ -123,6 +123,22 @@ internal fun formatMoney(cents: Long, currencyCode: String): String {
     return currencyDisplayFormat(currencyCode).format(cents)
 }
 
+internal fun formatMoneyValue(cents: Long, currencyCode: String): String {
+    val format = currencyDisplayFormat(currencyCode)
+    val sign = if (cents < 0) "-" else ""
+    val amount = cents.absoluteValue
+    val whole = amount / 100
+    val fraction = amount % 100
+    return buildString {
+        append(sign)
+        append(groupWholePart(whole, format.groupSeparator))
+        if (format.fractionDigits > 0) {
+            append(format.decimalSeparator)
+            append(fraction.toString().padStart(2, '0').take(format.fractionDigits))
+        }
+    }
+}
+
 internal fun formatCompactMoney(cents: Long, currencyCode: String): String {
     return currencyDisplayFormat(currencyCode).formatCompact(cents)
 }

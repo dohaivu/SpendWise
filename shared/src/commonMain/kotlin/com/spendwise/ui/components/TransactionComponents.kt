@@ -10,7 +10,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -28,16 +27,28 @@ import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
-import com.spendwise.ui.supportedCurrencies
 
 @Composable
 internal fun TransactionFiltersPanel(
     state: SpendWiseUiState,
     viewModel: SpendWiseViewModel,
-    showCurrencyFilter: Boolean = true,
     singleLineCategories: Boolean = false
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (state.snapshot.tagUsage.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                state.snapshot.tagUsage.forEach { usage ->
+                    FilterChip(
+                        selected = usage.name in state.selectedTags,
+                        onClick = { viewModel.toggleTagFilter(usage.name) },
+                        label = { Text("#${usage.name}") }
+                    )
+                }
+            }
+        }
         OutlinedTextField(
             value = state.transactionFilters.query,
             onValueChange = viewModel::updateTransactionQuery,
@@ -48,7 +59,7 @@ internal fun TransactionFiltersPanel(
         if (singleLineCategories) {
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 FilterChip(
                     selected = state.transactionFilters.categoryId == null,
@@ -64,7 +75,7 @@ internal fun TransactionFiltersPanel(
                 }
             }
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 FilterChip(
                     selected = state.transactionFilters.categoryId == null,
                     onClick = { viewModel.updateTransactionCategory(null) },
@@ -78,26 +89,6 @@ internal fun TransactionFiltersPanel(
                     )
                 }
             }
-        }
-        if (showCurrencyFilter) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = state.transactionFilters.currencyCode == null,
-                    onClick = { viewModel.updateTransactionCurrency(null) },
-                    label = { Text("All currencies") }
-                )
-                supportedCurrencies.forEach { currency ->
-                    val format = currencyDisplayFormat(currency)
-                    FilterChip(
-                        selected = state.transactionFilters.currencyCode == currency,
-                        onClick = { viewModel.updateTransactionCurrency(currency) },
-                        label = { Text("${format.symbol} $currency") }
-                    )
-                }
-                AssistChip(onClick = viewModel::clearTransactionFilters, label = { Text("Reset") })
-            }
-        } else {
-            AssistChip(onClick = viewModel::clearTransactionFilters, label = { Text("Reset") })
         }
     }
 }
