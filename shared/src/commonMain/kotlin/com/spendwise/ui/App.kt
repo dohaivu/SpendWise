@@ -25,33 +25,58 @@ import androidx.compose.ui.Modifier
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.spendwise.ui.calendar.CalendarScreen
+import com.spendwise.ui.calendar.CalendarViewModel
+import com.spendwise.ui.expense.ExpenseViewModel
+import com.spendwise.ui.expense.ExpenseScreen
 import com.spendwise.ui.reports.CategoryReportScreen
 import com.spendwise.ui.reports.ReportScreen
-import com.spendwise.ui.settings.OthersScreen
+import com.spendwise.ui.reports.ReportViewModel
+import com.spendwise.ui.settings.SettingsScreen
+import com.spendwise.ui.settings.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SpendWiseApp(
-    viewModel: SpendWiseViewModel = koinViewModel()
+    viewModel: AppViewModel = koinViewModel(),
+    expenseViewModel: ExpenseViewModel = koinViewModel(),
+    calendarViewModel: CalendarViewModel = koinViewModel(),
+    reportViewModel: ReportViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val appState by viewModel.uiState.collectAsState()
+    val expenseState by expenseViewModel.uiState.collectAsState()
+    val calendarState by calendarViewModel.uiState.collectAsState()
+    val reportState by reportViewModel.uiState.collectAsState()
+    val settingsState by settingsViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
-    val reportCategory = state.selectedReportCategoryId?.let { categoryId ->
-        state.snapshot.categories.firstOrNull { it.id == categoryId }
+    val reportCategory = reportState.selectedReportCategoryId?.let { categoryId ->
+        reportState.categories.firstOrNull { it.id == categoryId }
     }
-    val isReportCategoryDetail = state.selectedTab == SpendWiseTab.Report && reportCategory != null
+    val isReportCategoryDetail = appState.selectedTab == SpendWiseTab.Report && reportCategory != null
 
-    LaunchedEffect(state.message) {
-        val message = state.message ?: return@LaunchedEffect
+    LaunchedEffect(expenseState.message, settingsState.message) {
+        val message = expenseState.message ?: settingsState.message ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        viewModel.consumeMessage()
+        if (expenseState.message != null) {
+            expenseViewModel.consumeMessage()
+        }
+        if (settingsState.message != null) {
+            settingsViewModel.consumeMessage()
+        }
     }
 
     NavigationBackHandler(
         state = backState,
-        isBackEnabled = state.selectedTab != SpendWiseTab.Input || isReportCategoryDetail,
-        onBackCompleted = viewModel::handleBackNavigation
+        isBackEnabled = appState.selectedTab != SpendWiseTab.Expense || isReportCategoryDetail,
+        onBackCompleted = {
+            if (isReportCategoryDetail) {
+                reportViewModel.closeReportCategory()
+            } else {
+                viewModel.handleBackNavigation()
+            }
+        }
     )
 
     MaterialTheme {
@@ -63,34 +88,55 @@ fun SpendWiseApp(
                         NavigationBar {
                             SpendWiseTab.entries.forEach { tab ->
                                 NavigationBarItem(
-                                    selected = state.selectedTab == tab,
+                                    selected = appState.selectedTab == tab,
                                     onClick = { viewModel.selectTab(tab) },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
-                                    label = { Text(tab.label(state.language)) }
+                                    label = { Text(tab.label(appState.language)) }
                                 )
                             }
                         }
                     }
                 }
             ) { padding ->
-                when (state.selectedTab) {
-                    SpendWiseTab.Input -> InputScreen(state, viewModel, Modifier.padding(padding))
-                    SpendWiseTab.Calendar -> CalendarScreen(state, viewModel, Modifier.padding(padding))
+                when (appState.selectedTab) {
+                    SpendWiseTab.Expense -> ExpenseScreen(expenseState, expenseViewModel, Modifier.padding(padding))
+                    SpendWiseTab.Calendar -> CalendarScreen(
+                        state = calendarState,
+                        calendarViewModel = calendarViewModel,
+                        onExpenseClick = { expense ->
+                            expenseViewModel.editExpense(expense)
+                            viewModel.selectTab(SpendWiseTab.Expense)
+                        },
+                        modifier = Modifier.padding(padding)
+                    )
                     SpendWiseTab.Report -> {
                         val category = reportCategory
                         if (category != null) {
                             CategoryReportScreen(
-                                state = state,
+                                state = reportState,
                                 category = category,
-                                onBack = viewModel::closeReportCategory,
-                                onExpenseClick = viewModel::editExpense,
+                                onBack = reportViewModel::closeReportCategory,
+                                onExpenseClick = { expense ->
+                                    expenseViewModel.editExpense(expense)
+                                    viewModel.selectTab(SpendWiseTab.Expense)
+                                },
                                 modifier = Modifier.padding(padding)
                             )
                         } else {
-                            ReportScreen(state, viewModel, Modifier.padding(padding))
+                            ReportScreen(
+                                state = reportState,
+                                reportViewModel = reportViewModel,
+                                modifier = Modifier.padding(padding)
+                            )
                         }
                     }
-                    SpendWiseTab.Others -> OthersScreen(state, viewModel, Modifier.padding(padding))
+                    SpendWiseTab.Settings -> SettingsScreen(
+                        state = settingsState,
+                        reportState = reportState,
+                        settingsViewModel = settingsViewModel,
+                        reportViewModel = reportViewModel,
+                        modifier = Modifier.padding(padding)
+                    )
                 }
             }
         }
@@ -98,24 +144,24 @@ fun SpendWiseApp(
 }
 
 private fun SpendWiseTab.icon() = when (this) {
-    SpendWiseTab.Input -> Icons.Default.Add
+    SpendWiseTab.Expense -> Icons.Default.Add
     SpendWiseTab.Calendar -> Icons.Default.CalendarMonth
     SpendWiseTab.Report -> Icons.Default.BarChart
-    SpendWiseTab.Others -> Icons.Default.MoreHoriz
+    SpendWiseTab.Settings -> Icons.Default.MoreHoriz
 }
 
 private fun SpendWiseTab.label(language: AppLanguage): String = when (language) {
     AppLanguage.English -> name
     AppLanguage.Vietnamese -> when (this) {
-        SpendWiseTab.Input -> "Nhập"
+        SpendWiseTab.Expense -> "Nhập"
         SpendWiseTab.Calendar -> "Lịch"
         SpendWiseTab.Report -> "Báo cáo"
-        SpendWiseTab.Others -> "Khác"
+        SpendWiseTab.Settings -> "Khác"
     }
     AppLanguage.Chinese -> when (this) {
-        SpendWiseTab.Input -> "输入"
+        SpendWiseTab.Expense -> "输入"
         SpendWiseTab.Calendar -> "日历"
         SpendWiseTab.Report -> "报表"
-        SpendWiseTab.Others -> "其他"
+        SpendWiseTab.Settings -> "其他"
     }
 }

@@ -29,14 +29,15 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.ui.AppLanguage
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.reports.ReportViewModel
+import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.reports.AnnualReportScreen
 import com.spendwise.ui.supportedCurrencies
 
-internal enum class OthersPane {
+internal enum class SettingsPane {
     Home,
     AnnualReport,
     CategoryList,
@@ -45,12 +46,14 @@ internal enum class OthersPane {
 }
 
 @Composable
-internal fun OthersScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+internal fun SettingsScreen(
+    state: SettingsUiState,
+    reportState: ReportUiState,
+    settingsViewModel: SettingsViewModel,
+    reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier
 ) {
-    var pane by remember { mutableStateOf(OthersPane.Home) }
+    var pane by remember { mutableStateOf(SettingsPane.Home) }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
 
     NavigationBackHandler(
@@ -62,73 +65,73 @@ internal fun OthersScreen(
     )
 
     when (pane) {
-        OthersPane.Home -> OthersHomeScreen(
+        SettingsPane.Home -> SettingsHomeScreen(
             state = state,
-            viewModel = viewModel,
+            viewModel = settingsViewModel,
             modifier = modifier,
             onEditCategories = {
-                viewModel.cancelCategoryEdit()
-                pane = OthersPane.CategoryList
+                settingsViewModel.cancelCategoryEdit()
+                pane = SettingsPane.CategoryList
             },
             onTagUsage = {
-                pane = OthersPane.TagUsage
+                pane = SettingsPane.TagUsage
             },
             onAnnualReport = {
-                pane = OthersPane.AnnualReport
+                pane = SettingsPane.AnnualReport
             }
         )
 
-        OthersPane.AnnualReport -> AnnualReportScreen(
-            state = state,
-            viewModel = viewModel,
+        SettingsPane.AnnualReport -> AnnualReportScreen(
+            state = reportState,
+            reportViewModel = reportViewModel,
             modifier = modifier,
-            onBack = { pane = OthersPane.Home }
+            onBack = { pane = SettingsPane.Home }
         )
 
-        OthersPane.CategoryList -> EditCategoriesScreen(
+        SettingsPane.CategoryList -> EditCategoriesScreen(
             state = state,
-            viewModel = viewModel,
+            viewModel = settingsViewModel,
             modifier = modifier,
-            onBack = { pane = OthersPane.Home },
+            onBack = { pane = SettingsPane.Home },
             onAdd = {
-                viewModel.cancelCategoryEdit()
-                pane = OthersPane.CategoryEditor
+                settingsViewModel.cancelCategoryEdit()
+                pane = SettingsPane.CategoryEditor
             },
             onEdit = { category ->
-                viewModel.editCategory(category)
-                pane = OthersPane.CategoryEditor
+                settingsViewModel.editCategory(category)
+                pane = SettingsPane.CategoryEditor
             }
         )
 
-        OthersPane.CategoryEditor -> CategoryEditorScreen(
+        SettingsPane.CategoryEditor -> CategoryEditorScreen(
             state = state,
-            viewModel = viewModel,
+            viewModel = settingsViewModel,
             modifier = modifier,
-            onBack = { pane = OthersPane.CategoryList },
-            onSaved = { pane = OthersPane.CategoryList }
+            onBack = { pane = SettingsPane.CategoryList },
+            onSaved = { pane = SettingsPane.CategoryList }
         )
 
-        OthersPane.TagUsage -> TagUsageScreen(
+        SettingsPane.TagUsage -> TagUsageScreen(
             state = state,
-            viewModel = viewModel,
+            viewModel = settingsViewModel,
             modifier = modifier,
-            onBack = { pane = OthersPane.Home }
+            onBack = { pane = SettingsPane.Home }
         )
     }
 }
 
-internal fun OthersPane.backDestination(): OthersPane? = when (this) {
-    OthersPane.Home -> null
-    OthersPane.AnnualReport,
-    OthersPane.CategoryList,
-    OthersPane.TagUsage -> OthersPane.Home
-    OthersPane.CategoryEditor -> OthersPane.CategoryList
+internal fun SettingsPane.backDestination(): SettingsPane? = when (this) {
+    SettingsPane.Home -> null
+    SettingsPane.AnnualReport,
+    SettingsPane.CategoryList,
+    SettingsPane.TagUsage -> SettingsPane.Home
+    SettingsPane.CategoryEditor -> SettingsPane.CategoryList
 }
 
 @Composable
-private fun OthersHomeScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+private fun SettingsHomeScreen(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
     modifier: Modifier,
     onEditCategories: () -> Unit,
     onTagUsage: () -> Unit,
@@ -139,12 +142,12 @@ private fun OthersHomeScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text("Others", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+            Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
         }
         item {
             SettingsRow(
                 title = "Edit Categories",
-                subtitle = "${state.snapshot.categories.count { !it.archived }} active categories",
+                subtitle = "${state.categories.count { !it.archived }} active categories",
                 onClick = onEditCategories
             )
         }
@@ -153,21 +156,21 @@ private fun OthersHomeScreen(
         item {
             SettingsRow(
                 title = "Tag usage",
-                subtitle = "${state.snapshot.tagUsage.size} tracked tags",
+                subtitle = "${state.tagUsage.size} tracked tags",
                 onClick = onTagUsage
             )
         }
         item {
             SettingsRow(
                 title = "Annual Report",
-                subtitle = "Monthly spending totals for ${state.selectedMonth.year}",
+                subtitle = "Monthly spending totals",
                 onClick = onAnnualReport
             )
         }
         item {
             Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(
-                "${state.snapshot.expenses.size} expenses • ${state.snapshot.categories.size} categories • ${state.snapshot.tagUsage.size} tags",
+                "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -195,7 +198,7 @@ private fun SettingsRow(
 }
 
 @Composable
-private fun CurrencySettings(state: SpendWiseUiState, viewModel: SpendWiseViewModel) {
+private fun CurrencySettings(state: SettingsUiState, viewModel: SettingsViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     val format = currencyDisplayFormat(state.baseCurrencyCode)
 
@@ -217,7 +220,7 @@ private fun CurrencySettings(state: SpendWiseUiState, viewModel: SpendWiseViewMo
 }
 
 @Composable
-private fun LanguageSettings(state: SpendWiseUiState, viewModel: SpendWiseViewModel) {
+private fun LanguageSettings(state: SettingsUiState, viewModel: SettingsViewModel) {
     var showDialog by remember { mutableStateOf(false) }
 
     SettingValueRow(

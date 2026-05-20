@@ -7,10 +7,10 @@ import kotlin.test.assertNull
 class OthersPaneBackNavigationTest {
     @Test
     fun nestedOthersPanesNavigateBackToTheirParent() {
-        assertNull(OthersPane.Home.backDestination())
-        assertEquals(OthersPane.Home, OthersPane.AnnualReport.backDestination())
-        assertEquals(OthersPane.Home, OthersPane.CategoryList.backDestination())
-        assertEquals(OthersPane.Home, OthersPane.TagUsage.backDestination())
-        assertEquals(OthersPane.CategoryList, OthersPane.CategoryEditor.backDestination())
+        assertNull(SettingsPane.Home.backDestination())
+        assertEquals(SettingsPane.Home, SettingsPane.AnnualReport.backDestination())
+        assertEquals(SettingsPane.Home, SettingsPane.CategoryList.backDestination())
+        assertEquals(SettingsPane.Home, SettingsPane.TagUsage.backDestination())
+        assertEquals(SettingsPane.CategoryList, SettingsPane.CategoryEditor.backDestination())
     }
 }

@@ -40,8 +40,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.settings.SettingsViewModel
+import com.spendwise.ui.SettingsUiState
 
 private val categoryIcons = listOf(
     "🍜", "🥤", "👕", "💄",
@@ -61,8 +61,8 @@ private val categoryColors = listOf(
 
 @Composable
 internal fun EditCategoriesScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
     modifier: Modifier,
     onBack: () -> Unit,
     onAdd: () -> Unit,
@@ -76,7 +76,7 @@ internal fun EditCategoriesScreen(
         })
         CategoryTypeTabs()
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(state.snapshot.categories.filterNot { it.archived }, key = { it.id }) { category ->
+            items(state.categories.filterNot { it.archived }, key = { it.id }) { category ->
                 CategorySortRow(
                     category = category,
                     onClick = { onEdit(category) },
@@ -91,8 +91,8 @@ internal fun EditCategoriesScreen(
 
 @Composable
 internal fun CategoryEditorScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
     modifier: Modifier,
     onBack: () -> Unit,
     onSaved: () -> Unit
@@ -240,7 +240,7 @@ private fun CategorySortRow(
 }
 
 @Composable
-private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SpendWiseViewModel) {
+private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = Modifier.fillMaxWidth().height(288.dp).padding(horizontal = 16.dp),
@@ -268,7 +268,7 @@ private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SpendWiseViewModel
 }
 
 @Composable
-private fun ColorGrid(categoryDraft: CategoryDraft, viewModel: SpendWiseViewModel) {
+private fun ColorGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
         modifier = Modifier.fillMaxWidth().height(270.dp).padding(horizontal = 16.dp),

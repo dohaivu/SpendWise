@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TagParser
-import com.spendwise.ui.SpendWiseUiState
+import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.formatCompactMoney
 import com.spendwise.ui.components.formatMoney
@@ -52,14 +52,14 @@ import kotlin.math.ceil
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CategoryReportScreen(
-    state: SpendWiseUiState,
+    state: ReportUiState,
     category: Category,
     onBack: () -> Unit,
     onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
-    val categoryExpenses = state.snapshot.expenses
+    val categoryExpenses = state.expenses
         .filter { it.categoryId == category.id }
         .filter { it.matchesSelectedTags(state.selectedTags) }
     val monthExpenses = categoryExpenses

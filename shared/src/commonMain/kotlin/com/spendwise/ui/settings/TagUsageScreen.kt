@@ -22,16 +22,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.settings.SettingsViewModel
+import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.TagUsageSort
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.formatMoney
 
 @Composable
 internal fun TagUsageScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
     onBack: () -> Unit
 ) {

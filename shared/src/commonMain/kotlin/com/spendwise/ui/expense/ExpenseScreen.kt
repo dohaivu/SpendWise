@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.expense
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -37,9 +37,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.TagParser
+import com.spendwise.ui.ExpenseUiState
 import com.spendwise.ui.components.CurrencyMenu
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
+import com.spendwise.ui.today
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -49,9 +51,9 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
-internal fun InputScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+internal fun ExpenseScreen(
+    state: ExpenseUiState,
+    viewModel: ExpenseViewModel,
     modifier: Modifier = Modifier
 ) {
     var noteField by remember { mutableStateOf(TextFieldValue(state.draft.note, TextRange(state.draft.note.length))) }
@@ -144,7 +146,7 @@ internal fun InputScreen(
             Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                state.snapshot.categories.filterNot { it.archived }.forEach { category ->
+                state.categories.filterNot { it.archived }.forEach { category ->
                     FilterChip(
                         selected = state.draft.categoryId == category.id,
                         onClick = { viewModel.updateCategory(category.id) },

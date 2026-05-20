@@ -1,4 +1,4 @@
-package com.spendwise.ui
+package com.spendwise.ui.calendar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,12 +38,14 @@ import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
+import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.applyTransactionFilters
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
 import com.spendwise.ui.components.monthTitle
+import com.spendwise.ui.firstDayOfMonth
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant
@@ -57,13 +59,14 @@ import kotlinx.datetime.toLocalDateTime
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CalendarScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: CalendarUiState,
+    calendarViewModel: CalendarViewModel,
+    onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
     val filterWithoutCurrency = state.transactionFilters.copy(currencyCode = null)
-    val monthTransactions = state.snapshot.expenses
+    val monthTransactions = state.expenses
         .filter { it.spentDate(timeZone).isSameMonth(state.selectedMonth) }
         .applyTransactionFilters(filterWithoutCurrency, state.selectedTags)
         .sortedByDescending { it.spentAtMillis }
@@ -102,19 +105,19 @@ internal fun CalendarScreen(
             ) {
                 MonthHeader(
                     month = state.selectedMonth,
-                    onPreviousMonth = viewModel::previousMonth,
-                    onNextMonth = viewModel::nextMonth
+                    onPreviousMonth = calendarViewModel::previousMonth,
+                    onNextMonth = calendarViewModel::nextMonth
                 )
                 MonthCalendar(
                     month = state.selectedMonth,
                     selectedDate = state.selectedDate,
                     totalsByDate = totalsByDate,
                     currencyCode = state.baseCurrencyCode,
-                    onDateSelected = viewModel::selectDate
+                    onDateSelected = calendarViewModel::selectDate
                 )
                 TransactionFiltersPanel(
                     state = state,
-                    viewModel = viewModel,
+                    calendarViewModel = calendarViewModel,
                     singleLineCategories = true
                 )
                 MonthTotalRow(
@@ -125,9 +128,9 @@ internal fun CalendarScreen(
             }
             TransactionsByDateList(
                 groupedTransactions = groupedTransactions,
-                categories = state.snapshot.categories,
+                categories = state.categories,
                 currencyCode = state.baseCurrencyCode,
-                onExpenseClick = viewModel::editExpense,
+                onExpenseClick = onExpenseClick,
                 modifier = Modifier.weight(1f)
             )
         }

@@ -7,9 +7,9 @@ import kotlin.test.assertNull
 class BackNavigationTest {
     @Test
     fun mainTabsNavigateBackToInput() {
-        assertNull(SpendWiseTab.Input.backDestination())
-        assertEquals(SpendWiseTab.Input, SpendWiseTab.Calendar.backDestination())
-        assertEquals(SpendWiseTab.Input, SpendWiseTab.Report.backDestination())
-        assertEquals(SpendWiseTab.Input, SpendWiseTab.Others.backDestination())
+        assertNull(SpendWiseTab.Expense.backDestination())
+        assertEquals(SpendWiseTab.Expense, SpendWiseTab.Calendar.backDestination())
+        assertEquals(SpendWiseTab.Expense, SpendWiseTab.Report.backDestination())
+        assertEquals(SpendWiseTab.Expense, SpendWiseTab.Settings.backDestination())
     }
 }

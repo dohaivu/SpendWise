@@ -25,25 +25,25 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.calendar.CalendarViewModel
+import com.spendwise.ui.CalendarUiState
 
 @Composable
 internal fun TransactionFiltersPanel(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: CalendarUiState,
+    calendarViewModel: CalendarViewModel,
     singleLineCategories: Boolean = false
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (state.snapshot.tagUsage.isNotEmpty()) {
+        if (state.tagUsage.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                state.snapshot.tagUsage.forEach { usage ->
+                state.tagUsage.forEach { usage ->
                     FilterChip(
                         selected = usage.name in state.selectedTags,
-                        onClick = { viewModel.toggleTagFilter(usage.name) },
+                        onClick = { calendarViewModel.toggleTagFilter(usage.name) },
                         label = { Text("#${usage.name}") }
                     )
                 }
@@ -51,7 +51,7 @@ internal fun TransactionFiltersPanel(
         }
         OutlinedTextField(
             value = state.transactionFilters.query,
-            onValueChange = viewModel::updateTransactionQuery,
+            onValueChange = calendarViewModel::updateTransactionQuery,
             label = { Text("Search note") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -63,13 +63,13 @@ internal fun TransactionFiltersPanel(
             ) {
                 FilterChip(
                     selected = state.transactionFilters.categoryId == null,
-                    onClick = { viewModel.updateTransactionCategory(null) },
+                    onClick = { calendarViewModel.updateTransactionCategory(null) },
                     label = { Text("All categories") }
                 )
-                state.snapshot.categories.forEach { category ->
+                state.categories.forEach { category ->
                     FilterChip(
                         selected = state.transactionFilters.categoryId == category.id,
-                        onClick = { viewModel.updateTransactionCategory(category.id) },
+                        onClick = { calendarViewModel.updateTransactionCategory(category.id) },
                         label = { Text("${category.icon} ${category.name}") }
                     )
                 }
@@ -78,13 +78,13 @@ internal fun TransactionFiltersPanel(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 FilterChip(
                     selected = state.transactionFilters.categoryId == null,
-                    onClick = { viewModel.updateTransactionCategory(null) },
+                    onClick = { calendarViewModel.updateTransactionCategory(null) },
                     label = { Text("All categories") }
                 )
-                state.snapshot.categories.forEach { category ->
+                state.categories.forEach { category ->
                     FilterChip(
                         selected = state.transactionFilters.categoryId == category.id,
-                        onClick = { viewModel.updateTransactionCategory(category.id) },
+                        onClick = { calendarViewModel.updateTransactionCategory(category.id) },
                         label = { Text("${category.icon} ${category.name}") }
                     )
                 }

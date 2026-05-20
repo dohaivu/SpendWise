@@ -45,9 +45,8 @@ import com.patrykandpatrick.vico.compose.pie.data.pieSeries
 import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
 import com.spendwise.domain.Expense
-import com.spendwise.ui.MonthHeader
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
+import com.spendwise.ui.calendar.MonthHeader
+import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TagFilterBar
 import kotlinx.datetime.LocalDate
@@ -58,15 +57,15 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReportScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: ReportUiState,
+    reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
-    val reportExpenses = state.snapshot.expenses.filter { expense ->
+    val reportExpenses = state.expenses.filter { expense ->
         expense.spentDate(timeZone).isSameMonth(state.selectedMonth)
     }
-    val rows = viewModel.getCategoryReport(reportExpenses)
+    val rows = reportViewModel.getCategoryReport(reportExpenses)
     val total = rows.sumOf { it.totalBaseAmountCents }
 
     Scaffold(
@@ -94,10 +93,10 @@ internal fun ReportScreen(
                 ) {
                     MonthHeader(
                         month = state.selectedMonth,
-                        onPreviousMonth = viewModel::previousMonth,
-                        onNextMonth = viewModel::nextMonth
+                        onPreviousMonth = reportViewModel::previousMonth,
+                        onNextMonth = reportViewModel::nextMonth
                     )
-                    TagFilterBar(state, viewModel)
+                    TagFilterBar(state, reportViewModel)
                 }
             }
             item {
@@ -110,7 +109,7 @@ internal fun ReportScreen(
                 CategoryReportRowView(
                     row = row,
                     currencyCode = state.baseCurrencyCode,
-                    onClick = { viewModel.openReportCategory(row.category.id) }
+                    onClick = { reportViewModel.openReportCategory(row.category.id) }
                 )
                 HorizontalDivider()
             }

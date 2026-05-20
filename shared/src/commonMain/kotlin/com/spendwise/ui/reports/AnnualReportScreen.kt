@@ -31,22 +31,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.MonthlyExpenseTotal
-import com.spendwise.ui.SpendWiseUiState
-import com.spendwise.ui.SpendWiseViewModel
-import com.spendwise.ui.YearHeader
+import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.calendar.YearHeader
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 
 @Composable
 internal fun AnnualReportScreen(
-    state: SpendWiseUiState,
-    viewModel: SpendWiseViewModel,
+    state: ReportUiState,
+    reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier,
     onBack: () -> Unit
 ) {
     val year = state.selectedMonth.year
-    val monthlyTotals = viewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
+    val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
     val total = monthlyTotals.sumOf { it.totalBaseAmountCents }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -59,8 +58,8 @@ internal fun AnnualReportScreen(
                 ) {
                     YearHeader(
                         year = year,
-                        onPreviousYear = viewModel::previousYear,
-                        onNextYear = viewModel::nextYear
+                        onPreviousYear = reportViewModel::previousYear,
+                        onNextYear = reportViewModel::nextYear
                     )
                     AnnualColumnChart(
                         rows = monthlyTotals,
