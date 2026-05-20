@@ -16,11 +16,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +40,7 @@ import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AnnualReportScreen(
     state: ReportUiState,
@@ -48,9 +52,26 @@ internal fun AnnualReportScreen(
     val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
     val total = monthlyTotals.sumOf { it.totalBaseAmountCents }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        AnnualReportTopBar(onBack = onBack)
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                title = {
+                    Text(
+                        "Annual Report",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            )
+        }
+    ) { padding ->
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
             item {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
@@ -77,24 +98,6 @@ internal fun AnnualReportScreen(
                 HorizontalDivider()
             }
         }
-    }
-}
-
-@Composable
-private fun AnnualReportTopBar(onBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-        }
-        Text(
-            "Annual Report",
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }
 

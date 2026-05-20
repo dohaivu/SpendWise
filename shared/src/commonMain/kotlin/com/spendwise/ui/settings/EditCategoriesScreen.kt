@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
-import com.spendwise.ui.settings.SettingsViewModel
 import com.spendwise.ui.SettingsUiState
 
 private val categoryIcons = listOf(
@@ -63,27 +62,33 @@ private val categoryColors = listOf(
 internal fun EditCategoriesScreen(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onEdit: (Category) -> Unit
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        CategoryTopBar(title = "Edit categories", onBack = onBack, action = {
+    SettingsScaffold(
+        title = "Edit categories",
+        modifier = modifier,
+        navigationIcon = { SettingsBackButton(onBack) },
+        actions = {
             IconButton(onClick = onAdd) {
                 Icon(Icons.Default.Add, contentDescription = "Add category")
             }
-        })
-        CategoryTypeTabs()
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(state.categories.filterNot { it.archived }, key = { it.id }) { category ->
-                CategorySortRow(
-                    category = category,
-                    onClick = { onEdit(category) },
-                    onMoveUp = { viewModel.moveCategoryUp(category.id) },
-                    onMoveDown = { viewModel.moveCategoryDown(category.id) }
-                )
-                HorizontalDivider()
+        }
+    ) { contentModifier ->
+        Column(modifier = contentModifier.fillMaxSize()) {
+            CategoryTypeTabs()
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(state.categories.filterNot { it.archived }, key = { it.id }) { category ->
+                    CategorySortRow(
+                        category = category,
+                        onClick = { onEdit(category) },
+                        onMoveUp = { viewModel.moveCategoryUp(category.id) },
+                        onMoveDown = { viewModel.moveCategoryDown(category.id) }
+                    )
+                    HorizontalDivider()
+                }
             }
         }
     }
@@ -93,14 +98,17 @@ internal fun EditCategoriesScreen(
 internal fun CategoryEditorScreen(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
     val title = state.categoryDraft.name.ifBlank { "New category" }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        CategoryTopBar(title = title, onBack = onBack, action = {
+    SettingsScaffold(
+        title = title,
+        modifier = modifier,
+        navigationIcon = { SettingsBackButton(onBack) },
+        actions = {
             if (state.categoryDraft.editingCategoryId != null) {
                 IconButton(
                     onClick = {
@@ -112,7 +120,9 @@ internal fun CategoryEditorScreen(
                     Icon(Icons.Default.Delete, contentDescription = "Archive category")
                 }
             }
-        })
+        }
+    ) { contentModifier ->
+        Column(modifier = contentModifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -155,31 +165,14 @@ internal fun CategoryEditorScreen(
         ) {
             Text("Save", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge)
         }
+        }
     }
 }
 
 @Composable
-private fun CategoryTopBar(
-    title: String,
-    onBack: () -> Unit,
-    action: @Composable () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-        }
-        Text(
-            title,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        action()
+internal fun SettingsBackButton(onBack: () -> Unit) {
+    IconButton(onClick = onBack) {
+        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
     }
 }
 

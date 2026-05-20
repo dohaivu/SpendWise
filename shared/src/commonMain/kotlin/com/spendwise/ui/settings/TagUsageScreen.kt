@@ -16,7 +16,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,48 +34,41 @@ internal fun TagUsageScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = onBack) {
-                    Text("Back")
-                }
-                Text(
-                    "Tag usage",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-        item {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TagUsageSort.entries.forEach { sort ->
-                    FilterChip(
-                        selected = state.tagUsageSort == sort,
-                        onClick = { viewModel.setTagUsageSort(sort) },
-                        label = { Text(sort.label()) }
-                    )
-                }
-            }
-        }
-        items(viewModel.getSortedTagUsage()) { usage ->
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                        Text("${usage.expenseCount} uses")
-                        Spacer(Modifier.width(14.dp))
-                        MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode)
+    SettingsScaffold(
+        title = "Tag usage",
+        modifier = modifier,
+        navigationIcon = { SettingsBackButton(onBack) }
+    ) { contentModifier ->
+        LazyColumn(
+            modifier = contentModifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TagUsageSort.entries.forEach { sort ->
+                        FilterChip(
+                            selected = state.tagUsageSort == sort,
+                            onClick = { viewModel.setTagUsageSort(sort) },
+                            label = { Text(sort.label()) }
+                        )
                     }
-                    Text(
-                        "This month ${formatMoney(usage.currentMonthAmountCents, state.baseCurrencyCode)} • Previous ${formatMoney(usage.previousMonthAmountCents, state.baseCurrencyCode)}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                }
+            }
+            items(viewModel.getSortedTagUsage()) { usage ->
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                            Text("${usage.expenseCount} uses")
+                            Spacer(Modifier.width(14.dp))
+                            MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode)
+                        }
+                        Text(
+                            "This month ${formatMoney(usage.currentMonthAmountCents, state.baseCurrencyCode)} • Previous ${formatMoney(usage.previousMonthAmountCents, state.baseCurrencyCode)}",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
                 }
             }
         }
