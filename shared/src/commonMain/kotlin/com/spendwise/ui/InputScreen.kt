@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -39,10 +40,12 @@ import com.spendwise.domain.TagParser
 import com.spendwise.ui.components.CurrencyMenu
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
@@ -106,12 +109,25 @@ internal fun InputScreen(
         }
         item {
             var showDatePicker by remember { mutableStateOf(false) }
-            Text("Date", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.height(8.dp))
+            val selectedDate = state.draft.spentAtMillis.toLocalDate()
+            val today = today()
+            val yesterday = today.minus(1, DateTimeUnit.DAY)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = viewModel::selectTodayForDraft, label = { Text("Today") })
-                AssistChip(onClick = viewModel::selectYesterdayForDraft, label = { Text("Yesterday") })
-                AssistChip(onClick = { showDatePicker = true }, label = { Text(formatDate(state.draft.spentAtMillis)) })
+                DateAssistChip(
+                    selected = selectedDate == today,
+                    onClick = viewModel::selectTodayForDraft,
+                    label = "Today"
+                )
+                DateAssistChip(
+                    selected = selectedDate == yesterday,
+                    onClick = viewModel::selectYesterdayForDraft,
+                    label = "Yesterday"
+                )
+                DateAssistChip(
+                    selected = selectedDate != today && selectedDate != yesterday,
+                    onClick = { showDatePicker = true },
+                    label = formatDate(state.draft.spentAtMillis)
+                )
             }
             if (showDatePicker) {
                 DraftDatePickerDialog(
@@ -127,12 +143,13 @@ internal fun InputScreen(
         item {
             Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 state.snapshot.categories.filterNot { it.archived }.forEach { category ->
                     FilterChip(
                         selected = state.draft.categoryId == category.id,
                         onClick = { viewModel.updateCategory(category.id) },
-                        label = { Text("${category.icon} ${category.name}") }
+                        label = { Text("${category.icon} ${category.name}") },
+                        modifier = Modifier.height(40.dp)
                     )
                 }
             }
@@ -183,6 +200,30 @@ internal fun InputScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DateAssistChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String
+) {
+    AssistChip(
+        onClick = onClick,
+        label = { Text(label) },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+            labelColor = if (selected) {
+                MaterialTheme.colorScheme.onSecondaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
