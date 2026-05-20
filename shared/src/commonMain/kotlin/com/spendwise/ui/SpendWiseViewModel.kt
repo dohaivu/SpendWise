@@ -499,7 +499,15 @@ class SpendWiseViewModel(
         viewModelScope.launch {
             val rate = useCases.getExchangeRate(state.draft.currencyCode, state.baseCurrencyCode)
             if (rate != null) {
-                _uiState.update { it.copy(draft = it.draft.copy(exchangeRateText = rate.toString())) }
+                _uiState.update { current ->
+                    if (current.draft.currencyCode == state.draft.currencyCode &&
+                        current.baseCurrencyCode == state.baseCurrencyCode
+                    ) {
+                        current.copy(draft = current.draft.copy(exchangeRateText = rate.toExchangeRateText()))
+                    } else {
+                        current
+                    }
+                }
             }
         }
     }
@@ -554,3 +562,6 @@ private fun String.toCentsOrNull(): Long? {
     val amount = toDoubleOrNull() ?: return null
     return (amount * 100).roundToLong()
 }
+
+private fun Double.toExchangeRateText(): String =
+    toString().trimEnd('0').trimEnd('.').ifBlank { "1" }

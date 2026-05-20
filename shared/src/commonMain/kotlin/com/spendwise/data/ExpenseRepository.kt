@@ -30,7 +30,8 @@ interface ExpenseRepository {
 }
 
 class RoomExpenseRepository(
-    private val dao: SpendWiseDao
+    private val dao: SpendWiseDao,
+    private val exchangeRateClient: FrankfurterExchangeRateClient
 ) : ExpenseRepository {
     override fun observeSnapshot(): Flow<SpendWiseSnapshot> {
         return combine(
@@ -182,6 +183,20 @@ class RoomExpenseRepository(
 
     override suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double? {
         if (fromCurrencyCode == toCurrencyCode) return 1.0
+        val fetched = runCatching {
+            exchangeRateClient.getLatestRate(fromCurrencyCode, toCurrencyCode)
+        }.getOrNull()
+        if (fetched != null) {
+            dao.upsertExchangeRate(
+                ExchangeRateEntity(
+                    fromCurrencyCode = fetched.fromCurrencyCode,
+                    toCurrencyCode = fetched.toCurrencyCode,
+                    effectiveDateEpochDay = fetched.effectiveDateEpochDay,
+                    rate = fetched.rate
+                )
+            )
+            return fetched.rate
+        }
         return dao.getLatestExchangeRate(fromCurrencyCode, toCurrencyCode)?.rate
     }
 

@@ -2,6 +2,7 @@ package com.spendwise.infrastructure
 
 import androidx.room.RoomDatabase
 import com.spendwise.data.ExpenseRepository
+import com.spendwise.data.FrankfurterExchangeRateClient
 import com.spendwise.data.RoomExpenseRepository
 import com.spendwise.data.SpendWiseDatabase
 import com.spendwise.data.buildSpendWiseDatabase
@@ -56,7 +57,8 @@ fun initKoin(config: KoinAppDeclaration? = null) =
 
 val provideInteractorModule = module {
     single { HttpClient() }
-    single<ExpenseRepository> { RoomExpenseRepository(get()) }
+    single { FrankfurterExchangeRateClient(get()) }
+    single<ExpenseRepository> { RoomExpenseRepository(get(), get()) }
     single { AddExpenseUseCase(get()) }
     single { UpdateExpenseUseCase(get()) }
     single { DeleteExpenseUseCase(get()) }
