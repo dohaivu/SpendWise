@@ -38,6 +38,7 @@ class ExpenseViewModel(
 
     init {
         viewModelScope.launch {
+            repository.seedDefaults()
             repository.observeSnapshot().collect { snapshot ->
                 _uiState.update { state -> state.mergeSnapshot(snapshot) }
             }

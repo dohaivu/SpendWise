@@ -59,6 +59,7 @@ import kotlin.math.roundToInt
 internal fun ReportScreen(
     state: ReportUiState,
     reportViewModel: ReportViewModel,
+    onCategoryClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
@@ -109,7 +110,7 @@ internal fun ReportScreen(
                 CategoryReportRowView(
                     row = row,
                     currencyCode = state.baseCurrencyCode,
-                    onClick = { reportViewModel.openReportCategory(row.category.id) }
+                    onClick = { onCategoryClick(row.category.id) }
                 )
                 HorizontalDivider()
             }

@@ -33,7 +33,6 @@ import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsViewModel
-import com.spendwise.ui.AppViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -122,7 +121,6 @@ val provideLocalServiceModule = module {
 }
 
 val provideViewModelModule = module {
-    viewModel { AppViewModel(get()) }
     viewModel { ExpenseViewModel(get(), get()) }
     viewModel { CalendarViewModel(get(), get()) }
     viewModel { ReportViewModel(get(), get()) }

@@ -1,17 +1,9 @@
 package com.spendwise.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.spendwise.domain.ExpenseDraft
-import com.spendwise.data.ExpenseRepository
 import com.spendwise.domain.Category
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.currencyDisplayFormats
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -53,43 +45,7 @@ enum class TagUsageSort {
     Alphabetical
 }
 
-data class AppUiState(
-    val selectedTab: SpendWiseTab = SpendWiseTab.Expense,
-    val language: AppLanguage = AppLanguage.English
-)
-
-class AppViewModel(
-    private val repository: ExpenseRepository
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(AppUiState())
-    val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            repository.seedDefaults()
-            repository.observeSnapshot().collect { snapshot ->
-                _uiState.update {
-                    it.copy(language = AppLanguage.fromCode(snapshot.settings.languageCode))
-                }
-            }
-        }
-    }
-
-    fun selectTab(tab: SpendWiseTab) {
-        _uiState.update { it.copy(selectedTab = tab) }
-    }
-
-    fun handleBackNavigation() {
-        _uiState.update { state ->
-            state.selectedTab.backDestination()?.let { state.copy(selectedTab = it) } ?: state
-        }
-    }
-}
-
 val supportedCurrencies = currencyDisplayFormats.map { it.code }
-
-internal fun SpendWiseTab.backDestination(): SpendWiseTab? =
-    if (this == SpendWiseTab.Expense) null else SpendWiseTab.Expense
 
 fun today(): LocalDate =
     Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

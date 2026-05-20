@@ -1,5 +1,8 @@
 package com.spendwise.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -20,8 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -34,27 +41,42 @@ import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsScreen
 import com.spendwise.ui.settings.SettingsViewModel
+import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
+
+private data object Routes {
+    @Serializable
+    data object Expense : NavKey
+
+    @Serializable
+    data object Calendar : NavKey
+
+    @Serializable
+    data object Report : NavKey
+
+    @Serializable
+    data object Settings : NavKey
+
+    @Serializable
+    data class CategoryReport(val categoryId: Long) : NavKey
+}
 
 @Composable
 fun SpendWiseApp(
-    viewModel: AppViewModel = koinViewModel(),
     expenseViewModel: ExpenseViewModel = koinViewModel(),
     calendarViewModel: CalendarViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
-    val appState by viewModel.uiState.collectAsState()
+    val backStack = remember { mutableStateListOf<NavKey>(Routes.Expense) }
     val expenseState by expenseViewModel.uiState.collectAsState()
     val calendarState by calendarViewModel.uiState.collectAsState()
     val reportState by reportViewModel.uiState.collectAsState()
     val settingsState by settingsViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
-    val reportCategory = reportState.selectedReportCategoryId?.let { categoryId ->
-        reportState.categories.firstOrNull { it.id == categoryId }
-    }
-    val isReportCategoryDetail = appState.selectedTab == SpendWiseTab.Report && reportCategory != null
+    val currentRoute = backStack.lastOrNull() ?: Routes.Expense
+    val selectedTab = currentRoute.asTab()
 
     LaunchedEffect(expenseState.message, settingsState.message) {
         val message = expenseState.message ?: settingsState.message ?: return@LaunchedEffect
@@ -67,16 +89,29 @@ fun SpendWiseApp(
         }
     }
 
+    fun resetTo(route: NavKey) {
+        backStack.clear()
+        backStack.add(route)
+    }
+
+    fun push(route: NavKey) {
+        if (backStack.lastOrNull() != route) {
+            backStack.add(route)
+        }
+    }
+
+    fun onBack() {
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        } else if (backStack.lastOrNull() != Routes.Expense) {
+            resetTo(Routes.Expense)
+        }
+    }
+
     NavigationBackHandler(
         state = backState,
-        isBackEnabled = appState.selectedTab != SpendWiseTab.Expense || isReportCategoryDetail,
-        onBackCompleted = {
-            if (isReportCategoryDetail) {
-                reportViewModel.closeReportCategory()
-            } else {
-                viewModel.handleBackNavigation()
-            }
-        }
+        isBackEnabled = backStack.size > 1 || currentRoute != Routes.Expense,
+        onBackCompleted = { onBack() }
     )
 
     MaterialTheme {
@@ -84,63 +119,94 @@ fun SpendWiseApp(
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    if (!isReportCategoryDetail) {
+                    if (currentRoute !is Routes.CategoryReport) {
                         NavigationBar {
                             SpendWiseTab.entries.forEach { tab ->
+                                val route = tab.route()
                                 NavigationBarItem(
-                                    selected = appState.selectedTab == tab,
-                                    onClick = { viewModel.selectTab(tab) },
+                                    selected = selectedTab == tab,
+                                    onClick = { resetTo(route) },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
-                                    label = { Text(tab.label(appState.language)) }
+                                    label = { Text(tab.label(settingsState.language)) }
                                 )
                             }
                         }
                     }
                 }
             ) { padding ->
-                when (appState.selectedTab) {
-                    SpendWiseTab.Expense -> ExpenseScreen(expenseState, expenseViewModel, Modifier.padding(padding))
-                    SpendWiseTab.Calendar -> CalendarScreen(
-                        state = calendarState,
-                        calendarViewModel = calendarViewModel,
-                        onExpenseClick = { expense ->
-                            expenseViewModel.editExpense(expense)
-                            viewModel.selectTab(SpendWiseTab.Expense)
-                        },
-                        modifier = Modifier.padding(padding)
-                    )
-                    SpendWiseTab.Report -> {
-                        val category = reportCategory
-                        if (category != null) {
-                            CategoryReportScreen(
-                                state = reportState,
-                                category = category,
-                                onBack = reportViewModel::closeReportCategory,
-                                onExpenseClick = { expense ->
-                                    expenseViewModel.editExpense(expense)
-                                    viewModel.selectTab(SpendWiseTab.Expense)
-                                },
-                                modifier = Modifier.padding(padding)
-                            )
-                        } else {
-                            ReportScreen(
-                                state = reportState,
-                                reportViewModel = reportViewModel,
-                                modifier = Modifier.padding(padding)
-                            )
+                NavDisplay(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    backStack = backStack,
+                    onBack = { onBack() },
+                    transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+                    popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+                    predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+                    entryProvider = { key ->
+                        NavEntry(key) {
+                            when (key) {
+                                Routes.Expense -> ExpenseScreen(expenseState, expenseViewModel)
+                                Routes.Calendar -> CalendarScreen(
+                                    state = calendarState,
+                                    calendarViewModel = calendarViewModel,
+                                    onExpenseClick = { expense ->
+                                        expenseViewModel.editExpense(expense)
+                                        resetTo(Routes.Expense)
+                                    }
+                                )
+                                Routes.Report -> ReportScreen(
+                                    state = reportState,
+                                    reportViewModel = reportViewModel,
+                                    onCategoryClick = { categoryId ->
+                                        push(Routes.CategoryReport(categoryId))
+                                    }
+                                )
+                                Routes.Settings -> SettingsScreen(
+                                    state = settingsState,
+                                    reportState = reportState,
+                                    settingsViewModel = settingsViewModel,
+                                    reportViewModel = reportViewModel
+                                )
+                                is Routes.CategoryReport -> {
+                                    val category = reportState.categories.firstOrNull { it.id == key.categoryId }
+                                    if (category != null) {
+                                        CategoryReportScreen(
+                                            state = reportState,
+                                            category = category,
+                                            onBack = { onBack() },
+                                            onExpenseClick = { expense ->
+                                                expenseViewModel.editExpense(expense)
+                                                resetTo(Routes.Expense)
+                                            }
+                                        )
+                                    } else {
+                                        LaunchedEffect(key.categoryId) {
+                                            onBack()
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                    SpendWiseTab.Settings -> SettingsScreen(
-                        state = settingsState,
-                        reportState = reportState,
-                        settingsViewModel = settingsViewModel,
-                        reportViewModel = reportViewModel,
-                        modifier = Modifier.padding(padding)
-                    )
-                }
+                )
             }
         }
     }
+}
+
+private fun NavKey.asTab(): SpendWiseTab? = when (this) {
+    Routes.Expense -> SpendWiseTab.Expense
+    Routes.Calendar -> SpendWiseTab.Calendar
+    Routes.Report,
+    is Routes.CategoryReport -> SpendWiseTab.Report
+    Routes.Settings -> SpendWiseTab.Settings
+    else -> null
+}
+
+private fun SpendWiseTab.route(): NavKey = when (this) {
+    SpendWiseTab.Expense -> Routes.Expense
+    SpendWiseTab.Calendar -> Routes.Calendar
+    SpendWiseTab.Report -> Routes.Report
+    SpendWiseTab.Settings -> Routes.Settings
 }
 
 private fun SpendWiseTab.icon() = when (this) {
