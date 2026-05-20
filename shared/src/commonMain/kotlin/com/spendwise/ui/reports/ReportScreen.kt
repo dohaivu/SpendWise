@@ -67,6 +67,7 @@ internal fun ReportScreen(
         expense.spentDate(timeZone).isSameMonth(state.selectedMonth)
     }
     val rows = viewModel.getCategoryReport(reportExpenses)
+    val total = rows.sumOf { it.totalBaseAmountCents }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -103,6 +104,7 @@ internal fun ReportScreen(
                 Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     CategoryPie(rows)
                 }
+                ReportTotalRow(total = total, currencyCode = state.baseCurrencyCode)
             }
             items(rows, key = { it.category.id }) { row ->
                 CategoryReportRowView(
@@ -113,6 +115,29 @@ internal fun ReportScreen(
                 HorizontalDivider()
             }
         }
+    }
+}
+
+@Composable
+private fun ReportTotalRow(total: Long, currencyCode: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Total",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        MoneyText(
+            amountCents = total,
+            currencyCode = currencyCode,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 

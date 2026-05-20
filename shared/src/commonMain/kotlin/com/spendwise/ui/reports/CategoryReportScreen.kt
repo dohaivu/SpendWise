@@ -38,6 +38,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.formatCompactMoney
 import com.spendwise.ui.components.formatMoney
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -247,7 +248,7 @@ private fun MonthlyBar(
     ) {
         if (total > 0L) {
             Text(
-                text = formatMoney(total, currencyCode),
+                text = formatCompactMoney(total, currencyCode),
                 style = MaterialTheme.typography.labelLarge,
                 color = color,
                 maxLines = 1,
