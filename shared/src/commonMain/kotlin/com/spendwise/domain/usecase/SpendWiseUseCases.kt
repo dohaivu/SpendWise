@@ -14,7 +14,6 @@ data class SpendWiseUseCases(
     val getDailyExpenseTotals: GetDailyExpenseTotalsUseCase,
     val getCategoryPieReport: GetCategoryPieReportUseCase,
     val getYearlyCategoryReport: GetYearlyCategoryReportUseCase,
-    val getMonthOverMonthCategoryReport: GetMonthOverMonthCategoryReportUseCase,
     val convertToBaseCurrency: ConvertToBaseCurrencyUseCase,
     val getCurrencySettings: GetCurrencySettingsUseCase,
     val updateBaseCurrency: UpdateBaseCurrencyUseCase,

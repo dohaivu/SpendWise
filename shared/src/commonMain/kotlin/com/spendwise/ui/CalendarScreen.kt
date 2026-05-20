@@ -135,7 +135,7 @@ internal fun CalendarScreen(
 }
 
 @Composable
-private fun MonthHeader(
+internal fun MonthHeader(
     month: LocalDate,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit

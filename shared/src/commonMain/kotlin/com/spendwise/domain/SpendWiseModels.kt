@@ -47,22 +47,6 @@ data class CategoryReportRow(
     val percentage: Double
 )
 
-data class MonthComparisonRow(
-    val category: Category,
-    val currentMonthAmountCents: Long,
-    val previousMonthAmountCents: Long
-) {
-    val changeAmountCents: Long = currentMonthAmountCents - previousMonthAmountCents
-    val changePercent: Double? =
-        if (previousMonthAmountCents == 0L) null else changeAmountCents.toDouble() / previousMonthAmountCents
-
-    val status: String? = when {
-        previousMonthAmountCents == 0L && currentMonthAmountCents > 0L -> "New"
-        currentMonthAmountCents == 0L && previousMonthAmountCents > 0L -> "Stopped"
-        else -> null
-    }
-}
-
 data class SpendWiseSnapshot(
     val categories: List<Category> = emptyList(),
     val expenses: List<Expense> = emptyList(),

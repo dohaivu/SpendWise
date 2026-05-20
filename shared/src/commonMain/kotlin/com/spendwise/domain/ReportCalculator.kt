@@ -1,10 +1,8 @@
 package com.spendwise.domain
 
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
@@ -41,41 +39,6 @@ object ReportCalculator {
                 )
             }
             .sortedByDescending { it.totalBaseAmountCents }
-    }
-
-    fun monthOverMonth(
-        expenses: List<Expense>,
-        categories: List<Category>,
-        selectedMonth: LocalDate,
-        selectedTags: Set<String>,
-        timeZone: TimeZone
-    ): List<MonthComparisonRow> {
-        val currentMonthStart = LocalDate(selectedMonth.year, selectedMonth.month, 1)
-        val previousMonthStart = currentMonthStart.minus(1, DateTimeUnit.MONTH)
-
-        val current = expenses
-            .filterByTags(selectedTags)
-            .filter { it.localDate(timeZone).year == currentMonthStart.year && it.localDate(timeZone).month == currentMonthStart.month }
-            .groupBy { it.categoryId }
-            .mapValues { (_, rows) -> rows.sumOf { it.baseAmountCents } }
-
-        val previous = expenses
-            .filterByTags(selectedTags)
-            .filter { it.localDate(timeZone).year == previousMonthStart.year && it.localDate(timeZone).month == previousMonthStart.month }
-            .groupBy { it.categoryId }
-            .mapValues { (_, rows) -> rows.sumOf { it.baseAmountCents } }
-
-        return (current.keys + previous.keys)
-            .mapNotNull { categoryId ->
-                val category = categories.firstOrNull { it.id == categoryId } ?: return@mapNotNull null
-                MonthComparisonRow(
-                    category = category,
-                    currentMonthAmountCents = current[categoryId] ?: 0L,
-                    previousMonthAmountCents = previous[categoryId] ?: 0L
-                )
-            }
-            .filter { it.currentMonthAmountCents != 0L || it.previousMonthAmountCents != 0L }
-            .sortedByDescending { kotlin.math.abs(it.changeAmountCents) }
     }
 
     fun Expense.localDate(timeZone: TimeZone): LocalDate =

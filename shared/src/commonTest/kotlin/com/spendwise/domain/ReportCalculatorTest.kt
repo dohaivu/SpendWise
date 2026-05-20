@@ -1,7 +1,5 @@
 package com.spendwise.domain
 
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -19,27 +17,6 @@ class ReportCalculatorTest {
 
         assertEquals(1, rows.size)
         assertEquals(2_000, rows.first().totalBaseAmountCents)
-    }
-
-    @Test
-    fun monthOverMonthComparesCurrentAndPreviousMonth() {
-        val categories = listOf(foodCategory)
-        val expenses = listOf(
-            expense(id = 1, categoryId = 1, amount = 3_000, spentAtMillis = 1_704_067_200_000),
-            expense(id = 2, categoryId = 1, amount = 1_000, spentAtMillis = 1_701_388_800_000)
-        )
-
-        val rows = ReportCalculator.monthOverMonth(
-            expenses = expenses,
-            categories = categories,
-            selectedMonth = LocalDate(2024, 1, 1),
-            selectedTags = emptySet(),
-            timeZone = TimeZone.UTC
-        )
-
-        assertEquals(1, rows.size)
-        assertEquals(3_000, rows.first().currentMonthAmountCents)
-        assertEquals(1_000, rows.first().previousMonthAmountCents)
     }
 
     private val foodCategory = Category(1, "Food", "Food", 0xFFE76F51, 0)

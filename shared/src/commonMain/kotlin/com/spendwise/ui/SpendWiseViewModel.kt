@@ -11,7 +11,6 @@ import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
-import com.spendwise.domain.MonthComparisonRow
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
@@ -40,11 +39,6 @@ enum class SpendWiseTab {
     Calendar,
     Report,
     Others
-}
-
-enum class ReportPeriod {
-    Month,
-    Year
 }
 
 enum class AppLanguage(val label: String) {
@@ -84,7 +78,6 @@ data class SpendWiseUiState(
     val baseCurrencyCode: String = "USD",
     val selectedMonth: LocalDate = today().firstDayOfMonth(),
     val selectedDate: LocalDate = today(),
-    val selectedReportPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedTags: Set<String> = emptySet(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val activeTagToken: ActiveTagToken? = null,
@@ -223,14 +216,6 @@ class SpendWiseViewModel(
 
     fun selectDate(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
-    }
-
-    fun toggleReportPeriod() {
-        _uiState.update {
-            it.copy(
-                selectedReportPeriod = if (it.selectedReportPeriod == ReportPeriod.Month) ReportPeriod.Year else ReportPeriod.Month
-            )
-        }
     }
 
     fun toggleTagFilter(tag: String) {
@@ -457,17 +442,6 @@ class SpendWiseViewModel(
             expenses = state.snapshot.expenses,
             categories = state.snapshot.categories,
             year = year,
-            selectedTags = state.selectedTags,
-            timeZone = timeZone
-        )
-    }
-
-    fun getMonthOverMonthReport(timeZone: TimeZone): List<MonthComparisonRow> {
-        val state = _uiState.value
-        return useCases.getMonthOverMonthCategoryReport(
-            expenses = state.snapshot.expenses,
-            categories = state.snapshot.categories,
-            selectedMonth = state.selectedMonth,
             selectedTags = state.selectedTags,
             timeZone = timeZone
         )

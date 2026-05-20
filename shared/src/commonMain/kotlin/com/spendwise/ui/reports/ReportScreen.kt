@@ -8,19 +8,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -28,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.common.Fill
@@ -37,21 +42,17 @@ import com.patrykandpatrick.vico.compose.pie.PieSize
 import com.patrykandpatrick.vico.compose.pie.data.PieChartModelProducer
 import com.patrykandpatrick.vico.compose.pie.data.pieSeries
 import com.patrykandpatrick.vico.compose.pie.rememberPieChart
-import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryReportRow
-import com.spendwise.ui.ReportPeriod
+import com.spendwise.ui.MonthHeader
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TagFilterBar
-import com.spendwise.ui.components.formatCompactMoney
-import com.spendwise.ui.components.formatMoney
-import com.spendwise.ui.components.monthTitle
-import com.spendwise.ui.components.signedMoney
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReportScreen(
     state: SpendWiseUiState,
@@ -60,58 +61,51 @@ internal fun ReportScreen(
 ) {
     val timeZone = TimeZone.currentSystemDefault()
     val reportExpenses = state.snapshot.expenses.filter { expense ->
-        val date = Instant.fromEpochMilliseconds(expense.spentAtMillis).toLocalDateTime(timeZone).date
-        if (state.selectedReportPeriod == ReportPeriod.Month) {
-            date.year == state.selectedMonth.year && date.month == state.selectedMonth.month
-        } else {
-            date.year == state.selectedMonth.year
-        }
+        val date = kotlin.time.Instant.fromEpochMilliseconds(expense.spentAtMillis).toLocalDateTime(timeZone).date
+        date.year == state.selectedMonth.year && date.month == state.selectedMonth.month
     }
-    val rows = if (state.selectedReportPeriod == ReportPeriod.Month) {
-        viewModel.getCategoryReport(reportExpenses)
-    } else {
-        viewModel.getYearlyCategoryReport(state.selectedMonth.year, timeZone)
-    }
-    val comparisonRows = viewModel.getMonthOverMonthReport(timeZone)
-    val reportTotal = rows.sumOf { it.totalBaseAmountCents }
+    val rows = viewModel.getCategoryReport(reportExpenses)
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("Report", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                OutlinedButton(onClick = viewModel::previousMonth) {
-                    Text("Prev")
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Report", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 }
-                Spacer(Modifier.width(8.dp))
-                OutlinedButton(onClick = viewModel::nextMonth) {
-                    Text("Next")
-                }
-                Spacer(Modifier.width(8.dp))
-                OutlinedButton(onClick = viewModel::toggleReportPeriod) {
-                    Text(if (state.selectedReportPeriod == ReportPeriod.Month) "Month" else "Year")
-                }
-            }
-            Text(
-                "${if (state.selectedReportPeriod == ReportPeriod.Month) monthTitle(state.selectedMonth) else state.selectedMonth.year.toString()} total ${
-                    formatMoney(
-                        reportTotal,
-                        state.baseCurrencyCode
-                    )
-                }",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        item { TagFilterBar(state, viewModel) }
-        item { CategoryPie(rows) }
-        items(rows) { row -> CategoryReportRowView(row, state.baseCurrencyCode) }
-        item {
-            Text("Month-over-month", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        }
-        items(comparisonRows) { row ->
-            MonthComparisonRowView(row.category, row.currentMonthAmountCents, row.previousMonthAmountCents, state.baseCurrencyCode, row.status)
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    MonthHeader(
+                        month = state.selectedMonth,
+                        onPreviousMonth = viewModel::previousMonth,
+                        onNextMonth = viewModel::nextMonth
+                    )
+                    TagFilterBar(state, viewModel)
+                }
+            }
+            item {
+                Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    CategoryPie(rows)
+                }
+            }
+            items(rows, key = { it.category.id }) { row ->
+                CategoryReportRowView(row, state.baseCurrencyCode)
+                HorizontalDivider()
+            }
         }
     }
 }
@@ -170,63 +164,50 @@ private fun CategoryPie(rows: List<CategoryReportRow>) {
 
 @Composable
 private fun CategoryReportRowView(row: CategoryReportRow, currencyCode: String) {
-    Card {
-        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(row.category.icon, style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(row.category.name, fontWeight = FontWeight.SemiBold)
-                Text("${(row.percentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            MoneyText(
-                amountCents = row.totalBaseAmountCents,
-                currencyCode = currencyCode,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            row.category.icon,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.width(40.dp)
+        )
+        Text(
+            row.category.name,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        MoneyText(
+            amountCents = row.totalBaseAmountCents,
+            currencyCode = currencyCode,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            percentLabel(row.percentage),
+            modifier = Modifier.width(52.dp).padding(start = 8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End
+        )
+        Icon(
+            Icons.Default.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
-@Composable
-private fun MonthComparisonRowView(
-    category: Category,
-    current: Long,
-    previous: Long,
-    currencyCode: String,
-    status: String?
-) {
-    val max = maxOf(current, previous, 1L)
-    Card {
-        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${category.icon} ${category.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Text(status ?: "${signedMoney(current - previous, currencyCode)} ${changePercentLabel(current, previous)}")
-            }
-            ComparisonBar("This", current, max, currencyCode, MaterialTheme.colorScheme.primary)
-            ComparisonBar("Prev", previous, max, currencyCode, MaterialTheme.colorScheme.tertiary)
-        }
-    }
-}
-
-private fun changePercentLabel(current: Long, previous: Long): String {
-    if (previous == 0L) return ""
-    val percent = ((current - previous).toDouble() / previous * 100).toInt()
-    val sign = if (percent >= 0) "+" else ""
-    return "($sign$percent%)"
-}
-
-@Composable
-private fun ComparisonBar(label: String, amount: Long, max: Long, currencyCode: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(label, modifier = Modifier.width(34.dp), style = MaterialTheme.typography.labelMedium)
-        Box(Modifier.weight(1f).height(8.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(999.dp))) {
-            Box(
-                Modifier
-                    .fillMaxWidth((amount.toFloat() / max.toFloat()).coerceIn(0f, 1f))
-                    .height(8.dp)
-                    .background(color, RoundedCornerShape(999.dp))
-            )
-        }
-        Text(formatCompactMoney(amount, currencyCode), modifier = Modifier.width(74.dp), style = MaterialTheme.typography.labelMedium)
+private fun percentLabel(percentage: Double): String {
+    val tenths = (percentage * 1000).roundToInt()
+    return if (tenths % 10 == 0) {
+        "${tenths / 10}%"
+    } else {
+        "${tenths / 10}.${tenths % 10}%"
     }
 }
