@@ -1,6 +1,7 @@
 package com.spendwise.ui.reports
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,11 +44,13 @@ import com.patrykandpatrick.vico.compose.pie.data.PieChartModelProducer
 import com.patrykandpatrick.vico.compose.pie.data.pieSeries
 import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
+import com.spendwise.domain.Expense
 import com.spendwise.ui.MonthHeader
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TagFilterBar
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.roundToInt
@@ -61,8 +64,7 @@ internal fun ReportScreen(
 ) {
     val timeZone = TimeZone.currentSystemDefault()
     val reportExpenses = state.snapshot.expenses.filter { expense ->
-        val date = kotlin.time.Instant.fromEpochMilliseconds(expense.spentAtMillis).toLocalDateTime(timeZone).date
-        date.year == state.selectedMonth.year && date.month == state.selectedMonth.month
+        expense.spentDate(timeZone).isSameMonth(state.selectedMonth)
     }
     val rows = viewModel.getCategoryReport(reportExpenses)
 
@@ -103,7 +105,11 @@ internal fun ReportScreen(
                 }
             }
             items(rows, key = { it.category.id }) { row ->
-                CategoryReportRowView(row, state.baseCurrencyCode)
+                CategoryReportRowView(
+                    row = row,
+                    currencyCode = state.baseCurrencyCode,
+                    onClick = { viewModel.openReportCategory(row.category.id) }
+                )
                 HorizontalDivider()
             }
         }
@@ -163,10 +169,15 @@ private fun CategoryPie(rows: List<CategoryReportRow>) {
 }
 
 @Composable
-private fun CategoryReportRowView(row: CategoryReportRow, currencyCode: String) {
+private fun CategoryReportRowView(
+    row: CategoryReportRow,
+    currencyCode: String,
+    onClick: () -> Unit
+) {
     Row(
         Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -211,3 +222,9 @@ private fun percentLabel(percentage: Double): String {
         "${tenths / 10}.${tenths % 10}%"
     }
 }
+
+private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
+    kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
+
+private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
+    year == month.year && this.month == month.month

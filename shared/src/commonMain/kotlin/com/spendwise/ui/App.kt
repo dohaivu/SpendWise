@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.spendwise.ui.reports.CategoryReportScreen
 import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.settings.OthersScreen
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,6 +37,10 @@ fun SpendWiseApp(
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    val reportCategory = state.selectedReportCategoryId?.let { categoryId ->
+        state.snapshot.categories.firstOrNull { it.id == categoryId }
+    }
+    val isReportCategoryDetail = state.selectedTab == SpendWiseTab.Report && reportCategory != null
 
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
@@ -45,7 +50,7 @@ fun SpendWiseApp(
 
     NavigationBackHandler(
         state = backState,
-        isBackEnabled = state.selectedTab != SpendWiseTab.Input,
+        isBackEnabled = state.selectedTab != SpendWiseTab.Input || isReportCategoryDetail,
         onBackCompleted = viewModel::handleBackNavigation
     )
 
@@ -54,14 +59,16 @@ fun SpendWiseApp(
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    NavigationBar {
-                        SpendWiseTab.entries.forEach { tab ->
-                            NavigationBarItem(
-                                selected = state.selectedTab == tab,
-                                onClick = { viewModel.selectTab(tab) },
-                                icon = { Icon(tab.icon(), contentDescription = tab.name) },
-                                label = { Text(tab.label(state.language)) }
-                            )
+                    if (!isReportCategoryDetail) {
+                        NavigationBar {
+                            SpendWiseTab.entries.forEach { tab ->
+                                NavigationBarItem(
+                                    selected = state.selectedTab == tab,
+                                    onClick = { viewModel.selectTab(tab) },
+                                    icon = { Icon(tab.icon(), contentDescription = tab.name) },
+                                    label = { Text(tab.label(state.language)) }
+                                )
+                            }
                         }
                     }
                 }
@@ -69,7 +76,20 @@ fun SpendWiseApp(
                 when (state.selectedTab) {
                     SpendWiseTab.Input -> InputScreen(state, viewModel, Modifier.padding(padding))
                     SpendWiseTab.Calendar -> CalendarScreen(state, viewModel, Modifier.padding(padding))
-                    SpendWiseTab.Report -> ReportScreen(state, viewModel, Modifier.padding(padding))
+                    SpendWiseTab.Report -> {
+                        val category = reportCategory
+                        if (category != null) {
+                            CategoryReportScreen(
+                                state = state,
+                                category = category,
+                                onBack = viewModel::closeReportCategory,
+                                onExpenseClick = viewModel::editExpense,
+                                modifier = Modifier.padding(padding)
+                            )
+                        } else {
+                            ReportScreen(state, viewModel, Modifier.padding(padding))
+                        }
+                    }
                     SpendWiseTab.Others -> OthersScreen(state, viewModel, Modifier.padding(padding))
                 }
             }

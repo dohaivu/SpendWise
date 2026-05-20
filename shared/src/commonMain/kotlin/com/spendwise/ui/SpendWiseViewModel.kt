@@ -78,6 +78,7 @@ data class SpendWiseUiState(
     val baseCurrencyCode: String = "USD",
     val selectedMonth: LocalDate = today().firstDayOfMonth(),
     val selectedDate: LocalDate = today(),
+    val selectedReportCategoryId: Long? = null,
     val selectedTags: Set<String> = emptySet(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val activeTagToken: ActiveTagToken? = null,
@@ -124,11 +125,14 @@ class SpendWiseViewModel(
     }
 
     fun selectTab(tab: SpendWiseTab) {
-        _uiState.update { it.copy(selectedTab = tab) }
+        _uiState.update { it.copy(selectedTab = tab, selectedReportCategoryId = null) }
     }
 
     fun handleBackNavigation() {
         _uiState.update { state ->
+            if (state.selectedTab == SpendWiseTab.Report && state.selectedReportCategoryId != null) {
+                return@update state.copy(selectedReportCategoryId = null)
+            }
             state.selectedTab.backDestination()?.let { state.copy(selectedTab = it) } ?: state
         }
     }
@@ -224,6 +228,14 @@ class SpendWiseViewModel(
             val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
             it.copy(selectedTags = next)
         }
+    }
+
+    fun openReportCategory(categoryId: Long) {
+        _uiState.update { it.copy(selectedReportCategoryId = categoryId) }
+    }
+
+    fun closeReportCategory() {
+        _uiState.update { it.copy(selectedReportCategoryId = null) }
     }
 
     fun clearTagFilters() {
