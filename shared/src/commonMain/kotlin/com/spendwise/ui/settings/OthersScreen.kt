@@ -25,6 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.ui.AppLanguage
 import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
@@ -32,7 +35,7 @@ import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.supportedCurrencies
 
-private enum class OthersPane {
+internal enum class OthersPane {
     Home,
     CategoryList,
     CategoryEditor,
@@ -46,6 +49,15 @@ internal fun OthersScreen(
     modifier: Modifier = Modifier
 ) {
     var pane by remember { mutableStateOf(OthersPane.Home) }
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+
+    NavigationBackHandler(
+        state = backState,
+        isBackEnabled = pane.backDestination() != null,
+        onBackCompleted = {
+            pane.backDestination()?.let { pane = it }
+        }
+    )
 
     when (pane) {
         OthersPane.Home -> OthersHomeScreen(
@@ -91,6 +103,13 @@ internal fun OthersScreen(
             onBack = { pane = OthersPane.Home }
         )
     }
+}
+
+internal fun OthersPane.backDestination(): OthersPane? = when (this) {
+    OthersPane.Home -> null
+    OthersPane.CategoryList,
+    OthersPane.TagUsage -> OthersPane.Home
+    OthersPane.CategoryEditor -> OthersPane.CategoryList
 }
 
 @Composable

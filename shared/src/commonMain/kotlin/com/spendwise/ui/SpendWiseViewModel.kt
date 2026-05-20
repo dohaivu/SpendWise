@@ -134,6 +134,12 @@ class SpendWiseViewModel(
         _uiState.update { it.copy(selectedTab = tab) }
     }
 
+    fun handleBackNavigation() {
+        _uiState.update { state ->
+            state.selectedTab.backDestination()?.let { state.copy(selectedTab = it) } ?: state
+        }
+    }
+
     fun updateAmount(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -514,6 +520,9 @@ class SpendWiseViewModel(
 }
 
 val supportedCurrencies = currencyDisplayFormats.map { it.code }
+
+internal fun SpendWiseTab.backDestination(): SpendWiseTab? =
+    if (this == SpendWiseTab.Input) null else SpendWiseTab.Input
 
 fun today(): LocalDate =
     Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

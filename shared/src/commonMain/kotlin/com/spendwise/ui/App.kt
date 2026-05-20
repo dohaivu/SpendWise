@@ -22,6 +22,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.settings.OthersScreen
 import org.koin.compose.viewmodel.koinViewModel
@@ -32,12 +35,19 @@ fun SpendWiseApp(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
 
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
         viewModel.consumeMessage()
     }
+
+    NavigationBackHandler(
+        state = backState,
+        isBackEnabled = state.selectedTab != SpendWiseTab.Input,
+        onBackCompleted = viewModel::handleBackNavigation
+    )
 
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -89,4 +99,3 @@ private fun SpendWiseTab.label(language: AppLanguage): String = when (language) 
         SpendWiseTab.Others -> "其他"
     }
 }
-
