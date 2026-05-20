@@ -41,6 +41,12 @@ data class DailyExpenseTotal(
     val expenseCount: Int
 )
 
+data class MonthlyExpenseTotal(
+    val monthNumber: Int,
+    val totalBaseAmountCents: Long,
+    val expenseCount: Int
+)
+
 data class CategoryReportRow(
     val category: Category,
     val totalBaseAmountCents: Long,

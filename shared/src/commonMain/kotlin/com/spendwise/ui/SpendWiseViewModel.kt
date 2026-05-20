@@ -11,6 +11,7 @@ import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
+import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
@@ -216,6 +217,14 @@ class SpendWiseViewModel(
 
     fun nextMonth() {
         _uiState.update { it.copy(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.MONTH)) }
+    }
+
+    fun previousYear() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.YEAR)) }
+    }
+
+    fun nextYear() {
+        _uiState.update { it.copy(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.YEAR)) }
     }
 
     fun selectDate(date: LocalDate) {
@@ -453,6 +462,16 @@ class SpendWiseViewModel(
         return useCases.getYearlyCategoryReport(
             expenses = state.snapshot.expenses,
             categories = state.snapshot.categories,
+            year = year,
+            selectedTags = state.selectedTags,
+            timeZone = timeZone
+        )
+    }
+
+    fun getAnnualMonthlyReport(year: Int, timeZone: TimeZone): List<MonthlyExpenseTotal> {
+        val state = _uiState.value
+        return useCases.getAnnualMonthlyReport(
+            expenses = state.snapshot.expenses,
             year = year,
             selectedTags = state.selectedTags,
             timeZone = timeZone

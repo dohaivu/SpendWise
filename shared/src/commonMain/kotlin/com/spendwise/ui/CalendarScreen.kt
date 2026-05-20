@@ -140,13 +140,47 @@ internal fun MonthHeader(
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
+    PeriodHeader(
+        title = monthTitle(month),
+        onPrevious = onPreviousMonth,
+        onNext = onNextMonth,
+        previousContentDescription = "Previous month",
+        nextContentDescription = "Next month"
+    )
+}
+
+@Composable
+internal fun YearHeader(
+    year: Int,
+    onPreviousYear: () -> Unit,
+    onNextYear: () -> Unit
+) {
+    PeriodHeader(
+        title = "$year",
+        subtitle = "Jan 01 - Dec 31",
+        onPrevious = onPreviousYear,
+        onNext = onNextYear,
+        previousContentDescription = "Previous year",
+        nextContentDescription = "Next year"
+    )
+}
+
+@Composable
+private fun PeriodHeader(
+    title: String,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    previousContentDescription: String,
+    nextContentDescription: String,
+    subtitle: String? = null
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        IconButton(onClick = onPreviousMonth) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "Previous month")
+        IconButton(onClick = onPrevious) {
+            Icon(Icons.Default.ChevronLeft, contentDescription = previousContentDescription)
         }
         Row(
             modifier = Modifier
@@ -156,7 +190,15 @@ internal fun MonthHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(monthTitle(month), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            if (subtitle != null) {
+                Text(
+                    text = "($subtitle)",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 2.dp)
+                )
+            }
             Icon(
                 Icons.Default.CalendarMonth,
                 contentDescription = null,
@@ -164,8 +206,8 @@ internal fun MonthHeader(
                 tint = MaterialTheme.colorScheme.primary
             )
         }
-        IconButton(onClick = onNextMonth) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "Next month")
+        IconButton(onClick = onNext) {
+            Icon(Icons.Default.ChevronRight, contentDescription = nextContentDescription)
         }
     }
 }

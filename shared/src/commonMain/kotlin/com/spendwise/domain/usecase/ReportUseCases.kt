@@ -4,6 +4,7 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryReportRow
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
+import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.domain.ReportCalculator
 import kotlinx.datetime.TimeZone
 
@@ -32,4 +33,14 @@ class GetYearlyCategoryReportUseCase {
         val filtered = expenses.filter { expense -> with(ReportCalculator) { expense.localDate(timeZone).year == year } }
         return ReportCalculator.categoryReport(filtered, categories, selectedTags)
     }
+}
+
+class GetAnnualMonthlyReportUseCase {
+    operator fun invoke(
+        expenses: List<Expense>,
+        year: Int,
+        selectedTags: Set<String>,
+        timeZone: TimeZone
+    ): List<MonthlyExpenseTotal> =
+        ReportCalculator.monthlyTotals(expenses, year, selectedTags, timeZone)
 }

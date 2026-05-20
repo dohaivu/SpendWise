@@ -41,6 +41,25 @@ object ReportCalculator {
             .sortedByDescending { it.totalBaseAmountCents }
     }
 
+    fun monthlyTotals(
+        expenses: List<Expense>,
+        year: Int,
+        selectedTags: Set<String>,
+        timeZone: TimeZone
+    ): List<MonthlyExpenseTotal> {
+        val filtered = expenses
+            .filterByTags(selectedTags)
+            .filter { expense -> expense.localDate(timeZone).year == year }
+        return (1..12).map { month ->
+            val monthExpenses = filtered.filter { expense -> expense.localDate(timeZone).month.number == month }
+            MonthlyExpenseTotal(
+                monthNumber = month,
+                totalBaseAmountCents = monthExpenses.sumOf { it.baseAmountCents },
+                expenseCount = monthExpenses.size
+            )
+        }
+    }
+
     fun Expense.localDate(timeZone: TimeZone): LocalDate =
         Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
 

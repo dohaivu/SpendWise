@@ -33,10 +33,12 @@ import com.spendwise.ui.SpendWiseUiState
 import com.spendwise.ui.SpendWiseViewModel
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.reports.AnnualReportScreen
 import com.spendwise.ui.supportedCurrencies
 
 internal enum class OthersPane {
     Home,
+    AnnualReport,
     CategoryList,
     CategoryEditor,
     TagUsage
@@ -70,7 +72,17 @@ internal fun OthersScreen(
             },
             onTagUsage = {
                 pane = OthersPane.TagUsage
+            },
+            onAnnualReport = {
+                pane = OthersPane.AnnualReport
             }
+        )
+
+        OthersPane.AnnualReport -> AnnualReportScreen(
+            state = state,
+            viewModel = viewModel,
+            modifier = modifier,
+            onBack = { pane = OthersPane.Home }
         )
 
         OthersPane.CategoryList -> EditCategoriesScreen(
@@ -107,6 +119,7 @@ internal fun OthersScreen(
 
 internal fun OthersPane.backDestination(): OthersPane? = when (this) {
     OthersPane.Home -> null
+    OthersPane.AnnualReport,
     OthersPane.CategoryList,
     OthersPane.TagUsage -> OthersPane.Home
     OthersPane.CategoryEditor -> OthersPane.CategoryList
@@ -118,7 +131,8 @@ private fun OthersHomeScreen(
     viewModel: SpendWiseViewModel,
     modifier: Modifier,
     onEditCategories: () -> Unit,
-    onTagUsage: () -> Unit
+    onTagUsage: () -> Unit,
+    onAnnualReport: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(16.dp),
@@ -141,6 +155,13 @@ private fun OthersHomeScreen(
                 title = "Tag usage",
                 subtitle = "${state.snapshot.tagUsage.size} tracked tags",
                 onClick = onTagUsage
+            )
+        }
+        item {
+            SettingsRow(
+                title = "Annual Report",
+                subtitle = "Monthly spending totals for ${state.selectedMonth.year}",
+                onClick = onAnnualReport
             )
         }
         item {

@@ -14,6 +14,7 @@ import com.spendwise.domain.usecase.DeleteExpenseUseCase
 import com.spendwise.domain.usecase.GetCategoryPieReportUseCase
 import com.spendwise.domain.usecase.GetCurrencySettingsUseCase
 import com.spendwise.domain.usecase.GetDailyExpenseTotalsUseCase
+import com.spendwise.domain.usecase.GetAnnualMonthlyReportUseCase
 import com.spendwise.domain.usecase.GetExchangeRateUseCase
 import com.spendwise.domain.usecase.GetExpensesUseCase
 import com.spendwise.domain.usecase.GetKnownTagsUseCase
@@ -71,6 +72,7 @@ val provideInteractorModule = module {
     single { GetDailyExpenseTotalsUseCase() }
     single { GetCategoryPieReportUseCase() }
     single { GetYearlyCategoryReportUseCase() }
+    single { GetAnnualMonthlyReportUseCase() }
     single { ConvertToBaseCurrencyUseCase() }
     single { GetCurrencySettingsUseCase(get()) }
     single { UpdateBaseCurrencyUseCase(get()) }
@@ -93,6 +95,7 @@ val provideInteractorModule = module {
             getDailyExpenseTotals = get(),
             getCategoryPieReport = get(),
             getYearlyCategoryReport = get(),
+            getAnnualMonthlyReport = get(),
             convertToBaseCurrency = get(),
             getCurrencySettings = get(),
             updateBaseCurrency = get(),
