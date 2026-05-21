@@ -37,6 +37,7 @@ import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.calendar.YearHeader
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 
@@ -55,7 +56,7 @@ internal fun AnnualReportScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")

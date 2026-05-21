@@ -49,6 +49,7 @@ import com.spendwise.ui.calendar.MonthHeader
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TagFilterBar
+import com.spendwise.ui.components.TinyTopAppBar
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -72,7 +73,7 @@ internal fun ReportScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 title = {
                     Text("Report", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 }

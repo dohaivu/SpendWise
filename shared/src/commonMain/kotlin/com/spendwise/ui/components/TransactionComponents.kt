@@ -1,21 +1,34 @@
 package com.spendwise.ui.components
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,8 +38,8 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
-import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.calendar.CalendarViewModel
 
 @Composable
 internal fun TransactionFiltersPanel(
@@ -34,7 +47,26 @@ internal fun TransactionFiltersPanel(
     calendarViewModel: CalendarViewModel,
     singleLineCategories: Boolean = false
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(
+                modifier = Modifier.size(24.dp),
+                onClick = { expanded = !expanded }) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Collapse filters" else "Expand filters"
+                )
+            }
+        }
+
+        if (!expanded) return@Column
+
         if (state.tagUsage.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -44,7 +76,8 @@ internal fun TransactionFiltersPanel(
                     FilterChip(
                         selected = usage.name in state.selectedTags,
                         onClick = { calendarViewModel.toggleTagFilter(usage.name) },
-                        label = { Text("#${usage.name}") }
+                        label = { Text("#${usage.name}") },
+                        contentPadding = PaddingValues(0.dp)
                     )
                 }
             }
@@ -53,8 +86,10 @@ internal fun TransactionFiltersPanel(
             value = state.transactionFilters.query,
             onValueChange = calendarViewModel::updateTransactionQuery,
             label = { Text("Search note") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            textStyle = MaterialTheme.typography.bodySmall
         )
         if (singleLineCategories) {
             Row(

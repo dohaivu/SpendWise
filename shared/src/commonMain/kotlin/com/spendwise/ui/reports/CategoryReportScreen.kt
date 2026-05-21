@@ -38,6 +38,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.formatCompactMoney
 import com.spendwise.ui.components.formatMoney
 import kotlinx.datetime.DateTimeUnit
@@ -79,7 +80,7 @@ internal fun CategoryReportScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

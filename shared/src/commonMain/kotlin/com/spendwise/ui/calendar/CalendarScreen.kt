@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +39,7 @@ import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.applyTransactionFilters
 import com.spendwise.ui.components.formatMoney
@@ -85,17 +85,17 @@ internal fun CalendarScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 title = {
                     Text("Calendar", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-                }
+                },
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
         ) {
             Column(
                 modifier = Modifier
