@@ -68,8 +68,7 @@ internal fun EditCategoriesScreen(
     onAdd: () -> Unit,
     onEdit: (Category) -> Unit
 ) {
-    val activeCategories = state.categories
-        .filterNot { it.archived }
+    val categories = state.categories
         .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
 
     SettingsScaffold(
@@ -85,7 +84,7 @@ internal fun EditCategoriesScreen(
         Column(modifier = contentModifier.fillMaxSize()) {
             CategoryTypeTabs()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(activeCategories, key = { it.id }) { category ->
+                items(categories, key = { it.id }) { category ->
                     CategorySortRow(
                         category = category,
                         onClick = { onEdit(category) },
@@ -117,12 +116,12 @@ internal fun CategoryEditorScreen(
             if (state.categoryDraft.editingCategoryId != null) {
                 IconButton(
                     onClick = {
-                        viewModel.archiveCategory(state.categoryDraft.editingCategoryId)
+                        viewModel.deleteCategory(state.categoryDraft.editingCategoryId)
                         viewModel.cancelCategoryEdit()
                         onBack()
                     }
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Archive category")
+                    Icon(Icons.Default.Delete, contentDescription = "Delete category")
                 }
             }
         }

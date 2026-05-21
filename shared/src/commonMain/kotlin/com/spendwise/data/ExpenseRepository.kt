@@ -23,7 +23,7 @@ interface ExpenseRepository {
     suspend fun saveExpense(input: AddExpenseInput): Long
     suspend fun deleteExpense(id: Long)
     suspend fun saveCategory(draft: CategoryDraft): Long
-    suspend fun archiveCategory(id: Long)
+    suspend fun deleteCategory(id: Long)
     suspend fun moveCategory(id: Long, direction: Int)
     suspend fun saveSettings(settings: UserSettings)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
@@ -146,8 +146,7 @@ class RoomExpenseRepository(
             name = draft.name.trim().ifBlank { "Category" },
             icon = draft.icon.trim().ifBlank { "•" },
             color = draft.color,
-            sortOrder = existing?.sortOrder ?: dao.countCategories(),
-            archived = existing?.archived ?: false
+            sortOrder = existing?.sortOrder ?: dao.countCategories()
         )
         return if (existing == null) {
             dao.insertCategory(entity)
@@ -157,12 +156,12 @@ class RoomExpenseRepository(
         }
     }
 
-    override suspend fun archiveCategory(id: Long) {
-        dao.archiveCategory(id)
+    override suspend fun deleteCategory(id: Long) {
+        dao.deleteCategory(id)
     }
 
     override suspend fun moveCategory(id: Long, direction: Int) {
-        dao.moveActiveCategory(id, direction)
+        dao.moveCategory(id, direction)
     }
 
     override suspend fun saveSettings(settings: UserSettings) {
@@ -199,8 +198,7 @@ class RoomExpenseRepository(
             name = name,
             icon = icon,
             color = color,
-            sortOrder = sortOrder,
-            archived = archived
+            sortOrder = sortOrder
         )
 
     private fun ExpenseEntity.toDomain(tags: List<String>): Expense =

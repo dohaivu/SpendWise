@@ -71,7 +71,7 @@ internal fun emptyDraft(
 ): ExpenseDraft =
     ExpenseDraft(
         currencyCode = baseCurrencyCode,
-        categoryId = categories.firstOrNull { category -> !category.archived }?.id,
+        categoryId = categories.firstOrNull()?.id,
         spentAtMillis = Clock.System.now().toEpochMilliseconds()
     )
 

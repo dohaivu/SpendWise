@@ -99,10 +99,13 @@ class SettingsViewModel(
         _uiState.update { it.copy(categoryDraft = CategoryDraft()) }
     }
 
-    fun archiveCategory(id: Long) {
+    fun deleteCategory(id: Long) {
+        _uiState.update { state ->
+            state.copy(categories = state.categories.filterNot { it.id == id })
+        }
         viewModelScope.launch {
-            useCases.archiveCategory(id)
-            _uiState.update { it.copy(message = "Category archived") }
+            useCases.deleteCategory(id)
+            _uiState.update { it.copy(message = "Category deleted") }
         }
     }
 
@@ -142,23 +145,22 @@ class SettingsViewModel(
 
     private fun moveCategory(id: Long, direction: Int) {
         _uiState.update { state ->
-            state.copy(categories = state.categories.moveActiveCategory(id, direction))
+            state.copy(categories = state.categories.moveCategory(id, direction))
         }
         viewModelScope.launch { useCases.moveCategory(id, direction) }
     }
 
-    private fun List<Category>.moveActiveCategory(id: Long, direction: Int): List<Category> {
-        val activeCategories = filterNot { it.archived }
-        val index = activeCategories.indexOfFirst { it.id == id }
+    private fun List<Category>.moveCategory(id: Long, direction: Int): List<Category> {
+        val index = indexOfFirst { it.id == id }
         if (index < 0) return this
-        val swapIndex = (index + direction).coerceIn(activeCategories.indices)
+        val swapIndex = (index + direction).coerceIn(indices)
         if (index == swapIndex) return this
 
-        val reorderedActive = activeCategories.toMutableList().apply {
+        val reordered = toMutableList().apply {
             val moved = removeAt(index)
             add(swapIndex, moved)
         }
-        val updatedById = reorderedActive
+        val updatedById = reordered
             .mapIndexed { sortOrder, category -> category.copy(sortOrder = sortOrder) }
             .associateBy { it.id }
 

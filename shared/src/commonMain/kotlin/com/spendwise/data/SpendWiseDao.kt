@@ -17,9 +17,6 @@ interface SpendWiseDao {
     @Query("SELECT * FROM categories ORDER BY sortOrder, name")
     suspend fun getAllCategoriesOnce(): List<CategoryEntity>
 
-    @Query("SELECT * FROM categories WHERE archived = 0 ORDER BY sortOrder, name")
-    suspend fun getActiveCategoriesOnce(): List<CategoryEntity>
-
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun countCategories(): Int
 
@@ -32,12 +29,39 @@ interface SpendWiseDao {
     @Update
     suspend fun updateCategory(category: CategoryEntity)
 
-    @Query("UPDATE categories SET archived = 1 WHERE id = :id")
-    suspend fun archiveCategory(id: Long)
+    @Query("SELECT * FROM categories WHERE name = :name AND id != :excludeId ORDER BY sortOrder, id LIMIT 1")
+    suspend fun getCategoryByNameExcludingId(name: String, excludeId: Long): CategoryEntity?
+
+    @Query("SELECT COUNT(*) FROM expenses WHERE categoryId = :categoryId")
+    suspend fun countExpensesForCategory(categoryId: Long): Int
+
+    @Query("UPDATE expenses SET categoryId = :toCategoryId WHERE categoryId = :fromCategoryId")
+    suspend fun moveExpensesToCategory(fromCategoryId: Long, toCategoryId: Long)
+
+    @Query("DELETE FROM categories WHERE id = :id")
+    suspend fun deleteCategoryById(id: Long)
 
     @Transaction
-    suspend fun moveActiveCategory(id: Long, direction: Int) {
-        val categories = getActiveCategoriesOnce()
+    suspend fun deleteCategory(id: Long) {
+        val category = getCategory(id) ?: return
+        if (countExpensesForCategory(id) > 0) {
+            val otherCategoryId = getCategoryByNameExcludingId("Other", id)?.id
+                ?: insertCategory(
+                    CategoryEntity(
+                        name = "Other",
+                        icon = "•••",
+                        color = 0xFF6C757D,
+                        sortOrder = countCategories()
+                    )
+                )
+            moveExpensesToCategory(fromCategoryId = category.id, toCategoryId = otherCategoryId)
+        }
+        deleteCategoryById(category.id)
+    }
+
+    @Transaction
+    suspend fun moveCategory(id: Long, direction: Int) {
+        val categories = getAllCategoriesOnce()
         val index = categories.indexOfFirst { it.id == id }
         if (index < 0) return
         val swapIndex = (index + direction).coerceIn(categories.indices)

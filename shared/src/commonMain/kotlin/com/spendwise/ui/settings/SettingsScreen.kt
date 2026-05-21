@@ -194,7 +194,7 @@ private fun SettingsHomeScreen(
             item {
                 SettingsRow(
                     title = "Edit Categories",
-                    subtitle = "${state.categories.count { !it.archived }} active categories",
+                    subtitle = "${state.categories.size} categories",
                     onClick = onEditCategories
                 )
             }

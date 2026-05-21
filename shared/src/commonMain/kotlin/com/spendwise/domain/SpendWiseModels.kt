@@ -7,8 +7,7 @@ data class Category(
     val name: String,
     val icon: String,
     val color: Long,
-    val sortOrder: Int,
-    val archived: Boolean = false
+    val sortOrder: Int
 )
 
 data class Expense(

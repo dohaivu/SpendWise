@@ -157,7 +157,7 @@ internal fun ExpenseScreen(
                 Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    state.categories.filterNot { it.archived }.forEach { category ->
+                    state.categories.forEach { category ->
                         FilterChip(
                             selected = state.draft.categoryId == category.id,
                             onClick = { viewModel.updateCategory(category.id) },

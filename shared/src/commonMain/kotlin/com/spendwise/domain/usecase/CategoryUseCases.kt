@@ -10,11 +10,11 @@ class SaveCategoryUseCase(
         repository.saveCategory(draft)
 }
 
-class ArchiveCategoryUseCase(
+class DeleteCategoryUseCase(
     private val repository: ExpenseRepository
 ) {
     suspend operator fun invoke(id: Long) {
-        repository.archiveCategory(id)
+        repository.deleteCategory(id)
     }
 }
 
@@ -25,4 +25,3 @@ class MoveCategoryUseCase(
         repository.moveCategory(id, direction)
     }
 }
-
