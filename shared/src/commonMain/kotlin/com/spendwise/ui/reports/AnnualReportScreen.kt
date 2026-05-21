@@ -35,9 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
-import com.spendwise.ui.calendar.YearHeader
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 

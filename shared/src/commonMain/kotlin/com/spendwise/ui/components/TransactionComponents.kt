@@ -1,5 +1,6 @@
 package com.spendwise.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -31,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,7 +59,7 @@ internal fun TransactionFiltersPanel(
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(20.dp),
                 onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -69,7 +72,7 @@ internal fun TransactionFiltersPanel(
 
         if (state.tagUsage.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(36.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 state.tagUsage.forEach { usage ->

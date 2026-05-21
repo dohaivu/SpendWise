@@ -15,13 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,13 +32,13 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.applyTransactionFilters
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
-import com.spendwise.ui.components.monthTitle
 import com.spendwise.ui.firstDayOfMonth
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -100,8 +94,8 @@ internal fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 MonthHeader(
                     month = state.selectedMonth,
@@ -133,84 +127,6 @@ internal fun CalendarScreen(
                 onExpenseClick = onExpenseClick,
                 modifier = Modifier.weight(1f)
             )
-        }
-    }
-}
-
-@Composable
-internal fun MonthHeader(
-    month: LocalDate,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
-) {
-    PeriodHeader(
-        title = monthTitle(month),
-        onPrevious = onPreviousMonth,
-        onNext = onNextMonth,
-        previousContentDescription = "Previous month",
-        nextContentDescription = "Next month"
-    )
-}
-
-@Composable
-internal fun YearHeader(
-    year: Int,
-    onPreviousYear: () -> Unit,
-    onNextYear: () -> Unit
-) {
-    PeriodHeader(
-        title = "$year",
-        subtitle = "Jan 01 - Dec 31",
-        onPrevious = onPreviousYear,
-        onNext = onNextYear,
-        previousContentDescription = "Previous year",
-        nextContentDescription = "Next year"
-    )
-}
-
-@Composable
-private fun PeriodHeader(
-    title: String,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    previousContentDescription: String,
-    nextContentDescription: String,
-    subtitle: String? = null
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = previousContentDescription)
-        }
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            if (subtitle != null) {
-                Text(
-                    text = "($subtitle)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 2.dp)
-                )
-            }
-            Icon(
-                Icons.Default.CalendarMonth,
-                contentDescription = null,
-                modifier = Modifier.padding(start = 14.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, contentDescription = nextContentDescription)
         }
     }
 }
@@ -288,11 +204,11 @@ private fun CalendarDayCell(
             .border(0.5.dp, outline)
             .background(if (date == selectedDate) selectedColor else MaterialTheme.colorScheme.surface)
             .clickable(enabled = isMonthDate) { onDateSelected(date) }
-            .padding(4.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
                 text = date.day.toString(),
+                modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 4.dp, end = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = dayColor,
                 fontWeight = if (date == selectedDate) FontWeight.Bold else FontWeight.Normal
@@ -300,7 +216,7 @@ private fun CalendarDayCell(
             if (isMonthDate && total != null) {
                 Text(
                     text = formatMoneyValue(total.totalBaseAmountCents, currencyCode),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(end = 2.dp).fillMaxWidth(),
                     style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.error),
                     maxLines = 1,
                     textAlign = TextAlign.End,

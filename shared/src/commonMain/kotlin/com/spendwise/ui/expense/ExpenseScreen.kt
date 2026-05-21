@@ -82,8 +82,8 @@ internal fun ExpenseScreen(
         LazyColumn(
             modifier = modifier.fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
@@ -155,7 +155,7 @@ internal fun ExpenseScreen(
             }
             item {
                 Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     state.categories.filterNot { it.archived }.forEach { category ->
                         FilterChip(
