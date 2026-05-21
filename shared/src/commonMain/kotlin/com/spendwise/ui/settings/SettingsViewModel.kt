@@ -107,11 +107,11 @@ class SettingsViewModel(
     }
 
     fun moveCategoryUp(id: Long) {
-        viewModelScope.launch { useCases.moveCategory(id, -1) }
+        moveCategory(id, -1)
     }
 
     fun moveCategoryDown(id: Long) {
-        viewModelScope.launch { useCases.moveCategory(id, 1) }
+        moveCategory(id, 1)
     }
 
     fun getSortedTagUsage(): List<TagUsage> {
@@ -138,5 +138,31 @@ class SettingsViewModel(
                 )
             )
         }
+    }
+
+    private fun moveCategory(id: Long, direction: Int) {
+        _uiState.update { state ->
+            state.copy(categories = state.categories.moveActiveCategory(id, direction))
+        }
+        viewModelScope.launch { useCases.moveCategory(id, direction) }
+    }
+
+    private fun List<Category>.moveActiveCategory(id: Long, direction: Int): List<Category> {
+        val activeCategories = filterNot { it.archived }
+        val index = activeCategories.indexOfFirst { it.id == id }
+        if (index < 0) return this
+        val swapIndex = (index + direction).coerceIn(activeCategories.indices)
+        if (index == swapIndex) return this
+
+        val reorderedActive = activeCategories.toMutableList().apply {
+            val moved = removeAt(index)
+            add(swapIndex, moved)
+        }
+        val updatedById = reorderedActive
+            .mapIndexed { sortOrder, category -> category.copy(sortOrder = sortOrder) }
+            .associateBy { it.id }
+
+        return map { category -> updatedById[category.id] ?: category }
+            .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
     }
 }

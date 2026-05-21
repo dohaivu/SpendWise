@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -67,6 +68,10 @@ internal fun EditCategoriesScreen(
     onAdd: () -> Unit,
     onEdit: (Category) -> Unit
 ) {
+    val activeCategories = state.categories
+        .filterNot { it.archived }
+        .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
+
     SettingsScaffold(
         title = "Edit categories",
         modifier = modifier,
@@ -80,7 +85,7 @@ internal fun EditCategoriesScreen(
         Column(modifier = contentModifier.fillMaxSize()) {
             CategoryTypeTabs()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.categories.filterNot { it.archived }, key = { it.id }) { category ->
+                items(activeCategories, key = { it.id }) { category ->
                     CategorySortRow(
                         category = category,
                         onClick = { onEdit(category) },
@@ -214,7 +219,7 @@ private fun CategorySortRow(
     onMoveDown: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(88.dp).clickable(onClick = onClick).padding(horizontal = 20.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -225,9 +230,8 @@ private fun CategorySortRow(
         )
         Text(category.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TextButton(onClick = onMoveUp, modifier = Modifier.height(30.dp)) { Text("↑") }
-            Text("=", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.headlineMedium)
-            TextButton(onClick = onMoveDown, modifier = Modifier.height(30.dp)) { Text("↓") }
+            TextButton(onClick = onMoveUp, modifier = Modifier.height(30.dp), contentPadding = PaddingValues(0.dp)) { Text("↑") }
+            TextButton(onClick = onMoveDown, modifier = Modifier.height(30.dp), contentPadding = PaddingValues(0.dp)) { Text("↓") }
         }
     }
 }

@@ -17,6 +17,9 @@ interface SpendWiseDao {
     @Query("SELECT * FROM categories ORDER BY sortOrder, name")
     suspend fun getAllCategoriesOnce(): List<CategoryEntity>
 
+    @Query("SELECT * FROM categories WHERE archived = 0 ORDER BY sortOrder, name")
+    suspend fun getActiveCategoriesOnce(): List<CategoryEntity>
+
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun countCategories(): Int
 
@@ -31,6 +34,19 @@ interface SpendWiseDao {
 
     @Query("UPDATE categories SET archived = 1 WHERE id = :id")
     suspend fun archiveCategory(id: Long)
+
+    @Transaction
+    suspend fun moveActiveCategory(id: Long, direction: Int) {
+        val categories = getActiveCategoriesOnce()
+        val index = categories.indexOfFirst { it.id == id }
+        if (index < 0) return
+        val swapIndex = (index + direction).coerceIn(categories.indices)
+        if (index == swapIndex) return
+        val first = categories[index]
+        val second = categories[swapIndex]
+        updateCategory(first.copy(sortOrder = second.sortOrder))
+        updateCategory(second.copy(sortOrder = first.sortOrder))
+    }
 
     @Query("SELECT * FROM categories WHERE id = :id")
     suspend fun getCategory(id: Long): CategoryEntity?

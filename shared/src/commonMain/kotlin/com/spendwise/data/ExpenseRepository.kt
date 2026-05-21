@@ -162,14 +162,7 @@ class RoomExpenseRepository(
     }
 
     override suspend fun moveCategory(id: Long, direction: Int) {
-        val categories = dao.getAllCategoriesOnce()
-        val index = categories.indexOfFirst { it.id == id }
-        val swapIndex = (index + direction).coerceIn(categories.indices)
-        if (index < 0 || index == swapIndex) return
-        val first = categories[index]
-        val second = categories[swapIndex]
-        dao.updateCategory(first.copy(sortOrder = second.sortOrder))
-        dao.updateCategory(second.copy(sortOrder = first.sortOrder))
+        dao.moveActiveCategory(id, direction)
     }
 
     override suspend fun saveSettings(settings: UserSettings) {

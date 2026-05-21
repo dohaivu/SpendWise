@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,9 +40,9 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.ui.AppLanguage
-import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.SettingsUiState
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.reports.AnnualReportScreen
@@ -49,8 +50,6 @@ import com.spendwise.ui.supportedCurrencies
 
 @Composable
 internal fun SettingsScreen(
-    state: SettingsUiState,
-    reportState: ReportUiState,
     settingsViewModel: SettingsViewModel,
     reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier
@@ -86,53 +85,68 @@ internal fun SettingsScreen(
         entryProvider = { route ->
             NavEntry(route) {
                 when (route) {
-                    SettingsRoute.Home -> SettingsHomeScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onEditCategories = {
-                            settingsViewModel.cancelCategoryEdit()
-                            push(SettingsRoute.CategoryList)
-                        },
-                        onTagUsage = {
-                            push(SettingsRoute.TagUsage)
-                        },
-                        onAnnualReport = {
-                            push(SettingsRoute.AnnualReport)
-                        }
-                    )
+                    SettingsRoute.Home -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        SettingsHomeScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onEditCategories = {
+                                settingsViewModel.cancelCategoryEdit()
+                                push(SettingsRoute.CategoryList)
+                            },
+                            onTagUsage = {
+                                push(SettingsRoute.TagUsage)
+                            },
+                            onAnnualReport = {
+                                push(SettingsRoute.AnnualReport)
+                            }
+                        )
+                    }
 
-                    SettingsRoute.AnnualReport -> AnnualReportScreen(
-                        state = reportState,
-                        reportViewModel = reportViewModel,
-                        onBack = { pop() }
-                    )
+                    SettingsRoute.AnnualReport -> {
+                        val reportState by reportViewModel.uiState.collectAsState()
+                        AnnualReportScreen(
+                            state = reportState,
+                            reportViewModel = reportViewModel,
+                            onBack = { pop() }
+                        )
+                    }
 
-                    SettingsRoute.CategoryList -> EditCategoriesScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() },
-                        onAdd = {
-                            settingsViewModel.cancelCategoryEdit()
-                            push(SettingsRoute.CategoryEditor)
-                        },
-                        onEdit = { category ->
-                            settingsViewModel.editCategory(category)
-                            push(SettingsRoute.CategoryEditor)
-                        }
-                    )
+                    SettingsRoute.CategoryList -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        EditCategoriesScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() },
+                            onAdd = {
+                                settingsViewModel.cancelCategoryEdit()
+                                push(SettingsRoute.CategoryEditor)
+                            },
+                            onEdit = { category ->
+                                settingsViewModel.editCategory(category)
+                                push(SettingsRoute.CategoryEditor)
+                            }
+                        )
+                    }
 
-                    SettingsRoute.CategoryEditor -> CategoryEditorScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() },
-                        onSaved = { pop() }
-                    )
+                    SettingsRoute.CategoryEditor -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        CategoryEditorScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() },
+                            onSaved = { pop() }
+                        )
+                    }
 
-                    SettingsRoute.TagUsage -> TagUsageScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() }
-                    )
+                    SettingsRoute.TagUsage -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        TagUsageScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() }
+                        )
+                    }
                 }
             }
         }
@@ -151,7 +165,7 @@ internal fun SettingsScaffold(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 title = {
                     Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
