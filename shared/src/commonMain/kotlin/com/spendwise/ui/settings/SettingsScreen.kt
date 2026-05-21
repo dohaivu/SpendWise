@@ -174,7 +174,7 @@ internal fun SettingsScaffold(
             )
         }
     ) { padding ->
-        content(Modifier.padding(padding))
+        content(Modifier.padding(top = padding.calculateTopPadding()))
     }
 }
 

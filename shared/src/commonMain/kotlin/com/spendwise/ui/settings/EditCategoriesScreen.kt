@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
@@ -48,7 +46,14 @@ private val categoryIcons = listOf(
     "🥂", "💊", "📝", "🚰",
     "🚆", "📱", "🏠", "👛",
     "🐷", "🎁", "💰", "🪙",
-    "👥", "🎲", "🛒", "🚕"
+    "👥", "🎲", "🛒", "🚕",
+    "🍔", "🍕", "🍣", "🍎",
+    "☕", "🍺", "🍰", "🧾",
+    "🚌", "🚗", "⛽", "✈",
+    "🏨", "🏥", "🎬", "🎧",
+    "🎮", "📚", "🏋", "🧘",
+    "🐾", "🧸", "🛠", "💻",
+    "📦", "🧼", "💡", "🔧"
 )
 
 private val categoryColors = listOf(
@@ -127,35 +132,35 @@ internal fun CategoryEditorScreen(
         }
     ) { contentModifier ->
         Column(modifier = contentModifier.fillMaxSize()) {
-        LazyColumn(
+        Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Text("Name", style = MaterialTheme.typography.titleMedium)
-                    OutlinedTextField(
-                        value = state.categoryDraft.name,
-                        onValueChange = viewModel::updateCategoryName,
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                }
-                HorizontalDivider()
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text("Name", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = state.categoryDraft.name,
+                    onValueChange = viewModel::updateCategoryName,
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
             }
-            item {
+
+            Column(
+                modifier = Modifier.weight(0.4f)
+            ) {
                 Text("Icon", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(10.dp))
-                IconGrid(state.categoryDraft, viewModel)
+                IconGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
-            item {
-                HorizontalDivider()
-                Text("Color", modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), style = MaterialTheme.typography.titleMedium)
-                ColorGrid(state.categoryDraft, viewModel)
+            Column(
+                modifier = Modifier.weight(0.4f)
+            ) {
+                Text("Color", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
+                ColorGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
         }
         TextButton(
@@ -163,7 +168,7 @@ internal fun CategoryEditorScreen(
                 viewModel.saveCategory()
                 onSaved()
             },
-            modifier = Modifier.fillMaxWidth().padding(20.dp).height(56.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).height(56.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .background(MaterialTheme.colorScheme.primary)
         ) {
@@ -236,13 +241,16 @@ private fun CategorySortRow(
 }
 
 @Composable
-private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
+private fun IconGrid(
+    categoryDraft: CategoryDraft,
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
-        modifier = Modifier.fillMaxWidth().height(288.dp).padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        userScrollEnabled = false
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(categoryIcons) { icon ->
             val selected = categoryDraft.icon == icon
@@ -264,13 +272,16 @@ private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel)
 }
 
 @Composable
-private fun ColorGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
+private fun ColorGrid(
+    categoryDraft: CategoryDraft,
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
-        modifier = Modifier.fillMaxWidth().height(270.dp).padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        userScrollEnabled = false
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(categoryColors) { color ->
             val selected = categoryDraft.color == color
