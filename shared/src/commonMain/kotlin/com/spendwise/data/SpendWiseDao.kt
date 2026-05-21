@@ -49,7 +49,7 @@ interface SpendWiseDao {
                 ?: insertCategory(
                     CategoryEntity(
                         name = "Other",
-                        icon = "•••",
+                        icon = "other",
                         color = 0xFF6C757D,
                         sortOrder = countCategories()
                     )

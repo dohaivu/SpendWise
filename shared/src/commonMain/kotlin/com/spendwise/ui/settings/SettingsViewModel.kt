@@ -76,7 +76,7 @@ class SettingsViewModel(
     }
 
     fun updateCategoryIcon(value: String) {
-        _uiState.update { it.copy(categoryDraft = it.categoryDraft.copy(icon = value.take(4))) }
+        _uiState.update { it.copy(categoryDraft = it.categoryDraft.copy(icon = value)) }
     }
 
     fun updateCategoryColor(value: Long) {

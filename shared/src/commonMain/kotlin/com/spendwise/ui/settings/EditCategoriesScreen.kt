@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,21 +41,8 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.ui.SettingsUiState
-
-private val categoryIcons = listOf(
-    "🍜", "🥤", "👕", "💄",
-    "🥂", "💊", "📝", "🚰",
-    "🚆", "📱", "🏠", "👛",
-    "🐷", "🎁", "💰", "🪙",
-    "👥", "🎲", "🛒", "🚕",
-    "🍔", "🍕", "🍣", "🍎",
-    "☕", "🍺", "🍰", "🧾",
-    "🚌", "🚗", "⛽", "✈",
-    "🏨", "🏥", "🎬", "🎧",
-    "🎮", "📚", "🏋", "🧘",
-    "🐾", "🧸", "🛠", "💻",
-    "📦", "🧼", "💡", "🔧"
-)
+import com.spendwise.ui.components.CategoryIcon
+import com.spendwise.ui.components.categoryIconOptions
 
 private val categoryColors = listOf(
     0xFF0000D8, 0xFF5E16B5, 0xFFB0B0B0, 0xFF505050, 0xFF2B2B2B,
@@ -226,12 +214,13 @@ private fun CategorySortRow(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            category.icon,
-            modifier = Modifier.width(52.dp),
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color(category.color.toInt())
-        )
+        Box(Modifier.width(52.dp), contentAlignment = Alignment.CenterStart) {
+            CategoryIcon(
+                iconKey = category.icon,
+                tint = Color(category.color.toInt()),
+                modifier = Modifier.size(30.dp)
+            )
+        }
         Text(category.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             TextButton(onClick = onMoveUp, modifier = Modifier.height(30.dp), contentPadding = PaddingValues(0.dp)) { Text("↑") }
@@ -252,8 +241,8 @@ private fun IconGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(categoryIcons) { icon ->
-            val selected = categoryDraft.icon == icon
+        items(categoryIconOptions, key = { it.key }) { icon ->
+            val selected = categoryDraft.icon == icon.key
             Box(
                 modifier = Modifier.height(52.dp)
                     .clip(RoundedCornerShape(6.dp))
@@ -262,10 +251,15 @@ private fun IconGrid(
                         color = if (selected) Color(categoryDraft.color.toInt()) else MaterialTheme.colorScheme.outlineVariant,
                         shape = RoundedCornerShape(6.dp)
                     )
-                    .clickable { viewModel.updateCategoryIcon(icon) },
+                    .clickable { viewModel.updateCategoryIcon(icon.key) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(icon, style = MaterialTheme.typography.headlineSmall)
+                Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = icon.label,
+                    tint = if (selected) Color(categoryDraft.color.toInt()) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
+                )
             }
         }
     }

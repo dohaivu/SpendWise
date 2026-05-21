@@ -108,7 +108,7 @@ internal fun TransactionFiltersPanel(
                     FilterChip(
                         selected = state.transactionFilters.categoryId == category.id,
                         onClick = { calendarViewModel.updateTransactionCategory(category.id) },
-                        label = { Text("${category.icon} ${category.name}") }
+                        label = { CategoryLabel(category) }
                     )
                 }
             }
@@ -123,7 +123,7 @@ internal fun TransactionFiltersPanel(
                     FilterChip(
                         selected = state.transactionFilters.categoryId == category.id,
                         onClick = { calendarViewModel.updateTransactionCategory(category.id) },
-                        label = { Text("${category.icon} ${category.name}") }
+                        label = { CategoryLabel(category) }
                     )
                 }
             }
@@ -163,7 +163,11 @@ internal fun TransactionRow(
     val category = categories.firstOrNull { it.id == expense.categoryId }
     Card(onClick = { onExpenseClick(expense) }) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(category?.icon ?: "•", style = MaterialTheme.typography.titleLarge)
+            CategoryIcon(
+                iconKey = category?.icon.orEmpty(),
+                tint = category?.let { Color(it.color.toInt()) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(28.dp)
+            )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(category?.name ?: "Category", fontWeight = FontWeight.SemiBold)

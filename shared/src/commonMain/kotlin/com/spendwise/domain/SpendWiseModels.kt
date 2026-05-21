@@ -72,7 +72,7 @@ data class ExpenseDraft(
 data class CategoryDraft(
     val editingCategoryId: Long? = null,
     val name: String = "",
-    val icon: String = "•",
+    val icon: String = "other",
     val color: Long = 0xFF457B9D
 )
 

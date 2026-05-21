@@ -43,6 +43,7 @@ import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
 import com.spendwise.domain.Expense
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.TagFilterBar
@@ -189,11 +190,13 @@ internal fun CategoryReportRowView(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            row.category.icon,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.width(40.dp)
-        )
+        Box(Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
+            CategoryIcon(
+                iconKey = row.category.icon,
+                tint = Color(row.category.color.toInt()),
+                modifier = Modifier.size(24.dp)
+            )
+        }
         Text(
             row.category.name,
             fontWeight = FontWeight.SemiBold,

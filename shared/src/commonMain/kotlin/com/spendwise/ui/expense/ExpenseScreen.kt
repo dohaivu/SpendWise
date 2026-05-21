@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ExpenseUiState
+import com.spendwise.ui.components.CategoryLabel
 import com.spendwise.ui.components.CurrencyMenu
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
@@ -161,7 +162,7 @@ internal fun ExpenseScreen(
                         FilterChip(
                             selected = state.draft.categoryId == category.id,
                             onClick = { viewModel.updateCategory(category.id) },
-                            label = { Text("${category.icon} ${category.name}") },
+                            label = { CategoryLabel(category) },
                             modifier = Modifier.height(40.dp)
                         )
                     }

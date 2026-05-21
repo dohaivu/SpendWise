@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,6 +38,7 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.formatCompactMoney
@@ -306,11 +308,13 @@ private fun CategoryTransactionRow(
             .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = category.icon,
-            modifier = Modifier.padding(end = 14.dp),
-            style = MaterialTheme.typography.headlineSmall
-        )
+        Box(Modifier.padding(end = 14.dp), contentAlignment = Alignment.Center) {
+            CategoryIcon(
+                iconKey = category.icon,
+                tint = Color(category.color.toInt()),
+                modifier = Modifier.size(26.dp)
+            )
+        }
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = category.name,
