@@ -136,7 +136,12 @@ fun SpendWiseApp(
                                 val route = tab.route()
                                 NavigationBarItem(
                                     selected = selectedTab == tab,
-                                    onClick = { resetTo(route) },
+                                    onClick = {
+                                        if (route == Routes.Calendar) {
+                                            calendarViewModel.resetToToday()
+                                        }
+                                        resetTo(route)
+                                    },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
                                     label = { Text(tab.label(appLanguage)) }
                                 )
@@ -166,6 +171,11 @@ fun SpendWiseApp(
                                         calendarViewModel = calendarViewModel,
                                         onExpenseClick = { expense ->
                                             expenseViewModel.editExpense(expense)
+                                            resetTo(Routes.Expense)
+                                        },
+                                        onDateDoubleClick = { date ->
+                                            expenseViewModel.cancelExpenseEdit()
+                                            expenseViewModel.selectDateForDraft(date)
                                             resetTo(Routes.Expense)
                                         }
                                     )

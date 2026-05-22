@@ -3,6 +3,8 @@ package com.spendwise.ui.calendar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,6 +56,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +64,7 @@ internal fun CalendarScreen(
     state: CalendarUiState,
     calendarViewModel: CalendarViewModel,
     onExpenseClick: (Expense) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
@@ -77,6 +84,8 @@ internal fun CalendarScreen(
         }
     val filteredMonthTotal = monthTransactions.sumOf { it.baseAmountCents }
     val groupedTransactions = monthTransactions.groupBy { it.spentDate(timeZone) }.toList()
+    val transactionListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -109,7 +118,15 @@ internal fun CalendarScreen(
                     selectedDate = state.selectedDate,
                     totalsByDate = totalsByDate,
                     currencyCode = state.baseCurrencyCode,
-                    onDateSelected = calendarViewModel::selectDate
+                    onDateSelected = { date ->
+                        calendarViewModel.selectDate(date)
+                        groupedTransactions.headerIndexFor(date)?.let { index ->
+                            coroutineScope.launch {
+                                transactionListState.animateScrollToItem(index)
+                            }
+                        }
+                    },
+                    onDateDoubleClick = onDateDoubleClick
                 )
                 TransactionFiltersPanel(
                     state = state,
@@ -127,6 +144,7 @@ internal fun CalendarScreen(
                 categories = state.categories,
                 currencyCode = state.baseCurrencyCode,
                 onExpenseClick = onExpenseClick,
+                listState = transactionListState,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -139,7 +157,8 @@ private fun MonthCalendar(
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
     currencyCode: String,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit
 ) {
     val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.22f)
     val weekDays = calendarWeekDays()
@@ -172,6 +191,7 @@ private fun MonthCalendar(
                         total = totalsByDate[date],
                         currencyCode = currencyCode,
                         onDateSelected = onDateSelected,
+                        onDateDoubleClick = onDateDoubleClick,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -180,6 +200,7 @@ private fun MonthCalendar(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CalendarDayCell(
     date: LocalDate,
@@ -188,6 +209,7 @@ private fun CalendarDayCell(
     total: DailyExpenseTotal?,
     currencyCode: String,
     onDateSelected: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isMonthDate = date.isSameMonth(month)
@@ -205,7 +227,11 @@ private fun CalendarDayCell(
             .height(46.dp)
             .border(0.5.dp, outline)
             .background(if (date == selectedDate) selectedColor else MaterialTheme.colorScheme.surface)
-            .clickable(enabled = isMonthDate) { onDateSelected(date) }
+            .combinedClickable(
+                enabled = isMonthDate,
+                onClick = { onDateSelected(date) },
+                onDoubleClick = { onDateDoubleClick(date) }
+            )
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
@@ -265,9 +291,10 @@ private fun TransactionsByDateList(
     categories: List<Category>,
     currencyCode: String,
     onExpenseClick: (Expense) -> Unit,
+    listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier.fillMaxWidth()) {
+    LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
         if (groupedTransactions.isEmpty()) {
             item {
                 Text(
@@ -298,6 +325,15 @@ private fun TransactionsByDateList(
             }
         }
     }
+}
+
+private fun List<Pair<LocalDate, List<Expense>>>.headerIndexFor(date: LocalDate): Int? {
+    var itemIndex = 0
+    for ((groupDate, expenses) in this) {
+        if (groupDate == date) return itemIndex
+        itemIndex += 1 + expenses.size
+    }
+    return null
 }
 
 @Composable

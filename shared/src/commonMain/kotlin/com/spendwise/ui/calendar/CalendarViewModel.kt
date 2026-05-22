@@ -10,6 +10,7 @@ import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.firstDayOfMonth
+import com.spendwise.ui.today
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,6 +58,16 @@ class CalendarViewModel(
 
     fun selectDate(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
+    }
+
+    fun resetToToday() {
+        val today = today()
+        _uiState.update {
+            it.copy(
+                selectedMonth = today.firstDayOfMonth(),
+                selectedDate = today
+            )
+        }
     }
 
     fun toggleTagFilter(tag: String) {
