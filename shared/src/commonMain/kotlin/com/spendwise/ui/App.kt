@@ -36,8 +36,8 @@ import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
-import com.spendwise.ui.reports.AnnualReportScreen
-import com.spendwise.ui.reports.CategoryReportScreen
+import com.spendwise.ui.reports.AnnualReport
+import com.spendwise.ui.reports.CategoryReport
 import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsScreen
@@ -185,7 +185,7 @@ fun SpendWiseApp(
                                 }
                                 Routes.AnnualReport -> {
                                     val reportState by reportViewModel.uiState.collectAsState()
-                                    AnnualReportScreen(
+                                    AnnualReport(
                                         state = reportState,
                                         reportViewModel = reportViewModel,
                                         onBack = { onBack() }
@@ -195,7 +195,7 @@ fun SpendWiseApp(
                                     val reportState by reportViewModel.uiState.collectAsState()
                                     val category = reportState.categories.firstOrNull { it.id == key.categoryId }
                                     if (category != null) {
-                                        CategoryReportScreen(
+                                        CategoryReport(
                                             state = reportState,
                                             category = category,
                                             onBack = { onBack() },

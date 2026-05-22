@@ -53,7 +53,7 @@ private val categoryColors = listOf(
 )
 
 @Composable
-internal fun EditCategoriesScreen(
+internal fun EditCategories(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,

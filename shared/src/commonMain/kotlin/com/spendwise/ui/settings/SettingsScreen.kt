@@ -99,7 +99,7 @@ internal fun SettingsScreen(
 
                     SettingsRoute.CategoryList -> {
                         val currentState by settingsViewModel.uiState.collectAsState()
-                        EditCategoriesScreen(
+                        EditCategories(
                             state = currentState,
                             viewModel = settingsViewModel,
                             onBack = { pop() },
@@ -126,7 +126,7 @@ internal fun SettingsScreen(
 
                     SettingsRoute.TagUsage -> {
                         val currentState by settingsViewModel.uiState.collectAsState()
-                        TagUsageScreen(
+                        TagUsage(
                             state = currentState,
                             viewModel = settingsViewModel,
                             onBack = { pop() }
