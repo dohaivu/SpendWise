@@ -118,7 +118,7 @@ private fun AnnualColumnChart(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(modifier = Modifier.weight(1f)) {
             Column(
-                modifier = Modifier.width(96.dp).fillMaxSize(),
+                modifier = Modifier.width(74.dp).fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End
             ) {
@@ -131,7 +131,7 @@ private fun AnnualColumnChart(
                     )
                 }
             }
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(4.dp))
             Canvas(modifier = Modifier.weight(1f).fillMaxSize()) {
                 val gridCount = 4
                 val chartHeight = size.height
@@ -161,10 +161,10 @@ private fun AnnualColumnChart(
                 }
             }
         }
-        Row(modifier = Modifier.padding(start = 104.dp)) {
-            monthShortNames.forEach { month ->
+        Row(modifier = Modifier.padding(start = 74.dp)) {
+            (1..12).forEach { monthNumber ->
                 Text(
-                    text = month,
+                    text = monthNumber.toString(),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     color = labelColor,

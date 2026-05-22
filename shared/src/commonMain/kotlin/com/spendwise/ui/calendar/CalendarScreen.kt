@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,7 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
@@ -340,10 +342,10 @@ private fun CalendarTransactionRow(
             .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = category?.icon ?: "-",
-            modifier = Modifier.padding(end = 14.dp),
-            style = MaterialTheme.typography.headlineSmall
+        CategoryIcon(
+            iconKey = category?.icon.orEmpty(),
+            tint = category?.let { Color(it.color.toInt()) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(end = 14.dp).size(28.dp)
         )
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(

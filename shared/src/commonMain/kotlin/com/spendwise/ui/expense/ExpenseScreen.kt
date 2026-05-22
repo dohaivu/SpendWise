@@ -2,11 +2,13 @@ package com.spendwise.ui.expense
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -84,7 +86,7 @@ internal fun ExpenseScreen(
             modifier = modifier.fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             item {
                 val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
@@ -155,6 +157,40 @@ internal fun ExpenseScreen(
                 }
             }
             item {
+                OutlinedTextField(
+                    value = noteField,
+                    onValueChange = { value ->
+                        noteField = value
+                        viewModel.updateNote(value.text, value.selection.end)
+                    },
+                    label = { Text("Note with #tags") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 1,
+                    maxLines = 3
+                )
+                FlowRow(
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    maxLines = 1
+                ) {
+                    state.tagSuggestions.forEach { tag ->
+                        AssistChip(
+                            onClick = {
+                                state.activeTagToken?.let { token ->
+                                    val note = TagParser.replaceActiveToken(noteField.text, token, tag)
+                                    noteField = TextFieldValue(note, TextRange(note.length))
+                                }
+                                viewModel.selectTagSuggestion(tag)
+                            },
+                            label = { Text("#$tag") },
+                            contentPadding = PaddingValues(0.dp),
+                        )
+                    }
+                }
+            }
+
+            item {
                 Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -168,38 +204,14 @@ internal fun ExpenseScreen(
                     }
                 }
             }
+
             item {
-                OutlinedTextField(
-                    value = noteField,
-                    onValueChange = { value ->
-                        noteField = value
-                        viewModel.updateNote(value.text, value.selection.end)
-                    },
-                    label = { Text("Note with #tags") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
-                if (state.tagSuggestions.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.tagSuggestions.forEach { tag ->
-                            AssistChip(
-                                onClick = {
-                                    state.activeTagToken?.let { token ->
-                                        val note = TagParser.replaceActiveToken(noteField.text, token, tag)
-                                        noteField = TextFieldValue(note, TextRange(note.length))
-                                    }
-                                    viewModel.selectTagSuggestion(tag)
-                                },
-                                label = { Text("#$tag") }
-                            )
-                        }
-                    }
-                }
-            }
-            item {
+                Spacer(Modifier.height(16.dp))
                 Button(onClick = viewModel::saveExpense, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (state.draft.editingExpenseId == null) "Save expense" else "Update expense")
+                    Text(
+                        text = if (state.draft.editingExpenseId == null) "Save expense" else "Update expense",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
                 if (state.draft.editingExpenseId != null) {
                     Spacer(Modifier.height(8.dp))
