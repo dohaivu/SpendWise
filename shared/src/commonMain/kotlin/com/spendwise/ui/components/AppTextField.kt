@@ -20,7 +20,7 @@ fun AppOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    modifier: Modifier = Modifier.fillMaxWidth().height(32.dp),
+    modifier: Modifier = Modifier.fillMaxWidth().height(36.dp),
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
 ) {
     val interactionSource = remember { MutableInteractionSource() }

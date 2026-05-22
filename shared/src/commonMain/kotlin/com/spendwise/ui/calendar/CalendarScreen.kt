@@ -54,7 +54,7 @@ import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.TinyTopAppBar
-import com.spendwise.ui.components.TransactionFiltersPanel
+import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
 import com.spendwise.ui.firstDayOfMonth
@@ -91,6 +91,15 @@ internal fun CalendarScreen(
                     Text("Calendar", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
                 actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        selectedTags = state.selectedTags,
+                        onTagClick = calendarViewModel::toggleTagFilter,
+                        onQueryChange = calendarViewModel::updateTransactionQuery,
+                        onCategoryChange = calendarViewModel::updateTransactionCategory
+                    )
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More options")
@@ -145,16 +154,6 @@ internal fun CalendarScreen(
                         }
                     },
                     onDateDoubleClick = onDateDoubleClick
-                )
-                TransactionFiltersPanel(
-                    categories = state.categories,
-                    tagUsage = state.tagUsage,
-                    filters = state.transactionFilters,
-                    selectedTags = state.selectedTags,
-                    onTagClick = calendarViewModel::toggleTagFilter,
-                    onQueryChange = calendarViewModel::updateTransactionQuery,
-                    onCategoryChange = calendarViewModel::updateTransactionCategory,
-                    singleLineCategories = true
                 )
                 TotalRow(
                     total = state.calendarData.filteredMonthTotal,
