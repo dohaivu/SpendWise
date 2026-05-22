@@ -76,7 +76,7 @@ internal fun ReportScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
         ) {
             CategoryReportSwitcher(
                 selectedReport = selectedReport,
@@ -108,7 +108,7 @@ private fun CategoryReportSwitcher(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CategoryReportPeriod.entries.forEach { report ->

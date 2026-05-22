@@ -29,6 +29,7 @@ import com.spendwise.domain.usecase.SaveCategoryUseCase
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.domain.usecase.UpdateBaseCurrencyUseCase
 import com.spendwise.domain.usecase.UpdateExpenseUseCase
+import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.reports.ReportViewModel
@@ -122,7 +123,8 @@ val provideLocalServiceModule = module {
 
 val provideViewModelModule = module {
     viewModel { ExpenseViewModel(get(), get()) }
-    viewModel { CalendarViewModel(get(), get()) }
+    viewModel { CalendarViewModel(get()) }
+    viewModel { AllTransactionsViewModel(get()) }
     viewModel { ReportViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
 }

@@ -36,26 +36,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
+import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
-import com.spendwise.ui.CalendarUiState
-import com.spendwise.ui.calendar.CalendarViewModel
 
 @Composable
 internal fun TransactionFiltersPanel(
-    state: CalendarUiState,
-    calendarViewModel: CalendarViewModel,
+    categories: List<Category>,
+    tagUsage: List<TagUsage>,
+    filters: TransactionFilters,
+    selectedTags: Set<String>,
+    isCollapsed: Boolean = true,
+    onTagClick: (String) -> Unit,
+    onQueryChange: (String) -> Unit,
+    onCategoryChange: (Long?) -> Unit,
     singleLineCategories: Boolean = false
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
-        ) {
-
+        if (isCollapsed) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (expanded) "Collapse filters" else "Expand filters",
@@ -63,12 +68,12 @@ internal fun TransactionFiltersPanel(
                         expanded = !expanded
                     }
                 )
+            }
 
+            if (!expanded) return@Column
         }
 
-        if (!expanded) return@Column
-
-        if (state.tagUsage.isNotEmpty()) {
+        if (tagUsage.isNotEmpty()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -76,10 +81,10 @@ internal fun TransactionFiltersPanel(
                     .height(32.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                state.tagUsage.forEach { usage ->
+                tagUsage.forEach { usage ->
                     FilterChip(
-                        selected = usage.name in state.selectedTags,
-                        onClick = { calendarViewModel.toggleTagFilter(usage.name) },
+                        selected = usage.name in selectedTags,
+                        onClick = { onTagClick(usage.name) },
                         label = { Text("#${usage.name}") },
                         contentPadding = PaddingValues(0.dp)
                     )
@@ -87,8 +92,8 @@ internal fun TransactionFiltersPanel(
             }
         }
         AppOutlinedTextField(
-            value = state.transactionFilters.query,
-            onValueChange = calendarViewModel::updateTransactionQuery,
+            value = filters.query,
+            onValueChange = onQueryChange,
             label = "Search note"
         )
         if (singleLineCategories) {
@@ -100,14 +105,14 @@ internal fun TransactionFiltersPanel(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 FilterChip(
-                    selected = state.transactionFilters.categoryId == null,
-                    onClick = { calendarViewModel.updateTransactionCategory(null) },
+                    selected = filters.categoryId == null,
+                    onClick = { onCategoryChange(null) },
                     label = { Text("All categories") }
                 )
-                state.categories.forEach { category ->
+                categories.forEach { category ->
                     FilterChip(
-                        selected = state.transactionFilters.categoryId == category.id,
-                        onClick = { calendarViewModel.updateTransactionCategory(category.id) },
+                        selected = filters.categoryId == category.id,
+                        onClick = { onCategoryChange(category.id) },
                         label = { CategoryLabel(category) }
                     )
                 }
@@ -119,14 +124,14 @@ internal fun TransactionFiltersPanel(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 FilterChip(
-                    selected = state.transactionFilters.categoryId == null,
-                    onClick = { calendarViewModel.updateTransactionCategory(null) },
+                    selected = filters.categoryId == null,
+                    onClick = { onCategoryChange(null) },
                     label = { Text("All categories") }
                 )
-                state.categories.forEach { category ->
+                categories.forEach { category ->
                     FilterChip(
-                        selected = state.transactionFilters.categoryId == category.id,
-                        onClick = { calendarViewModel.updateTransactionCategory(category.id) },
+                        selected = filters.categoryId == category.id,
+                        onClick = { onCategoryChange(category.id) },
                         label = { CategoryLabel(category) }
                     )
                 }

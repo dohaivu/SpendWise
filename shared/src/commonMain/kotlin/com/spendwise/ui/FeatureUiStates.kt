@@ -33,6 +33,16 @@ data class CalendarUiState(
     val calendarData: CalendarData = CalendarData()
 )
 
+data class AllTransactionsUiState(
+    val expenses: List<Expense> = emptyList(),
+    val categories: List<Category> = emptyList(),
+    val tagUsage: List<TagUsage> = emptyList(),
+    val baseCurrencyCode: String = "USD",
+    val selectedTags: Set<String> = emptySet(),
+    val transactionFilters: TransactionFilters = TransactionFilters(),
+    val transactionData: CalendarData = CalendarData()
+)
+
 data class CalendarData(
     val monthTransactionCount: Int = 0,
     val transactionItems: List<CalendarTransactionListItem> = emptyList(),

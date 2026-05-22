@@ -32,6 +32,8 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.spendwise.ui.calendar.AllTransactions
+import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
@@ -55,6 +57,9 @@ private data object Routes {
     data object Calendar : NavKey
 
     @Serializable
+    data object AllTransactions : NavKey
+
+    @Serializable
     data object Report : NavKey
 
     @Serializable
@@ -71,6 +76,7 @@ private data object Routes {
 fun SpendWiseApp(
     expenseViewModel: ExpenseViewModel = koinViewModel(),
     calendarViewModel: CalendarViewModel = koinViewModel(),
+    allTransactionsViewModel: AllTransactionsViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
@@ -130,7 +136,10 @@ fun SpendWiseApp(
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    if (currentRoute !is Routes.CategoryReport && currentRoute != Routes.AnnualReport) {
+                    if (currentRoute !is Routes.CategoryReport &&
+                        currentRoute != Routes.AnnualReport &&
+                        currentRoute != Routes.AllTransactions
+                    ) {
                         NavigationBar {
                             SpendWiseTab.entries.forEach { tab ->
                                 val route = tab.route()
@@ -176,6 +185,21 @@ fun SpendWiseApp(
                                         onDateDoubleClick = { date ->
                                             expenseViewModel.cancelExpenseEdit()
                                             expenseViewModel.selectDateForDraft(date)
+                                            resetTo(Routes.Expense)
+                                        },
+                                        onAllTransactionsClick = {
+                                            push(Routes.AllTransactions)
+                                        }
+                                    )
+                                }
+                                Routes.AllTransactions -> {
+                                    val allTransactionsState by allTransactionsViewModel.uiState.collectAsState()
+                                    AllTransactions(
+                                        state = allTransactionsState,
+                                        viewModel = allTransactionsViewModel,
+                                        onBack = { onBack() },
+                                        onExpenseClick = { expense ->
+                                            expenseViewModel.editExpense(expense)
                                             resetTo(Routes.Expense)
                                         }
                                     )
@@ -234,7 +258,8 @@ fun SpendWiseApp(
 
 private fun NavKey.asTab(): SpendWiseTab? = when (this) {
     Routes.Expense -> SpendWiseTab.Expense
-    Routes.Calendar -> SpendWiseTab.Calendar
+    Routes.Calendar,
+    Routes.AllTransactions -> SpendWiseTab.Calendar
     Routes.Report,
     Routes.AnnualReport,
     is Routes.CategoryReport -> SpendWiseTab.Report
