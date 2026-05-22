@@ -229,7 +229,7 @@ class ExpenseViewModel(
     }
 
     private fun ExpenseUiState.mergeSnapshot(snapshot: SpendWiseSnapshot): ExpenseUiState {
-        val categoryId = draft.categoryId ?: snapshot.categories.firstOrNull { !it.archived }?.id
+        val categoryId = draft.categoryId ?: snapshot.categories.firstOrNull()?.id
         val nextDraft = if (draft.editingExpenseId == null && draft.amountText.isBlank() && draft.note.isBlank()) {
             draft.copy(
                 categoryId = categoryId,

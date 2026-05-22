@@ -23,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,14 +34,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
-import com.spendwise.ui.calendar.YearHeader
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AnnualReportScreen(
+internal fun AnnualReport(
     state: ReportUiState,
     reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier,
@@ -55,7 +55,7 @@ internal fun AnnualReportScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -118,7 +118,7 @@ private fun AnnualColumnChart(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(modifier = Modifier.weight(1f)) {
             Column(
-                modifier = Modifier.width(96.dp).fillMaxSize(),
+                modifier = Modifier.width(74.dp).fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End
             ) {
@@ -131,7 +131,7 @@ private fun AnnualColumnChart(
                     )
                 }
             }
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(4.dp))
             Canvas(modifier = Modifier.weight(1f).fillMaxSize()) {
                 val gridCount = 4
                 val chartHeight = size.height
@@ -161,10 +161,10 @@ private fun AnnualColumnChart(
                 }
             }
         }
-        Row(modifier = Modifier.padding(start = 104.dp)) {
-            monthShortNames.forEach { month ->
+        Row(modifier = Modifier.padding(start = 74.dp)) {
+            (1..12).forEach { monthNumber ->
                 Text(
-                    text = month,
+                    text = monthNumber.toString(),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     color = labelColor,

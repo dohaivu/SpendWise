@@ -6,12 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -36,19 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.ui.SettingsUiState
-
-private val categoryIcons = listOf(
-    "🍜", "🥤", "👕", "💄",
-    "🥂", "💊", "📝", "🚰",
-    "🚆", "📱", "🏠", "👛",
-    "🐷", "🎁", "💰", "🪙",
-    "👥", "🎲", "🛒", "🚕"
-)
+import com.spendwise.ui.components.CategoryIcon
+import com.spendwise.ui.components.categoryIconOptions
 
 private val categoryColors = listOf(
     0xFF0000D8, 0xFF5E16B5, 0xFFB0B0B0, 0xFF505050, 0xFF2B2B2B,
@@ -59,7 +53,7 @@ private val categoryColors = listOf(
 )
 
 @Composable
-internal fun EditCategoriesScreen(
+internal fun EditCategories(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
@@ -67,6 +61,9 @@ internal fun EditCategoriesScreen(
     onAdd: () -> Unit,
     onEdit: (Category) -> Unit
 ) {
+    val categories = state.categories
+        .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
+
     SettingsScaffold(
         title = "Edit categories",
         modifier = modifier,
@@ -80,7 +77,7 @@ internal fun EditCategoriesScreen(
         Column(modifier = contentModifier.fillMaxSize()) {
             CategoryTypeTabs()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.categories.filterNot { it.archived }, key = { it.id }) { category ->
+                items(categories, key = { it.id }) { category ->
                     CategorySortRow(
                         category = category,
                         onClick = { onEdit(category) },
@@ -112,46 +109,46 @@ internal fun CategoryEditorScreen(
             if (state.categoryDraft.editingCategoryId != null) {
                 IconButton(
                     onClick = {
-                        viewModel.archiveCategory(state.categoryDraft.editingCategoryId)
+                        viewModel.deleteCategory(state.categoryDraft.editingCategoryId)
                         viewModel.cancelCategoryEdit()
                         onBack()
                     }
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Archive category")
+                    Icon(Icons.Default.Delete, contentDescription = "Delete category")
                 }
             }
         }
     ) { contentModifier ->
         Column(modifier = contentModifier.fillMaxSize()) {
-        LazyColumn(
+        Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Text("Name", style = MaterialTheme.typography.titleMedium)
-                    OutlinedTextField(
-                        value = state.categoryDraft.name,
-                        onValueChange = viewModel::updateCategoryName,
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                }
-                HorizontalDivider()
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text("Name", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = state.categoryDraft.name,
+                    onValueChange = viewModel::updateCategoryName,
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
             }
-            item {
+
+            Column(
+                modifier = Modifier.weight(0.4f)
+            ) {
                 Text("Icon", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(10.dp))
-                IconGrid(state.categoryDraft, viewModel)
+                IconGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
-            item {
-                HorizontalDivider()
-                Text("Color", modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), style = MaterialTheme.typography.titleMedium)
-                ColorGrid(state.categoryDraft, viewModel)
+            Column(
+                modifier = Modifier.weight(0.4f)
+            ) {
+                Text("Color", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
+                ColorGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
         }
         TextButton(
@@ -159,7 +156,7 @@ internal fun CategoryEditorScreen(
                 viewModel.saveCategory()
                 onSaved()
             },
-            modifier = Modifier.fillMaxWidth().padding(20.dp).height(56.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).height(56.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .background(MaterialTheme.colorScheme.primary)
         ) {
@@ -214,35 +211,38 @@ private fun CategorySortRow(
     onMoveDown: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(88.dp).clickable(onClick = onClick).padding(horizontal = 20.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            category.icon,
-            modifier = Modifier.width(52.dp),
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color(category.color.toInt())
-        )
+        Box(Modifier.width(52.dp), contentAlignment = Alignment.CenterStart) {
+            CategoryIcon(
+                iconKey = category.icon,
+                tint = Color(category.color.toInt()),
+                modifier = Modifier.size(30.dp)
+            )
+        }
         Text(category.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TextButton(onClick = onMoveUp, modifier = Modifier.height(30.dp)) { Text("↑") }
-            Text("=", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.headlineMedium)
-            TextButton(onClick = onMoveDown, modifier = Modifier.height(30.dp)) { Text("↓") }
+            TextButton(onClick = onMoveUp, modifier = Modifier.height(30.dp), contentPadding = PaddingValues(0.dp)) { Text("↑") }
+            TextButton(onClick = onMoveDown, modifier = Modifier.height(30.dp), contentPadding = PaddingValues(0.dp)) { Text("↓") }
         }
     }
 }
 
 @Composable
-private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
+private fun IconGrid(
+    categoryDraft: CategoryDraft,
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
-        modifier = Modifier.fillMaxWidth().height(288.dp).padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        userScrollEnabled = false
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(categoryIcons) { icon ->
-            val selected = categoryDraft.icon == icon
+        items(categoryIconOptions, key = { it.key }) { icon ->
+            val selected = categoryDraft.icon == icon.key
             Box(
                 modifier = Modifier.height(52.dp)
                     .clip(RoundedCornerShape(6.dp))
@@ -251,23 +251,31 @@ private fun IconGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel)
                         color = if (selected) Color(categoryDraft.color.toInt()) else MaterialTheme.colorScheme.outlineVariant,
                         shape = RoundedCornerShape(6.dp)
                     )
-                    .clickable { viewModel.updateCategoryIcon(icon) },
+                    .clickable { viewModel.updateCategoryIcon(icon.key) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(icon, style = MaterialTheme.typography.headlineSmall)
+                Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = icon.label,
+                    tint = if (selected) Color(categoryDraft.color.toInt()) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ColorGrid(categoryDraft: CategoryDraft, viewModel: SettingsViewModel) {
+private fun ColorGrid(
+    categoryDraft: CategoryDraft,
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
-        modifier = Modifier.fillMaxWidth().height(270.dp).padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        userScrollEnabled = false
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(categoryColors) { color ->
             val selected = categoryDraft.color == color

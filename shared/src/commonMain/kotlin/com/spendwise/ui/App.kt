@@ -32,15 +32,20 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.spendwise.ui.calendar.AllTransactions
+import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
-import com.spendwise.ui.reports.CategoryReportScreen
+import com.spendwise.ui.reports.AnnualReport
+import com.spendwise.ui.reports.CategoryReport
 import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsScreen
 import com.spendwise.ui.settings.SettingsViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -52,10 +57,16 @@ private data object Routes {
     data object Calendar : NavKey
 
     @Serializable
+    data object AllTransactions : NavKey
+
+    @Serializable
     data object Report : NavKey
 
     @Serializable
     data object Settings : NavKey
+
+    @Serializable
+    data object AnnualReport : NavKey
 
     @Serializable
     data class CategoryReport(val categoryId: Long) : NavKey
@@ -65,26 +76,32 @@ private data object Routes {
 fun SpendWiseApp(
     expenseViewModel: ExpenseViewModel = koinViewModel(),
     calendarViewModel: CalendarViewModel = koinViewModel(),
+    allTransactionsViewModel: AllTransactionsViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(Routes.Expense) }
-    val expenseState by expenseViewModel.uiState.collectAsState()
-    val calendarState by calendarViewModel.uiState.collectAsState()
-    val reportState by reportViewModel.uiState.collectAsState()
-    val settingsState by settingsViewModel.uiState.collectAsState()
+    val expenseMessage by remember(expenseViewModel) {
+        expenseViewModel.uiState.map { it.message }.distinctUntilChanged()
+    }.collectAsState(null)
+    val settingsMessage by remember(settingsViewModel) {
+        settingsViewModel.uiState.map { it.message }.distinctUntilChanged()
+    }.collectAsState(null)
+    val appLanguage by remember(settingsViewModel) {
+        settingsViewModel.uiState.map { it.language }.distinctUntilChanged()
+    }.collectAsState(AppLanguage.English)
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
     val currentRoute = backStack.lastOrNull() ?: Routes.Expense
     val selectedTab = currentRoute.asTab()
 
-    LaunchedEffect(expenseState.message, settingsState.message) {
-        val message = expenseState.message ?: settingsState.message ?: return@LaunchedEffect
+    LaunchedEffect(expenseMessage, settingsMessage) {
+        val message = expenseMessage ?: settingsMessage ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        if (expenseState.message != null) {
+        if (expenseMessage != null) {
             expenseViewModel.consumeMessage()
         }
-        if (settingsState.message != null) {
+        if (settingsMessage != null) {
             settingsViewModel.consumeMessage()
         }
     }
@@ -119,15 +136,23 @@ fun SpendWiseApp(
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    if (currentRoute !is Routes.CategoryReport) {
+                    if (currentRoute !is Routes.CategoryReport &&
+                        currentRoute != Routes.AnnualReport &&
+                        currentRoute != Routes.AllTransactions
+                    ) {
                         NavigationBar {
                             SpendWiseTab.entries.forEach { tab ->
                                 val route = tab.route()
                                 NavigationBarItem(
                                     selected = selectedTab == tab,
-                                    onClick = { resetTo(route) },
+                                    onClick = {
+                                        if (route == Routes.Calendar) {
+                                            calendarViewModel.resetToToday()
+                                        }
+                                        resetTo(route)
+                                    },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
-                                    label = { Text(tab.label(settingsState.language)) }
+                                    label = { Text(tab.label(appLanguage)) }
                                 )
                             }
                         }
@@ -144,32 +169,67 @@ fun SpendWiseApp(
                     entryProvider = { key ->
                         NavEntry(key) {
                             when (key) {
-                                Routes.Expense -> ExpenseScreen(expenseState, expenseViewModel)
-                                Routes.Calendar -> CalendarScreen(
-                                    state = calendarState,
-                                    calendarViewModel = calendarViewModel,
-                                    onExpenseClick = { expense ->
-                                        expenseViewModel.editExpense(expense)
-                                        resetTo(Routes.Expense)
-                                    }
-                                )
-                                Routes.Report -> ReportScreen(
-                                    state = reportState,
-                                    reportViewModel = reportViewModel,
-                                    onCategoryClick = { categoryId ->
-                                        push(Routes.CategoryReport(categoryId))
-                                    }
-                                )
-                                Routes.Settings -> SettingsScreen(
-                                    state = settingsState,
-                                    reportState = reportState,
-                                    settingsViewModel = settingsViewModel,
-                                    reportViewModel = reportViewModel
-                                )
+                                Routes.Expense -> {
+                                    val expenseState by expenseViewModel.uiState.collectAsState()
+                                    ExpenseScreen(expenseState, expenseViewModel)
+                                }
+                                Routes.Calendar -> {
+                                    val calendarState by calendarViewModel.uiState.collectAsState()
+                                    CalendarScreen(
+                                        state = calendarState,
+                                        calendarViewModel = calendarViewModel,
+                                        onExpenseClick = { expense ->
+                                            expenseViewModel.editExpense(expense)
+                                            resetTo(Routes.Expense)
+                                        },
+                                        onDateDoubleClick = { date ->
+                                            expenseViewModel.cancelExpenseEdit()
+                                            expenseViewModel.selectDateForDraft(date)
+                                            resetTo(Routes.Expense)
+                                        },
+                                        onAllTransactionsClick = {
+                                            push(Routes.AllTransactions)
+                                        }
+                                    )
+                                }
+                                Routes.AllTransactions -> {
+                                    val allTransactionsState by allTransactionsViewModel.uiState.collectAsState()
+                                    AllTransactions(
+                                        state = allTransactionsState,
+                                        viewModel = allTransactionsViewModel,
+                                        onBack = { onBack() },
+                                        onExpenseClick = { expense ->
+                                            expenseViewModel.editExpense(expense)
+                                            resetTo(Routes.Expense)
+                                        }
+                                    )
+                                }
+                                Routes.Report -> {
+                                    val reportState by reportViewModel.uiState.collectAsState()
+                                    ReportScreen(
+                                        state = reportState,
+                                        reportViewModel = reportViewModel,
+                                        onCategoryClick = { categoryId ->
+                                            push(Routes.CategoryReport(categoryId))
+                                        },
+                                        onAnnualReportClick = {
+                                            push(Routes.AnnualReport)
+                                        }
+                                    )
+                                }
+                                Routes.AnnualReport -> {
+                                    val reportState by reportViewModel.uiState.collectAsState()
+                                    AnnualReport(
+                                        state = reportState,
+                                        reportViewModel = reportViewModel,
+                                        onBack = { onBack() }
+                                    )
+                                }
                                 is Routes.CategoryReport -> {
+                                    val reportState by reportViewModel.uiState.collectAsState()
                                     val category = reportState.categories.firstOrNull { it.id == key.categoryId }
                                     if (category != null) {
-                                        CategoryReportScreen(
+                                        CategoryReport(
                                             state = reportState,
                                             category = category,
                                             onBack = { onBack() },
@@ -184,6 +244,9 @@ fun SpendWiseApp(
                                         }
                                     }
                                 }
+                                Routes.Settings -> SettingsScreen(
+                                    settingsViewModel = settingsViewModel
+                                )
                             }
                         }
                     }
@@ -195,8 +258,10 @@ fun SpendWiseApp(
 
 private fun NavKey.asTab(): SpendWiseTab? = when (this) {
     Routes.Expense -> SpendWiseTab.Expense
-    Routes.Calendar -> SpendWiseTab.Calendar
+    Routes.Calendar,
+    Routes.AllTransactions -> SpendWiseTab.Calendar
     Routes.Report,
+    Routes.AnnualReport,
     is Routes.CategoryReport -> SpendWiseTab.Report
     Routes.Settings -> SpendWiseTab.Settings
     else -> null

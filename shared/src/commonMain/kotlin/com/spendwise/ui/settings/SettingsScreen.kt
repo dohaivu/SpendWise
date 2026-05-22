@@ -3,7 +3,7 @@ package com.spendwise.ui.settings
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,14 +15,15 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,20 +40,15 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.ui.AppLanguage
-import com.spendwise.ui.ReportUiState
-import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.SettingsUiState
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
-import com.spendwise.ui.reports.AnnualReportScreen
 import com.spendwise.ui.supportedCurrencies
 
 @Composable
 internal fun SettingsScreen(
-    state: SettingsUiState,
-    reportState: ReportUiState,
     settingsViewModel: SettingsViewModel,
-    reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(SettingsRoute.Home) }
@@ -86,53 +82,56 @@ internal fun SettingsScreen(
         entryProvider = { route ->
             NavEntry(route) {
                 when (route) {
-                    SettingsRoute.Home -> SettingsHomeScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onEditCategories = {
-                            settingsViewModel.cancelCategoryEdit()
-                            push(SettingsRoute.CategoryList)
-                        },
-                        onTagUsage = {
-                            push(SettingsRoute.TagUsage)
-                        },
-                        onAnnualReport = {
-                            push(SettingsRoute.AnnualReport)
-                        }
-                    )
+                    SettingsRoute.Home -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        SettingsHomeScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onEditCategories = {
+                                settingsViewModel.cancelCategoryEdit()
+                                push(SettingsRoute.CategoryList)
+                            },
+                            onTagUsage = {
+                                push(SettingsRoute.TagUsage)
+                            }
+                        )
+                    }
 
-                    SettingsRoute.AnnualReport -> AnnualReportScreen(
-                        state = reportState,
-                        reportViewModel = reportViewModel,
-                        onBack = { pop() }
-                    )
+                    SettingsRoute.CategoryList -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        EditCategories(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() },
+                            onAdd = {
+                                settingsViewModel.cancelCategoryEdit()
+                                push(SettingsRoute.CategoryEditor)
+                            },
+                            onEdit = { category ->
+                                settingsViewModel.editCategory(category)
+                                push(SettingsRoute.CategoryEditor)
+                            }
+                        )
+                    }
 
-                    SettingsRoute.CategoryList -> EditCategoriesScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() },
-                        onAdd = {
-                            settingsViewModel.cancelCategoryEdit()
-                            push(SettingsRoute.CategoryEditor)
-                        },
-                        onEdit = { category ->
-                            settingsViewModel.editCategory(category)
-                            push(SettingsRoute.CategoryEditor)
-                        }
-                    )
+                    SettingsRoute.CategoryEditor -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        CategoryEditorScreen(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() },
+                            onSaved = { pop() }
+                        )
+                    }
 
-                    SettingsRoute.CategoryEditor -> CategoryEditorScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() },
-                        onSaved = { pop() }
-                    )
-
-                    SettingsRoute.TagUsage -> TagUsageScreen(
-                        state = state,
-                        viewModel = settingsViewModel,
-                        onBack = { pop() }
-                    )
+                    SettingsRoute.TagUsage -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        TagUsage(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() }
+                        )
+                    }
                 }
             }
         }
@@ -151,7 +150,7 @@ internal fun SettingsScaffold(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            TinyTopAppBar(
                 title = {
                     Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
@@ -160,7 +159,7 @@ internal fun SettingsScaffold(
             )
         }
     ) { padding ->
-        content(Modifier.padding(padding))
+        content(Modifier.padding(top = padding.calculateTopPadding()))
     }
 }
 
@@ -169,18 +168,16 @@ private fun SettingsHomeScreen(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     onEditCategories: () -> Unit,
-    onTagUsage: () -> Unit,
-    onAnnualReport: () -> Unit
+    onTagUsage: () -> Unit
 ) {
     SettingsScaffold(title = "Settings") { contentModifier ->
         LazyColumn(
-            modifier = contentModifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = contentModifier.fillMaxSize().padding(16.dp)
         ) {
             item {
                 SettingsRow(
                     title = "Edit Categories",
-                    subtitle = "${state.categories.count { !it.archived }} active categories",
+                    subtitle = "${state.categories.size} categories",
                     onClick = onEditCategories
                 )
             }
@@ -194,18 +191,13 @@ private fun SettingsHomeScreen(
                 )
             }
             item {
-                SettingsRow(
-                    title = "Annual Report",
-                    subtitle = "Monthly spending totals",
-                    onClick = onAnnualReport
-                )
-            }
-            item {
-                Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text(
-                    "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(modifier = Modifier.padding(top = 18.dp)) {
+                    Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -217,9 +209,9 @@ private fun SettingsRow(
     subtitle: String,
     onClick: () -> Unit
 ) {
-    Card(onClick = onClick) {
+    Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -228,6 +220,7 @@ private fun SettingsRow(
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null)
         }
+        HorizontalDivider()
     }
 }
 
@@ -280,15 +273,16 @@ private fun SettingValueRow(
     value: String,
     onClick: () -> Unit
 ) {
-    Card(onClick = onClick) {
+    Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(title, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             Text(value, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Icon(Icons.Default.ChevronRight, contentDescription = null)
         }
+        HorizontalDivider()
     }
 }
 

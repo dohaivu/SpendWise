@@ -2,11 +2,13 @@ package com.spendwise.ui.expense
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +23,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -38,7 +41,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ExpenseUiState
+import com.spendwise.ui.components.CategoryLabel
 import com.spendwise.ui.components.CurrencyMenu
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
 import com.spendwise.ui.today
@@ -63,113 +68,112 @@ internal fun ExpenseScreen(
         }
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Text(
-                if (state.draft.editingExpenseId == null) "Input" else "Edit expense",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TinyTopAppBar(
+                title = {
+                    Text(
+                        if (state.draft.editingExpenseId == null) "Expense" else "Edit expense",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
             )
         }
-        item {
-            val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = state.draft.amountText,
-                    onValueChange = viewModel::updateAmount,
-                    label = { Text("Amount") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = if (currencyFormat.fractionDigits > 0) {
-                            KeyboardType.Decimal
-                        } else {
-                            KeyboardType.Number
-                        }
-                    )
-                )
-                CurrencyMenu(
-                    selected = state.draft.currencyCode,
-                    onSelected = viewModel::updateCurrency,
-                    modifier = Modifier.width(126.dp)
-                )
-            }
-        }
-        if (state.draft.currencyCode != state.baseCurrencyCode) {
+    ) { padding ->
+        LazyColumn(
+            modifier = modifier.fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             item {
-                OutlinedTextField(
-                    value = state.draft.exchangeRateText,
-                    onValueChange = viewModel::updateExchangeRate,
-                    label = { Text("Rate to ${state.baseCurrencyCode}") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
-        }
-        item {
-            var showDatePicker by remember { mutableStateOf(false) }
-            val selectedDate = state.draft.spentAtMillis.toLocalDate()
-            val today = today()
-            val yesterday = today.minus(1, DateTimeUnit.DAY)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DateAssistChip(
-                    selected = selectedDate == today,
-                    onClick = viewModel::selectTodayForDraft,
-                    label = "Today"
-                )
-                DateAssistChip(
-                    selected = selectedDate == yesterday,
-                    onClick = viewModel::selectYesterdayForDraft,
-                    label = "Yesterday"
-                )
-                DateAssistChip(
-                    selected = selectedDate != today && selectedDate != yesterday,
-                    onClick = { showDatePicker = true },
-                    label = formatDate(state.draft.spentAtMillis)
-                )
-            }
-            if (showDatePicker) {
-                DraftDatePickerDialog(
-                    selectedDate = state.draft.spentAtMillis.toLocalDate(),
-                    onDismiss = { showDatePicker = false },
-                    onDateSelected = { date ->
-                        viewModel.selectDateForDraft(date)
-                        showDatePicker = false
-                    }
-                )
-            }
-        }
-        item {
-            Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.height(8.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                state.categories.filterNot { it.archived }.forEach { category ->
-                    FilterChip(
-                        selected = state.draft.categoryId == category.id,
-                        onClick = { viewModel.updateCategory(category.id) },
-                        label = { Text("${category.icon} ${category.name}") },
-                        modifier = Modifier.height(40.dp)
+                val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = state.draft.amountText,
+                        onValueChange = viewModel::updateAmount,
+                        label = { Text("Amount") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = if (currencyFormat.fractionDigits > 0) {
+                                KeyboardType.Decimal
+                            } else {
+                                KeyboardType.Number
+                            }
+                        )
+                    )
+                    CurrencyMenu(
+                        selected = state.draft.currencyCode,
+                        onSelected = viewModel::updateCurrency,
+                        modifier = Modifier.width(126.dp)
                     )
                 }
             }
-        }
-        item {
-            OutlinedTextField(
-                value = noteField,
-                onValueChange = { value ->
-                    noteField = value
-                    viewModel.updateNote(value.text, value.selection.end)
-                },
-                label = { Text("Note with #tags") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
-            if (state.tagSuggestions.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
+            if (state.draft.currencyCode != state.baseCurrencyCode) {
+                item {
+                    OutlinedTextField(
+                        value = state.draft.exchangeRateText,
+                        onValueChange = viewModel::updateExchangeRate,
+                        label = { Text("Rate to ${state.baseCurrencyCode}") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            }
+            item {
+                var showDatePicker by remember { mutableStateOf(false) }
+                val selectedDate = state.draft.spentAtMillis.toLocalDate()
+                val today = today()
+                val yesterday = today.minus(1, DateTimeUnit.DAY)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DateAssistChip(
+                        selected = selectedDate == today,
+                        onClick = viewModel::selectTodayForDraft,
+                        label = "Today"
+                    )
+                    DateAssistChip(
+                        selected = selectedDate == yesterday,
+                        onClick = viewModel::selectYesterdayForDraft,
+                        label = "Yesterday"
+                    )
+                    DateAssistChip(
+                        selected = selectedDate != today && selectedDate != yesterday,
+                        onClick = { showDatePicker = true },
+                        label = formatDate(state.draft.spentAtMillis)
+                    )
+                }
+                if (showDatePicker) {
+                    DraftDatePickerDialog(
+                        selectedDate = state.draft.spentAtMillis.toLocalDate(),
+                        onDismiss = { showDatePicker = false },
+                        onDateSelected = { date ->
+                            viewModel.selectDateForDraft(date)
+                            showDatePicker = false
+                        }
+                    )
+                }
+            }
+            item {
+                OutlinedTextField(
+                    value = noteField,
+                    onValueChange = { value ->
+                        noteField = value
+                        viewModel.updateNote(value.text, value.selection.end)
+                    },
+                    label = { Text("Note with #tags") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 1,
+                    maxLines = 3
+                )
+                FlowRow(
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    maxLines = 1
+                ) {
                     state.tagSuggestions.forEach { tag ->
                         AssistChip(
                             onClick = {
@@ -179,24 +183,45 @@ internal fun ExpenseScreen(
                                 }
                                 viewModel.selectTagSuggestion(tag)
                             },
-                            label = { Text("#$tag") }
+                            label = { Text("#$tag") },
+                            contentPadding = PaddingValues(0.dp),
                         )
                     }
                 }
             }
-        }
-        item {
-            Button(onClick = viewModel::saveExpense, modifier = Modifier.fillMaxWidth()) {
-                Text(if (state.draft.editingExpenseId == null) "Save expense" else "Update expense")
-            }
-            if (state.draft.editingExpenseId != null) {
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(onClick = viewModel::cancelExpenseEdit, modifier = Modifier.weight(1f)) {
-                        Text("Cancel")
+
+            item {
+                Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                Spacer(Modifier.height(6.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    state.categories.forEach { category ->
+                        FilterChip(
+                            selected = state.draft.categoryId == category.id,
+                            onClick = { viewModel.updateCategory(category.id) },
+                            label = { CategoryLabel(category) },
+                            modifier = Modifier.height(40.dp)
+                        )
                     }
-                    OutlinedButton(onClick = viewModel::deleteEditingExpense, modifier = Modifier.weight(1f)) {
-                        Text("Delete")
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(16.dp))
+                Button(onClick = viewModel::saveExpense, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = if (state.draft.editingExpenseId == null) "Save expense" else "Update expense",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                if (state.draft.editingExpenseId != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(onClick = viewModel::cancelExpenseEdit, modifier = Modifier.weight(1f)) {
+                            Text("Cancel")
+                        }
+                        OutlinedButton(onClick = viewModel::deleteEditingExpense, modifier = Modifier.weight(1f)) {
+                            Text("Delete")
+                        }
                     }
                 }
             }

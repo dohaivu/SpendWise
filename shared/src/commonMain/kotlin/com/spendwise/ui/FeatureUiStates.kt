@@ -3,6 +3,7 @@ package com.spendwise.ui
 import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
+import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.TagUsage
@@ -28,8 +29,38 @@ data class CalendarUiState(
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedDate: kotlinx.datetime.LocalDate = today(),
     val selectedTags: Set<String> = emptySet(),
-    val transactionFilters: TransactionFilters = TransactionFilters()
+    val transactionFilters: TransactionFilters = TransactionFilters(),
+    val calendarData: CalendarData = CalendarData()
 )
+
+data class AllTransactionsUiState(
+    val expenses: List<Expense> = emptyList(),
+    val categories: List<Category> = emptyList(),
+    val tagUsage: List<TagUsage> = emptyList(),
+    val baseCurrencyCode: String = "USD",
+    val selectedTags: Set<String> = emptySet(),
+    val transactionFilters: TransactionFilters = TransactionFilters(),
+    val transactionData: CalendarData = CalendarData()
+)
+
+data class CalendarData(
+    val monthTransactionCount: Int = 0,
+    val transactionItems: List<CalendarTransactionListItem> = emptyList(),
+    val totalsByDate: Map<kotlinx.datetime.LocalDate, DailyExpenseTotal> = emptyMap(),
+    val headerIndexes: Map<kotlinx.datetime.LocalDate, Int> = emptyMap(),
+    val filteredMonthTotal: Long = 0L
+)
+
+sealed interface CalendarTransactionListItem {
+    data class Header(
+        val date: kotlinx.datetime.LocalDate,
+        val total: Long
+    ) : CalendarTransactionListItem
+
+    data class Transaction(
+        val expense: Expense
+    ) : CalendarTransactionListItem
+}
 
 data class ReportUiState(
     val expenses: List<Expense> = emptyList(),

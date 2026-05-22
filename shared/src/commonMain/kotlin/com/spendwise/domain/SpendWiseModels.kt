@@ -7,8 +7,7 @@ data class Category(
     val name: String,
     val icon: String,
     val color: Long,
-    val sortOrder: Int,
-    val archived: Boolean = false
+    val sortOrder: Int
 )
 
 data class Expense(
@@ -73,7 +72,7 @@ data class ExpenseDraft(
 data class CategoryDraft(
     val editingCategoryId: Long? = null,
     val name: String = "",
-    val icon: String = "•",
+    val icon: String = "other",
     val color: Long = 0xFF457B9D
 )
 

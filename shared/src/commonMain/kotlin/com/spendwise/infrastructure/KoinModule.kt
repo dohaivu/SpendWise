@@ -8,8 +8,8 @@ import com.spendwise.data.SpendWiseDatabase
 import com.spendwise.data.buildSpendWiseDatabase
 import com.spendwise.data.provideSpendWiseDatabaseBuilder
 import com.spendwise.domain.usecase.AddExpenseUseCase
-import com.spendwise.domain.usecase.ArchiveCategoryUseCase
 import com.spendwise.domain.usecase.ConvertToBaseCurrencyUseCase
+import com.spendwise.domain.usecase.DeleteCategoryUseCase
 import com.spendwise.domain.usecase.DeleteExpenseUseCase
 import com.spendwise.domain.usecase.GetCategoryPieReportUseCase
 import com.spendwise.domain.usecase.GetCurrencySettingsUseCase
@@ -29,6 +29,7 @@ import com.spendwise.domain.usecase.SaveCategoryUseCase
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.domain.usecase.UpdateBaseCurrencyUseCase
 import com.spendwise.domain.usecase.UpdateExpenseUseCase
+import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.reports.ReportViewModel
@@ -81,7 +82,7 @@ val provideInteractorModule = module {
     single { UpdateBaseCurrencyUseCase(get()) }
     single { GetExchangeRateUseCase(get()) }
     single { SaveCategoryUseCase(get()) }
-    single { ArchiveCategoryUseCase(get()) }
+    single { DeleteCategoryUseCase(get()) }
     single { MoveCategoryUseCase(get()) }
     single {
         SpendWiseUseCases(
@@ -104,7 +105,7 @@ val provideInteractorModule = module {
             updateBaseCurrency = get(),
             getExchangeRate = get(),
             saveCategory = get(),
-            archiveCategory = get(),
+            deleteCategory = get(),
             moveCategory = get()
         )
     }
@@ -122,7 +123,8 @@ val provideLocalServiceModule = module {
 
 val provideViewModelModule = module {
     viewModel { ExpenseViewModel(get(), get()) }
-    viewModel { CalendarViewModel(get(), get()) }
+    viewModel { CalendarViewModel(get()) }
+    viewModel { AllTransactionsViewModel(get()) }
     viewModel { ReportViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
 }

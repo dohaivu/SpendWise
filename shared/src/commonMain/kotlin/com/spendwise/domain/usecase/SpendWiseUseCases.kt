@@ -20,6 +20,6 @@ data class SpendWiseUseCases(
     val updateBaseCurrency: UpdateBaseCurrencyUseCase,
     val getExchangeRate: GetExchangeRateUseCase,
     val saveCategory: SaveCategoryUseCase,
-    val archiveCategory: ArchiveCategoryUseCase,
+    val deleteCategory: DeleteCategoryUseCase,
     val moveCategory: MoveCategoryUseCase
 )

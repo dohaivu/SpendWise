@@ -1,8 +1,10 @@
 package com.spendwise.ui.calendar
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,22 +13,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Dataset
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,23 +48,23 @@ import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
+import com.spendwise.ui.CalendarTransactionListItem
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.components.MonthHeader
+import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersPanel
-import com.spendwise.ui.components.applyTransactionFilters
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
-import com.spendwise.ui.components.monthTitle
 import com.spendwise.ui.firstDayOfMonth
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,32 +72,45 @@ internal fun CalendarScreen(
     state: CalendarUiState,
     calendarViewModel: CalendarViewModel,
     onExpenseClick: (Expense) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit,
+    onAllTransactionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val timeZone = TimeZone.currentSystemDefault()
-    val filterWithoutCurrency = state.transactionFilters.copy(currencyCode = null)
-    val monthTransactions = state.expenses
-        .filter { it.spentDate(timeZone).isSameMonth(state.selectedMonth) }
-        .applyTransactionFilters(filterWithoutCurrency, state.selectedTags)
-        .sortedByDescending { it.spentAtMillis }
-    val totalsByDate = monthTransactions
-        .groupBy { it.spentDate(timeZone) }
-        .mapValues { (date, expenses) ->
-            DailyExpenseTotal(
-                date = date,
-                totalBaseAmountCents = expenses.sumOf { it.baseAmountCents },
-                expenseCount = expenses.size
-            )
-        }
-    val filteredMonthTotal = monthTransactions.sumOf { it.baseAmountCents }
-    val groupedTransactions = monthTransactions.groupBy { it.spentDate(timeZone) }.toList()
+    val categoryById = remember(state.categories) {
+        state.categories.associateBy { it.id }
+    }
+    val transactionListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            var showOverflowMenu by remember { mutableStateOf(false) }
+            TinyTopAppBar(
                 title = {
                     Text("Calendar", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showOverflowMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("All Transactions") },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onAllTransactionsClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Dataset, contentDescription = "All Transactions")
+                                }
+                            )
+                        }
+                    }
                 }
             )
         }
@@ -95,13 +118,13 @@ internal fun CalendarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 MonthHeader(
                     month = state.selectedMonth,
@@ -111,106 +134,42 @@ internal fun CalendarScreen(
                 MonthCalendar(
                     month = state.selectedMonth,
                     selectedDate = state.selectedDate,
-                    totalsByDate = totalsByDate,
+                    totalsByDate = state.calendarData.totalsByDate,
                     currencyCode = state.baseCurrencyCode,
-                    onDateSelected = calendarViewModel::selectDate
+                    onDateSelected = { date ->
+                        calendarViewModel.selectDate(date)
+                        state.calendarData.headerIndexes[date]?.let { index ->
+                            coroutineScope.launch {
+                                transactionListState.scrollToItem(index)
+                            }
+                        }
+                    },
+                    onDateDoubleClick = onDateDoubleClick
                 )
                 TransactionFiltersPanel(
-                    state = state,
-                    calendarViewModel = calendarViewModel,
+                    categories = state.categories,
+                    tagUsage = state.tagUsage,
+                    filters = state.transactionFilters,
+                    selectedTags = state.selectedTags,
+                    onTagClick = calendarViewModel::toggleTagFilter,
+                    onQueryChange = calendarViewModel::updateTransactionQuery,
+                    onCategoryChange = calendarViewModel::updateTransactionCategory,
                     singleLineCategories = true
                 )
-                MonthTotalRow(
-                    total = filteredMonthTotal,
-                    transactionCount = monthTransactions.size,
+                TotalRow(
+                    total = state.calendarData.filteredMonthTotal,
+                    transactionCount = state.calendarData.monthTransactionCount,
                     currencyCode = state.baseCurrencyCode
                 )
             }
             TransactionsByDateList(
-                groupedTransactions = groupedTransactions,
-                categories = state.categories,
+                transactionItems = state.calendarData.transactionItems,
+                categoryById = categoryById,
                 currencyCode = state.baseCurrencyCode,
                 onExpenseClick = onExpenseClick,
+                listState = transactionListState,
                 modifier = Modifier.weight(1f)
             )
-        }
-    }
-}
-
-@Composable
-internal fun MonthHeader(
-    month: LocalDate,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
-) {
-    PeriodHeader(
-        title = monthTitle(month),
-        onPrevious = onPreviousMonth,
-        onNext = onNextMonth,
-        previousContentDescription = "Previous month",
-        nextContentDescription = "Next month"
-    )
-}
-
-@Composable
-internal fun YearHeader(
-    year: Int,
-    onPreviousYear: () -> Unit,
-    onNextYear: () -> Unit
-) {
-    PeriodHeader(
-        title = "$year",
-        subtitle = "Jan 01 - Dec 31",
-        onPrevious = onPreviousYear,
-        onNext = onNextYear,
-        previousContentDescription = "Previous year",
-        nextContentDescription = "Next year"
-    )
-}
-
-@Composable
-private fun PeriodHeader(
-    title: String,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    previousContentDescription: String,
-    nextContentDescription: String,
-    subtitle: String? = null
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = previousContentDescription)
-        }
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            if (subtitle != null) {
-                Text(
-                    text = "($subtitle)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 2.dp)
-                )
-            }
-            Icon(
-                Icons.Default.CalendarMonth,
-                contentDescription = null,
-                modifier = Modifier.padding(start = 14.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, contentDescription = nextContentDescription)
         }
     }
 }
@@ -221,86 +180,130 @@ private fun MonthCalendar(
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
     currencyCode: String,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit
 ) {
-    val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.22f)
-    val weekDays = calendarWeekDays()
-    val dates = calendarGridDates(month)
+    val colorScheme = MaterialTheme.colorScheme
+    val colors = remember(colorScheme) {
+        CalendarCellColors(
+            outline = colorScheme.outline.copy(alpha = 0.22f),
+            selectedBackground = colorScheme.primaryContainer.copy(alpha = 0.45f),
+            defaultBackground = colorScheme.surface,
+            headerBackground = colorScheme.surfaceVariant,
+            disabledDay = colorScheme.onSurface.copy(alpha = 0.32f),
+            saturday = Color(0xFF249AC8),
+            sunday = colorScheme.error,
+            day = colorScheme.onSurface,
+            headerDay = colorScheme.onSurfaceVariant
+        )
+    }
+    val dates = remember(month) { calendarGridDates(month) }
+    val weeks = remember(dates) { dates.chunked(7) }
 
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth()) {
-            weekDays.forEach { dayOfWeek ->
+            calendarWeekDays.forEach { dayOfWeek ->
                 Text(
                     text = dayOfWeek.shortName(),
                     modifier = Modifier
                         .weight(1f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(0.5.dp, outline)
+                        .background(colors.headerBackground)
+                        .border(0.5.dp, colors.outline)
                         .padding(vertical = 2.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    color = dayOfWeek.weekendColor(),
+                    color = dayOfWeek.headerColor(colors),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
-        dates.chunked(7).forEach { week ->
-            Row(Modifier.fillMaxWidth()) {
-                week.forEach { date ->
-                    CalendarDayCell(
-                        date = date,
-                        month = month,
-                        selectedDate = selectedDate,
-                        total = totalsByDate[date],
-                        currencyCode = currencyCode,
-                        onDateSelected = onDateSelected,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+        weeks.forEach { week ->
+            CalendarWeekRow(
+                week = week,
+                month = month,
+                selectedDate = selectedDate,
+                totalsByDate = totalsByDate,
+                currencyCode = currencyCode,
+                colors = colors,
+                onDateSelected = onDateSelected,
+                onDateDoubleClick = onDateDoubleClick
+            )
         }
     }
 }
 
 @Composable
+private fun CalendarWeekRow(
+    week: List<LocalDate>,
+    month: LocalDate,
+    selectedDate: LocalDate,
+    totalsByDate: Map<LocalDate, DailyExpenseTotal>,
+    currencyCode: String,
+    colors: CalendarCellColors,
+    onDateSelected: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit
+) {
+    Row(Modifier.fillMaxWidth()) {
+        week.forEach { date ->
+            CalendarDayCell(
+                date = date,
+                month = month,
+                isSelected = date == selectedDate,
+                total = totalsByDate[date],
+                currencyCode = currencyCode,
+                colors = colors,
+                onDateSelected = onDateSelected,
+                onDateDoubleClick = onDateDoubleClick,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
 private fun CalendarDayCell(
     date: LocalDate,
     month: LocalDate,
-    selectedDate: LocalDate,
+    isSelected: Boolean,
     total: DailyExpenseTotal?,
     currencyCode: String,
+    colors: CalendarCellColors,
     onDateSelected: (LocalDate) -> Unit,
+    onDateDoubleClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isMonthDate = date.isSameMonth(month)
-    val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.22f)
-    val selectedColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
     val dayColor = when {
-        !isMonthDate -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f)
-        date.dayOfWeek == DayOfWeek.SATURDAY -> Color(0xFF249AC8)
-        date.dayOfWeek == DayOfWeek.SUNDAY -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
+        !isMonthDate -> colors.disabledDay
+        date.dayOfWeek == DayOfWeek.SATURDAY -> colors.saturday
+        date.dayOfWeek == DayOfWeek.SUNDAY -> colors.sunday
+        else -> colors.day
     }
 
     Box(
         modifier = modifier
             .height(46.dp)
-            .border(0.5.dp, outline)
-            .background(if (date == selectedDate) selectedColor else MaterialTheme.colorScheme.surface)
-            .clickable(enabled = isMonthDate) { onDateSelected(date) }
-            .padding(4.dp)
+            .border(0.5.dp, colors.outline)
+            .background(if (isSelected) colors.selectedBackground else colors.defaultBackground)
+            .combinedClickable(
+                enabled = isMonthDate,
+                onClick = { onDateSelected(date) },
+                onDoubleClick = { onDateDoubleClick(date) }
+            )
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
                 text = date.day.toString(),
+                modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 4.dp, end = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = dayColor,
-                fontWeight = if (date == selectedDate) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
             if (isMonthDate && total != null) {
                 Text(
                     text = formatMoneyValue(total.totalBaseAmountCents, currencyCode),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(end = 2.dp).fillMaxWidth(),
                     style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.error),
                     maxLines = 1,
                     textAlign = TextAlign.End,
@@ -315,7 +318,7 @@ private fun CalendarDayCell(
 }
 
 @Composable
-private fun MonthTotalRow(
+internal fun TotalRow(
     total: Long,
     transactionCount: Int,
     currencyCode: String
@@ -342,15 +345,16 @@ private fun MonthTotalRow(
 }
 
 @Composable
-private fun TransactionsByDateList(
-    groupedTransactions: List<Pair<LocalDate, List<Expense>>>,
-    categories: List<Category>,
+internal fun TransactionsByDateList(
+    transactionItems: List<CalendarTransactionListItem>,
+    categoryById: Map<Long, Category>,
     currencyCode: String,
     onExpenseClick: (Expense) -> Unit,
+    listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier.fillMaxWidth()) {
-        if (groupedTransactions.isEmpty()) {
+    LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
+        if (transactionItems.isEmpty()) {
             item {
                 Text(
                     text = "No transactions",
@@ -362,18 +366,24 @@ private fun TransactionsByDateList(
                 )
             }
         }
-        groupedTransactions.forEach { (date, expenses) ->
-            item(key = "header-$date") {
-                TransactionDateHeader(
-                    date = date,
-                    total = expenses.sumOf { it.baseAmountCents },
+        items(
+            items = transactionItems,
+            key = { item ->
+                when (item) {
+                    is CalendarTransactionListItem.Header -> "header-${item.date}"
+                    is CalendarTransactionListItem.Transaction -> item.expense.id
+                }
+            }
+        ) { item ->
+            when (item) {
+                is CalendarTransactionListItem.Header -> TransactionDateHeader(
+                    date = item.date,
+                    total = item.total,
                     currencyCode = currencyCode
                 )
-            }
-            items(expenses, key = { it.id }) { expense ->
-                CalendarTransactionRow(
-                    expense = expense,
-                    categories = categories,
+                is CalendarTransactionListItem.Transaction -> CalendarTransactionRow(
+                    expense = item.expense,
+                    category = categoryById[item.expense.categoryId],
                     currencyCode = currencyCode,
                     onExpenseClick = onExpenseClick
                 )
@@ -412,11 +422,10 @@ private fun TransactionDateHeader(
 @Composable
 private fun CalendarTransactionRow(
     expense: Expense,
-    categories: List<Category>,
+    category: Category?,
     currencyCode: String,
     onExpenseClick: (Expense) -> Unit
 ) {
-    val category = categories.firstOrNull { it.id == expense.categoryId }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -424,10 +433,10 @@ private fun CalendarTransactionRow(
             .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = category?.icon ?: "-",
-            modifier = Modifier.padding(end = 14.dp),
-            style = MaterialTheme.typography.headlineSmall
+        CategoryIcon(
+            iconKey = category?.icon.orEmpty(),
+            tint = category?.let { Color(it.color.toInt()) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(end = 14.dp).size(28.dp)
         )
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -471,7 +480,19 @@ private fun calendarGridDates(month: LocalDate): List<LocalDate> {
     return dates
 }
 
-private fun calendarWeekDays(): List<DayOfWeek> = listOf(
+private data class CalendarCellColors(
+    val outline: Color,
+    val selectedBackground: Color,
+    val defaultBackground: Color,
+    val headerBackground: Color,
+    val disabledDay: Color,
+    val saturday: Color,
+    val sunday: Color,
+    val day: Color,
+    val headerDay: Color
+)
+
+private val calendarWeekDays: List<DayOfWeek> = listOf(
     DayOfWeek.MONDAY,
     DayOfWeek.TUESDAY,
     DayOfWeek.WEDNESDAY,
@@ -487,9 +508,6 @@ private fun daysFromMonday(dayOfWeek: DayOfWeek): Int =
 private fun daysToSunday(dayOfWeek: DayOfWeek): Int =
     (DayOfWeek.SUNDAY.ordinal - dayOfWeek.ordinal + 7) % 7
 
-private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
-    Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
 private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
     year == month.year && this.month == month.month
 
@@ -499,9 +517,8 @@ private fun LocalDate.compactDateWithDayName(): String =
 private fun DayOfWeek.shortName(): String =
     name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
 
-@Composable
-private fun DayOfWeek.weekendColor(): Color = when (this) {
-    DayOfWeek.SATURDAY -> Color(0xFF249AC8)
-    DayOfWeek.SUNDAY -> MaterialTheme.colorScheme.error
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
+private fun DayOfWeek.headerColor(colors: CalendarCellColors): Color = when (this) {
+    DayOfWeek.SATURDAY -> colors.saturday
+    DayOfWeek.SUNDAY -> colors.sunday
+    else -> colors.headerDay
 }

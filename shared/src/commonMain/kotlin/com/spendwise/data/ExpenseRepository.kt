@@ -23,7 +23,7 @@ interface ExpenseRepository {
     suspend fun saveExpense(input: AddExpenseInput): Long
     suspend fun deleteExpense(id: Long)
     suspend fun saveCategory(draft: CategoryDraft): Long
-    suspend fun archiveCategory(id: Long)
+    suspend fun deleteCategory(id: Long)
     suspend fun moveCategory(id: Long, direction: Int)
     suspend fun saveSettings(settings: UserSettings)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
@@ -144,10 +144,9 @@ class RoomExpenseRepository(
         val entity = CategoryEntity(
             id = draft.editingCategoryId ?: 0L,
             name = draft.name.trim().ifBlank { "Category" },
-            icon = draft.icon.trim().ifBlank { "•" },
+            icon = draft.icon.trim().ifBlank { "other" },
             color = draft.color,
-            sortOrder = existing?.sortOrder ?: dao.countCategories(),
-            archived = existing?.archived ?: false
+            sortOrder = existing?.sortOrder ?: dao.countCategories()
         )
         return if (existing == null) {
             dao.insertCategory(entity)
@@ -157,19 +156,12 @@ class RoomExpenseRepository(
         }
     }
 
-    override suspend fun archiveCategory(id: Long) {
-        dao.archiveCategory(id)
+    override suspend fun deleteCategory(id: Long) {
+        dao.deleteCategory(id)
     }
 
     override suspend fun moveCategory(id: Long, direction: Int) {
-        val categories = dao.getAllCategoriesOnce()
-        val index = categories.indexOfFirst { it.id == id }
-        val swapIndex = (index + direction).coerceIn(categories.indices)
-        if (index < 0 || index == swapIndex) return
-        val first = categories[index]
-        val second = categories[swapIndex]
-        dao.updateCategory(first.copy(sortOrder = second.sortOrder))
-        dao.updateCategory(second.copy(sortOrder = first.sortOrder))
+        dao.moveCategory(id, direction)
     }
 
     override suspend fun saveSettings(settings: UserSettings) {
@@ -206,8 +198,7 @@ class RoomExpenseRepository(
             name = name,
             icon = icon,
             color = color,
-            sortOrder = sortOrder,
-            archived = archived
+            sortOrder = sortOrder
         )
 
     private fun ExpenseEntity.toDomain(tags: List<String>): Expense =
@@ -227,16 +218,16 @@ class RoomExpenseRepository(
         )
 
     private val defaultCategories = listOf(
-        Category(0L, "Food", "🍜", 0xFFE76F51, 0),
-        Category(0L, "Coffee", "☕", 0xFF8D6E63, 1),
-        Category(0L, "Groceries", "🛒", 0xFF2A9D8F, 2),
-        Category(0L, "Transport", "🚌", 0xFF457B9D, 3),
-        Category(0L, "Shopping", "🛍", 0xFFE9C46A, 4),
-        Category(0L, "Bills", "💡", 0xFF6D597A, 5),
-        Category(0L, "Health", "💊", 0xFF43AA8B, 6),
-        Category(0L, "Travel", "✈", 0xFF277DA1, 7),
-        Category(0L, "Family", "🏠", 0xFFF4A261, 8),
-        Category(0L, "Other", "•••", 0xFF6C757D, 9)
+        Category(0L, "Food", "restaurant", 0xFFE76F51, 0),
+        Category(0L, "Coffee", "local_cafe", 0xFF8D6E63, 1),
+        Category(0L, "Groceries", "shopping_cart", 0xFF2A9D8F, 2),
+        Category(0L, "Transport", "directions_bus", 0xFF457B9D, 3),
+        Category(0L, "Shopping", "shopping_bag", 0xFFE9C46A, 4),
+        Category(0L, "Bills", "lightbulb", 0xFF6D597A, 5),
+        Category(0L, "Health", "medication", 0xFF43AA8B, 6),
+        Category(0L, "Travel", "flight", 0xFF277DA1, 7),
+        Category(0L, "Family", "home", 0xFFF4A261, 8),
+        Category(0L, "Other", "other", 0xFF6C757D, 9)
     )
 }
 
