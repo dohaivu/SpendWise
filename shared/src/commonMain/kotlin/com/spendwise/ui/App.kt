@@ -36,6 +36,7 @@ import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
+import com.spendwise.ui.reports.AnnualReportScreen
 import com.spendwise.ui.reports.CategoryReportScreen
 import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
@@ -58,6 +59,9 @@ private data object Routes {
 
     @Serializable
     data object Settings : NavKey
+
+    @Serializable
+    data object AnnualReport : NavKey
 
     @Serializable
     data class CategoryReport(val categoryId: Long) : NavKey
@@ -126,7 +130,7 @@ fun SpendWiseApp(
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    if (currentRoute !is Routes.CategoryReport) {
+                    if (currentRoute !is Routes.CategoryReport && currentRoute != Routes.AnnualReport) {
                         NavigationBar {
                             SpendWiseTab.entries.forEach { tab ->
                                 val route = tab.route()
@@ -173,13 +177,20 @@ fun SpendWiseApp(
                                         reportViewModel = reportViewModel,
                                         onCategoryClick = { categoryId ->
                                             push(Routes.CategoryReport(categoryId))
+                                        },
+                                        onAnnualReportClick = {
+                                            push(Routes.AnnualReport)
                                         }
                                     )
                                 }
-                                Routes.Settings -> SettingsScreen(
-                                    settingsViewModel = settingsViewModel,
-                                    reportViewModel = reportViewModel
-                                )
+                                Routes.AnnualReport -> {
+                                    val reportState by reportViewModel.uiState.collectAsState()
+                                    AnnualReportScreen(
+                                        state = reportState,
+                                        reportViewModel = reportViewModel,
+                                        onBack = { onBack() }
+                                    )
+                                }
                                 is Routes.CategoryReport -> {
                                     val reportState by reportViewModel.uiState.collectAsState()
                                     val category = reportState.categories.firstOrNull { it.id == key.categoryId }
@@ -199,6 +210,9 @@ fun SpendWiseApp(
                                         }
                                     }
                                 }
+                                Routes.Settings -> SettingsScreen(
+                                    settingsViewModel = settingsViewModel
+                                )
                             }
                         }
                     }
@@ -212,6 +226,7 @@ private fun NavKey.asTab(): SpendWiseTab? = when (this) {
     Routes.Expense -> SpendWiseTab.Expense
     Routes.Calendar -> SpendWiseTab.Calendar
     Routes.Report,
+    Routes.AnnualReport,
     is Routes.CategoryReport -> SpendWiseTab.Report
     Routes.Settings -> SpendWiseTab.Settings
     else -> null

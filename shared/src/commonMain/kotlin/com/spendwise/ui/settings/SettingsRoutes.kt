@@ -8,9 +8,6 @@ internal sealed interface SettingsRoute : NavKey {
     data object Home : SettingsRoute
 
     @Serializable
-    data object AnnualReport : SettingsRoute
-
-    @Serializable
     data object CategoryList : SettingsRoute
 
     @Serializable
