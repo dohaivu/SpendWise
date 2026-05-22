@@ -1,6 +1,6 @@
 package com.spendwise.ui.components
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -24,7 +22,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,27 +49,31 @@ internal fun TransactionFiltersPanel(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            IconButton(
-                modifier = Modifier.size(20.dp),
-                onClick = { expanded = !expanded }) {
+
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Collapse filters" else "Expand filters"
+                    contentDescription = if (expanded) "Collapse filters" else "Expand filters",
+                    modifier = Modifier.size(16.dp).clickable {
+                        expanded = !expanded
+                    }
                 )
-            }
+
         }
 
         if (!expanded) return@Column
 
         if (state.tagUsage.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(36.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .height(32.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 state.tagUsage.forEach { usage ->
@@ -85,18 +86,17 @@ internal fun TransactionFiltersPanel(
                 }
             }
         }
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = state.transactionFilters.query,
             onValueChange = calendarViewModel::updateTransactionQuery,
-            label = { Text("Search note") },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(14.dp),
-            textStyle = MaterialTheme.typography.bodySmall
+            label = "Search note"
         )
         if (singleLineCategories) {
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                modifier = Modifier
+                    .height(32.dp)
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 FilterChip(
@@ -113,7 +113,11 @@ internal fun TransactionFiltersPanel(
                 }
             }
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            FlowRow(
+                modifier = Modifier.height(32.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 FilterChip(
                     selected = state.transactionFilters.categoryId == null,
                     onClick = { calendarViewModel.updateTransactionCategory(null) },
