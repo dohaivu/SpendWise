@@ -146,4 +146,16 @@ interface SpendWiseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCurrencySettings(settings: CurrencySettingsEntity)
+
+    @Query("SELECT * FROM expense_reminders ORDER BY hour, minute")
+    fun observeExpenseReminders(): Flow<List<ExpenseReminderEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertExpenseReminder(reminder: ExpenseReminderEntity): Long
+
+    @Query("UPDATE expense_reminders SET enabled = :enabled WHERE id = :id")
+    suspend fun setExpenseReminderEnabled(id: Long, enabled: Boolean)
+
+    @Query("DELETE FROM expense_reminders WHERE id = :id")
+    suspend fun deleteExpenseReminder(id: Long)
 }

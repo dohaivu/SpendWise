@@ -93,6 +93,9 @@ internal fun SettingsScreen(
                             },
                             onTagUsage = {
                                 push(SettingsRoute.TagUsage)
+                            },
+                            onReminders = {
+                                push(SettingsRoute.Reminders)
                             }
                         )
                     }
@@ -127,6 +130,15 @@ internal fun SettingsScreen(
                     SettingsRoute.TagUsage -> {
                         val currentState by settingsViewModel.uiState.collectAsState()
                         TagUsage(
+                            state = currentState,
+                            viewModel = settingsViewModel,
+                            onBack = { pop() }
+                        )
+                    }
+
+                    SettingsRoute.Reminders -> {
+                        val currentState by settingsViewModel.uiState.collectAsState()
+                        Reminders(
                             state = currentState,
                             viewModel = settingsViewModel,
                             onBack = { pop() }
@@ -168,7 +180,8 @@ private fun SettingsHomeScreen(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     onEditCategories: () -> Unit,
-    onTagUsage: () -> Unit
+    onTagUsage: () -> Unit,
+    onReminders: () -> Unit
 ) {
     SettingsScaffold(title = "Settings") { contentModifier ->
         LazyColumn(
@@ -183,6 +196,17 @@ private fun SettingsHomeScreen(
             }
             item { CurrencySettings(state, viewModel) }
             item { LanguageSettings(state, viewModel) }
+            item {
+                SettingsRow(
+                    title = "Reminders",
+                    subtitle = if (state.reminders.isEmpty()) {
+                        "No reminders"
+                    } else {
+                        "${state.reminders.count { it.enabled }} of ${state.reminders.size} enabled"
+                    },
+                    onClick = onReminders
+                )
+            }
             item {
                 SettingsRow(
                     title = "Tag usage",

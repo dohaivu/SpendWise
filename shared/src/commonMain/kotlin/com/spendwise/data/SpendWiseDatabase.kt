@@ -8,7 +8,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.execSQL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
@@ -94,6 +97,15 @@ data class CurrencySettingsEntity(
     val languageCode: String = "en"
 )
 
+@Entity(tableName = "expense_reminders", indices = [Index(value = ["hour", "minute"], unique = true)])
+data class ExpenseReminderEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    val hour: Int,
+    val minute: Int,
+    val enabled: Boolean = true
+)
+
 @Entity(
     tableName = "exchange_rates",
     primaryKeys = ["fromCurrencyCode", "toCurrencyCode", "effectiveDateEpochDay"]
@@ -112,9 +124,10 @@ data class ExchangeRateEntity(
         TagEntity::class,
         ExpenseTagEntity::class,
         CurrencySettingsEntity::class,
+        ExpenseReminderEntity::class,
         ExchangeRateEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @ConstructedBy(SpendWiseDatabaseConstructor::class)
@@ -131,9 +144,26 @@ fun buildSpendWiseDatabase(
     builder: RoomDatabase.Builder<SpendWiseDatabase>
 ): SpendWiseDatabase {
     return builder
+        .addMigrations(MIGRATION_1_2)
         .fallbackToDestructiveMigration(false)
         .fallbackToDestructiveMigrationOnDowngrade(false)
         .setQueryCoroutineContext(Dispatchers.IO)
         .setDriver(BundledSQLiteDriver())
         .build()
+}
+
+private val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS expense_reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                hour INTEGER NOT NULL,
+                minute INTEGER NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1
+            )
+            """.trimIndent()
+        )
+        connection.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_expense_reminders_hour_minute ON expense_reminders(hour, minute)")
+    }
 }

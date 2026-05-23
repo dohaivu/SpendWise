@@ -15,4 +15,7 @@ internal sealed interface SettingsRoute : NavKey {
 
     @Serializable
     data object TagUsage : SettingsRoute
+
+    @Serializable
+    data object Reminders : SettingsRoute
 }

@@ -56,6 +56,7 @@ data class SpendWiseSnapshot(
     val categories: List<Category> = emptyList(),
     val expenses: List<Expense> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
+    val reminders: List<ExpenseReminder> = emptyList(),
     val settings: UserSettings = UserSettings()
 )
 
@@ -86,6 +87,15 @@ data class UserSettings(
     val baseCurrencyCode: String = "USD",
     val languageCode: String = "en"
 )
+
+data class ExpenseReminder(
+    val id: Long,
+    val hour: Int,
+    val minute: Int,
+    val enabled: Boolean
+) {
+    val minutesSinceMidnight: Int = hour * 60 + minute
+}
 
 data class AddExpenseInput(
     val id: Long? = null,

@@ -118,7 +118,7 @@ val provideDatabaseModule = module {
 }
 
 val provideLocalServiceModule = module {
-
+    single { AppDataStore(createPreferencesDataStore()) }
 }
 
 val provideViewModelModule = module {
@@ -126,5 +126,5 @@ val provideViewModelModule = module {
     viewModel { CalendarViewModel(get()) }
     viewModel { AllTransactionsViewModel(get()) }
     viewModel { ReportViewModel(get(), get()) }
-    viewModel { SettingsViewModel(get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get()) }
 }
