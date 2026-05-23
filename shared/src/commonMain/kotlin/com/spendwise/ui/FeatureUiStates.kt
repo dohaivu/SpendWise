@@ -6,6 +6,7 @@ import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
+import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import kotlin.time.Clock
@@ -79,6 +80,7 @@ data class SettingsUiState(
     val categoryDraft: CategoryDraft = CategoryDraft(),
     val baseCurrencyCode: String = "USD",
     val language: AppLanguage = AppLanguage.English,
+    val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val message: String? = null
 )

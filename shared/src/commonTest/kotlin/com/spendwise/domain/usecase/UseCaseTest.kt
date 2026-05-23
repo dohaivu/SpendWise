@@ -3,6 +3,7 @@ package com.spendwise.domain.usecase
 import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
+import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
@@ -72,6 +73,13 @@ class UseCaseTest {
 
         assertEquals(1, rows.size)
         assertEquals(1_000, rows.first().totalBaseAmountCents)
+    }
+
+    @Test
+    fun expenseReminderCalculatesMinutesSinceMidnight() {
+        val reminder = ExpenseReminder(id = 1, hour = 18, minute = 30, enabled = true)
+
+        assertEquals(1_110, reminder.minutesSinceMidnight)
     }
 
     private fun expense(

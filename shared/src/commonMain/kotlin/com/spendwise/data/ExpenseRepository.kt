@@ -4,6 +4,7 @@ import com.spendwise.domain.AddExpenseInput
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.Expense
+import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
@@ -26,6 +27,9 @@ interface ExpenseRepository {
     suspend fun deleteCategory(id: Long)
     suspend fun moveCategory(id: Long, direction: Int)
     suspend fun saveSettings(settings: UserSettings)
+    suspend fun saveReminder(reminder: ExpenseReminder): Long
+    suspend fun setReminderEnabled(id: Long, enabled: Boolean)
+    suspend fun deleteReminder(id: Long)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
 }
 
@@ -34,7 +38,7 @@ class RoomExpenseRepository(
     private val exchangeRateClient: FrankfurterExchangeRateClient
 ) : ExpenseRepository {
     override fun observeSnapshot(): Flow<SpendWiseSnapshot> {
-        return combine(
+        val snapshotWithoutReminders = combine(
             dao.observeCategories(),
             dao.observeExpenses(),
             dao.observeTags(),
@@ -75,6 +79,9 @@ class RoomExpenseRepository(
                     languageCode = settings?.languageCode ?: "en"
                 )
             )
+        }
+        return combine(snapshotWithoutReminders, dao.observeExpenseReminders()) { snapshot, reminderEntities ->
+            snapshot.copy(reminders = reminderEntities.map { it.toDomain() })
         }
     }
 
@@ -173,6 +180,25 @@ class RoomExpenseRepository(
         )
     }
 
+    override suspend fun saveReminder(reminder: ExpenseReminder): Long {
+        return dao.upsertExpenseReminder(
+            ExpenseReminderEntity(
+                id = reminder.id,
+                hour = reminder.hour.coerceIn(0, 23),
+                minute = reminder.minute.coerceIn(0, 59),
+                enabled = reminder.enabled
+            )
+        )
+    }
+
+    override suspend fun setReminderEnabled(id: Long, enabled: Boolean) {
+        dao.setExpenseReminderEnabled(id, enabled)
+    }
+
+    override suspend fun deleteReminder(id: Long) {
+        dao.deleteExpenseReminder(id)
+    }
+
     override suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double? {
         if (fromCurrencyCode == toCurrencyCode) return 1.0
         val fetched = runCatching {
@@ -215,6 +241,14 @@ class RoomExpenseRepository(
             spentAtMillis = spentAtMillis,
             createdAtMillis = createdAtMillis,
             updatedAtMillis = updatedAtMillis
+        )
+
+    private fun ExpenseReminderEntity.toDomain(): ExpenseReminder =
+        ExpenseReminder(
+            id = id,
+            hour = hour,
+            minute = minute,
+            enabled = enabled
         )
 
     private val defaultCategories = listOf(
