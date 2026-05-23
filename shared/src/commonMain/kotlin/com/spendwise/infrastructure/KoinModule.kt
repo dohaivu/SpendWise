@@ -118,7 +118,7 @@ val provideDatabaseModule = module {
 }
 
 val provideLocalServiceModule = module {
-
+    single { AppDataStore(createPreferencesDataStore()) }
 }
 
 val provideViewModelModule = module {
