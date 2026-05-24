@@ -2,7 +2,13 @@ package com.spendwise.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spendwise.data.CsvExpenseRow
 import com.spendwise.data.ExpenseRepository
+import com.spendwise.data.csvDuplicateKey
+import com.spendwise.data.formatSpendWiseCsv
+import com.spendwise.data.parseSpendWiseCsv
+import com.spendwise.data.spentAtMillis
+import com.spendwise.domain.AddExpenseInput
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.ExpenseReminder
@@ -18,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 
 class SettingsViewModel(
     private val repository: ExpenseRepository,
@@ -148,6 +155,83 @@ class SettingsViewModel(
         }
     }
 
+    fun exportCsv(): String {
+        val state = _uiState.value
+        return formatSpendWiseCsv(state.expenses, state.categories)
+    }
+
+    fun importCsv(csvText: String) {
+        val result = parseSpendWiseCsv(csvText)
+        if (result.rows.isEmpty()) {
+            val errorSummary = result.errors.firstOrNull()?.message ?: "No valid rows found"
+            _uiState.update { it.copy(message = "CSV import failed: $errorSummary") }
+            return
+        }
+
+        viewModelScope.launch {
+            val initialState = _uiState.value
+            val timeZone = TimeZone.currentSystemDefault()
+            val categoryByName = initialState.categories.associateBy { it.name.trim().lowercase() }.toMutableMap()
+            val duplicateKeys = initialState.expenses
+                .map { expense -> expense.csvDuplicateKey(initialState.categories, timeZone) }
+                .toMutableSet()
+            var imported = 0
+            var skippedDuplicates = 0
+
+            result.rows.forEach { row ->
+                val key = row.csvDuplicateKey()
+                if (!duplicateKeys.add(key)) {
+                    skippedDuplicates++
+                    return@forEach
+                }
+
+                val category = categoryByName.getOrPut(row.categoryName.trim().lowercase()) {
+                    val id = useCases.saveCategory(
+                        CategoryDraft(
+                            name = row.categoryName,
+                            icon = "other",
+                            color = 0xFF457B9D
+                        )
+                    )
+                    Category(
+                        id = id,
+                        name = row.categoryName,
+                        icon = "other",
+                        color = 0xFF457B9D,
+                        sortOrder = categoryByName.size
+                    )
+                }
+
+                useCases.addExpense(
+                    AddExpenseInput(
+                        originalAmountCents = row.amountCents,
+                        originalCurrencyCode = row.currencyCode,
+                        baseAmountCents = row.amountCents,
+                        baseCurrencyCode = row.currencyCode,
+                        exchangeRate = 1.0,
+                        categoryId = category.id,
+                        note = row.note,
+                        tags = useCases.parseTagsFromNote(row.note),
+                        spentAtMillis = row.spentAtMillis(timeZone)
+                    )
+                )
+                imported++
+            }
+
+            result.rows.map { it.currencyCode }.distinct().singleOrNull()?.let { currency ->
+                useCases.updateBaseCurrency(currency)
+            }
+
+            _uiState.update {
+                it.copy(message = importSummary(imported, skippedDuplicates, result.errors.size))
+            }
+        }
+    }
+
+    fun showMessage(message: String) {
+        _uiState.update { it.copy(message = message) }
+    }
+
     fun moveCategoryUp(id: Long) {
         moveCategory(id, -1)
     }
@@ -205,5 +289,20 @@ class SettingsViewModel(
 
         return map { category -> updatedById[category.id] ?: category }
             .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
+    }
+
+    private fun CsvExpenseRow.csvDuplicateKey(): String =
+        csvDuplicateKey(date, amountCents, currencyCode, categoryName, note)
+
+    private fun importSummary(imported: Int, skippedDuplicates: Int, invalidRows: Int): String {
+        val parts = mutableListOf<String>()
+        parts += "Imported $imported ${if (imported == 1) "expense" else "expenses"}"
+        if (skippedDuplicates > 0) {
+            parts += "skipped $skippedDuplicates duplicates"
+        }
+        if (invalidRows > 0) {
+            parts += "ignored $invalidRows invalid rows"
+        }
+        return parts.joinToString(", ")
     }
 }
