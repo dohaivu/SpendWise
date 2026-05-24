@@ -38,6 +38,7 @@ import com.spendwise.ui.calendar.AllTransactions
 import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
+import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
 import com.spendwise.ui.reports.AnnualReport
@@ -221,7 +222,13 @@ fun SpendWiseApp(
                                     AnnualReport(
                                         state = reportState,
                                         reportViewModel = reportViewModel,
-                                        onBack = { onBack() }
+                                        onBack = { onBack() },
+                                        onMonthClick = { month ->
+                                            calendarViewModel.selectPeriod(ReportPeriod.Month)
+                                            calendarViewModel.selectMonth(month)
+                                            calendarViewModel.selectDate(month)
+                                            push(Routes.Calendar)
+                                        }
                                     )
                                 }
                                 is Routes.CategoryReport -> {

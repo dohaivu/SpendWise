@@ -112,7 +112,7 @@ internal fun CategoryReport(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(top = padding.calculateTopPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             CategoryMonthlyBarChart(
@@ -121,7 +121,7 @@ internal fun CategoryReport(
                 color = Color(category.color.toInt()),
                 onMonthSelected = { selectedMonth = it }
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
@@ -148,7 +148,7 @@ private fun CategoryMonthlyBarChart(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Box(
