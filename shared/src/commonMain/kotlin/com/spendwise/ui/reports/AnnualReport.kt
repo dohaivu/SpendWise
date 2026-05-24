@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -37,7 +35,6 @@ import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.YearHeader
-import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +81,6 @@ internal fun AnnualReport(
                     )
                     AnnualColumnChart(
                         rows = monthlyTotals,
-                        currencyCode = state.baseCurrencyCode,
                         modifier = Modifier.fillMaxWidth().height(360.dp)
                     )
                 }
@@ -104,64 +100,44 @@ internal fun AnnualReport(
 @Composable
 private fun AnnualColumnChart(
     rows: List<MonthlyExpenseTotal>,
-    currencyCode: String,
     modifier: Modifier = Modifier
 ) {
     val maxAmount = rows.maxOfOrNull { it.totalBaseAmountCents } ?: 0L
     val axisMax = maxAmount.coerceAtLeast(1L)
-    val gridValues = listOf(axisMax, axisMax * 3 / 4, axisMax / 2, axisMax / 4, 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
     val barColor = Color(0xFF50A8E5)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val format = currencyDisplayFormat(currencyCode)
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(modifier = Modifier.weight(1f)) {
-            Column(
-                modifier = Modifier.width(74.dp).fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End
-            ) {
-                gridValues.forEach { value ->
-                    Text(
-                        text = format.format(value),
-                        color = labelColor,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1
-                    )
-                }
+        Canvas(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val gridCount = 4
+            val chartHeight = size.height
+            val chartWidth = size.width
+            for (index in 0..gridCount) {
+                val y = chartHeight * index / gridCount
+                drawLine(
+                    color = gridColor,
+                    start = Offset(0f, y),
+                    end = Offset(chartWidth, y),
+                    strokeWidth = 1f
+                )
             }
-            Spacer(Modifier.width(4.dp))
-            Canvas(modifier = Modifier.weight(1f).fillMaxSize()) {
-                val gridCount = 4
-                val chartHeight = size.height
-                val chartWidth = size.width
-                for (index in 0..gridCount) {
-                    val y = chartHeight * index / gridCount
-                    drawLine(
-                        color = gridColor,
-                        start = Offset(0f, y),
-                        end = Offset(chartWidth, y),
-                        strokeWidth = 1f
+            val slotWidth = chartWidth / rows.size.coerceAtLeast(1)
+            val barWidth = slotWidth * 0.58f
+            rows.forEachIndexed { index, row ->
+                if (row.totalBaseAmountCents > 0L) {
+                    val fraction = row.totalBaseAmountCents.toFloat() / axisMax
+                    val barHeight = chartHeight * fraction
+                    val left = slotWidth * index + (slotWidth - barWidth) / 2f
+                    drawRect(
+                        color = barColor,
+                        topLeft = Offset(left, chartHeight - barHeight),
+                        size = Size(barWidth, barHeight)
                     )
-                }
-                val slotWidth = chartWidth / rows.size.coerceAtLeast(1)
-                val barWidth = slotWidth * 0.58f
-                rows.forEachIndexed { index, row ->
-                    if (row.totalBaseAmountCents > 0L) {
-                        val fraction = row.totalBaseAmountCents.toFloat() / axisMax
-                        val barHeight = chartHeight * fraction
-                        val left = slotWidth * index + (slotWidth - barWidth) / 2f
-                        drawRect(
-                            color = barColor,
-                            topLeft = Offset(left, chartHeight - barHeight),
-                            size = Size(barWidth, barHeight)
-                        )
-                    }
                 }
             }
         }
-        Row(modifier = Modifier.padding(start = 74.dp)) {
+        Row {
             (1..12).forEach { monthNumber ->
                 Text(
                     text = monthNumber.toString(),

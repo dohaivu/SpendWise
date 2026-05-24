@@ -131,69 +131,64 @@ internal fun CalendarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
+                .padding(horizontal = 12.dp, vertical = 0.dp)
+                .padding(top = padding.calculateTopPadding()),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                ReportPeriodSwitcher(
-                    selectedPeriod = state.selectedPeriod,
-                    onPeriodSelected = calendarViewModel::selectPeriod
-                )
-                when (state.selectedPeriod) {
-                    ReportPeriod.Month -> {
-                        MonthHeader(
-                            month = state.selectedMonth,
-                            onPreviousMonth = calendarViewModel::previousMonth,
-                            onNextMonth = calendarViewModel::nextMonth
-                        )
-                        MonthCalendar(
-                            month = state.selectedMonth,
-                            selectedDate = state.selectedDate,
-                            totalsByDate = state.calendarData.totalsByDate,
-                            currencyCode = state.baseCurrencyCode,
-                            onDateSelected = { date ->
-                                calendarViewModel.selectDate(date)
-                                state.calendarData.headerIndexes[date]?.let { index ->
-                                    coroutineScope.launch {
-                                        transactionListState.scrollToItem(index)
-                                    }
-                                }
-                            },
-                            onDateDoubleClick = onDateDoubleClick
-                        )
-                    }
-                    ReportPeriod.Annual -> {
-                        YearHeader(
-                            year = state.selectedMonth.year,
-                            onPreviousYear = calendarViewModel::previousYear,
-                            onNextYear = calendarViewModel::nextYear
-                        )
-                        YearCalendar(
-                            year = state.selectedMonth.year,
-                            selectedMonth = state.selectedMonth,
-                            totalsByDate = state.calendarData.totalsByDate,
-                            currencyCode = state.baseCurrencyCode,
-                            onMonthSelected = { month ->
-                                calendarViewModel.selectMonth(month)
-                                state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
-                                    coroutineScope.launch {
-                                        transactionListState.scrollToItem(index)
-                                    }
+            ReportPeriodSwitcher(
+                selectedPeriod = state.selectedPeriod,
+                onPeriodSelected = calendarViewModel::selectPeriod
+            )
+            when (state.selectedPeriod) {
+                ReportPeriod.Month -> {
+                    MonthHeader(
+                        month = state.selectedMonth,
+                        onPreviousMonth = calendarViewModel::previousMonth,
+                        onNextMonth = calendarViewModel::nextMonth
+                    )
+                    MonthCalendar(
+                        month = state.selectedMonth,
+                        selectedDate = state.selectedDate,
+                        totalsByDate = state.calendarData.totalsByDate,
+                        currencyCode = state.baseCurrencyCode,
+                        onDateSelected = { date ->
+                            calendarViewModel.selectDate(date)
+                            state.calendarData.headerIndexes[date]?.let { index ->
+                                coroutineScope.launch {
+                                    transactionListState.scrollToItem(index)
                                 }
                             }
-                        )
-                    }
+                        },
+                        onDateDoubleClick = onDateDoubleClick
+                    )
                 }
-                TotalRow(
-                    total = state.calendarData.filteredMonthTotal,
-                    transactionCount = state.calendarData.monthTransactionCount,
-                    currencyCode = state.baseCurrencyCode
-                )
+                ReportPeriod.Annual -> {
+                    YearHeader(
+                        year = state.selectedMonth.year,
+                        onPreviousYear = calendarViewModel::previousYear,
+                        onNextYear = calendarViewModel::nextYear
+                    )
+                    YearCalendar(
+                        year = state.selectedMonth.year,
+                        selectedMonth = state.selectedMonth,
+                        totalsByDate = state.calendarData.totalsByDate,
+                        currencyCode = state.baseCurrencyCode,
+                        onMonthSelected = { month ->
+                            calendarViewModel.selectMonth(month)
+                            state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
+                                coroutineScope.launch {
+                                    transactionListState.scrollToItem(index)
+                                }
+                            }
+                        }
+                    )
+                }
             }
+            TotalRow(
+                total = state.calendarData.filteredMonthTotal,
+                transactionCount = state.calendarData.monthTransactionCount,
+                currencyCode = state.baseCurrencyCode
+            )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
@@ -405,7 +400,7 @@ private fun CalendarDayCell(
 
     Box(
         modifier = modifier
-            .height(46.dp)
+            .height(44.dp)
             .border(0.5.dp, colors.outline)
             .background(if (isSelected) colors.selectedBackground else colors.defaultBackground)
             .combinedClickable(
