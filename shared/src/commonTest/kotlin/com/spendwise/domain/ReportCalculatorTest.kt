@@ -23,6 +23,22 @@ class ReportCalculatorTest {
     }
 
     @Test
+    fun filterByTagsMatchesAnySelectedTag() {
+        val expenses = listOf(
+            expense(id = 1, categoryId = 1, amount = 1_200, tags = listOf("work")),
+            expense(id = 2, categoryId = 2, amount = 3_400, tags = listOf("trip")),
+            expense(id = 3, categoryId = 1, amount = 800, tags = listOf("work", "trip")),
+            expense(id = 4, categoryId = 1, amount = 600, tags = listOf("personal"))
+        )
+
+        val filtered = with(ReportCalculator) {
+            expenses.filterByTags(setOf("work", "trip"))
+        }
+
+        assertEquals(listOf(1L, 2L, 3L), filtered.map { it.id })
+    }
+
+    @Test
     fun monthlyTotalsReturnsAllMonthsAndAppliesYearAndTagFilters() {
         val expenses = listOf(
             expense(id = 1, categoryId = 1, amount = 1_200, tags = listOf("work"), spentAtMillis = dateMillis(2026, 1, 10)),

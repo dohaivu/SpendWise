@@ -143,10 +143,10 @@ internal fun formatCompactMoney(cents: Long, currencyCode: String): String {
     return currencyDisplayFormat(currencyCode).formatCompact(cents)
 }
 
-internal fun formatCompactAmount(cents: Long): String {
+internal fun formatCompactAmount(cents: Long, displayMillions: Boolean = true): String {
     val amount = cents / 100
     return when {
-        amount >= 1_000_000 -> "${amount / 1_000_000}m"
+        displayMillions && amount >= 1_000_000 -> "${amount / 1_000_000}m"
         amount >= 1_000 -> "${amount / 1_000}k"
         else -> amount.toString()
     }

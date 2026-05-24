@@ -62,8 +62,9 @@ class ReportViewModel(
     fun toggleTagFilter(tag: String) {
         val normalized = TagParser.normalize(tag)
         _uiState.update {
-            val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
-            it.copy(selectedTags = next)
+            val currentTags = it.transactionFilters.selectedTags
+            val next = if (normalized in currentTags) currentTags - normalized else currentTags + normalized
+            it.copy(transactionFilters = it.transactionFilters.copy(selectedTags = next))
         }
     }
 
@@ -76,12 +77,20 @@ class ReportViewModel(
     }
 
     fun clearTagFilters() {
-        _uiState.update { it.copy(selectedTags = emptySet()) }
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(selectedTags = emptySet())) }
+    }
+
+    fun updateTransactionQuery(value: String) {
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(query = value)) }
+    }
+
+    fun updateTransactionCategory(categoryId: Long?) {
+        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(categoryId = categoryId)) }
     }
 
     fun getCategoryReport(expenses: List<Expense>): List<CategoryReportRow> {
         val state = _uiState.value
-        return useCases.getCategoryPieReport(expenses, state.categories, state.selectedTags)
+        return useCases.getCategoryPieReport(expenses, state.categories, state.transactionFilters.selectedTags)
     }
 
     fun getYearlyCategoryReport(year: Int, timeZone: TimeZone): List<CategoryReportRow> {
@@ -90,17 +99,21 @@ class ReportViewModel(
             expenses = state.expenses,
             categories = state.categories,
             year = year,
-            selectedTags = state.selectedTags,
+            selectedTags = state.transactionFilters.selectedTags,
             timeZone = timeZone
         )
     }
 
     fun getAnnualMonthlyReport(year: Int, timeZone: TimeZone): List<MonthlyExpenseTotal> {
         val state = _uiState.value
-        return useCases.getAnnualMonthlyReport(
+        val filteredExpenses = useCases.getTransactionsByFilters(
             expenses = state.expenses,
+            filters = state.transactionFilters
+        )
+        return useCases.getAnnualMonthlyReport(
+            expenses = filteredExpenses,
             year = year,
-            selectedTags = state.selectedTags,
+            selectedTags = emptySet(),
             timeZone = timeZone
         )
     }

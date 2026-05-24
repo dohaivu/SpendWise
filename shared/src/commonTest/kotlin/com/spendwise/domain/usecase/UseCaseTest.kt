@@ -43,7 +43,7 @@ class UseCaseTest {
     }
 
     @Test
-    fun transactionFilterUseCaseAppliesTagsCategoryCurrencyAndText() {
+    fun transactionFilterUseCaseAppliesTagsCategoryAndText() {
         val useCase = GetTransactionsByFiltersUseCase()
         val expenses = listOf(
             expense(id = 1, categoryId = 1, currency = "USD", note = "Lunch #work", tags = listOf("work")),
@@ -53,8 +53,7 @@ class UseCaseTest {
 
         val result = useCase(
             expenses = expenses,
-            filters = TransactionFilters(query = "lunch", categoryId = 1, currencyCode = "USD"),
-            selectedTags = setOf("work")
+            filters = TransactionFilters(query = "lunch", categoryId = 1, selectedTags = setOf("work"))
         )
 
         assertEquals(listOf(1L), result.map { it.id })

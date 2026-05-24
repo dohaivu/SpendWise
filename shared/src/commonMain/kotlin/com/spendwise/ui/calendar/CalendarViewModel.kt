@@ -11,8 +11,9 @@ import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.CalendarData
-import com.spendwise.ui.CalendarTransactionListItem
+import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.firstDayOfMonth
 import com.spendwise.ui.today
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,6 +62,18 @@ class CalendarViewModel(
         _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.MONTH)) }
     }
 
+    fun previousYear() {
+        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.YEAR)) }
+    }
+
+    fun nextYear() {
+        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.YEAR)) }
+    }
+
+    fun selectPeriod(period: ReportPeriod) {
+        _uiState.update { it.withCalendarData(selectedPeriod = period) }
+    }
+
     fun selectDate(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
     }
@@ -78,8 +91,9 @@ class CalendarViewModel(
     fun toggleTagFilter(tag: String) {
         val normalized = TagParser.normalize(tag)
         _uiState.update {
-            val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
-            it.withCalendarData(selectedTags = next)
+            val currentTags = it.transactionFilters.selectedTags
+            val next = if (normalized in currentTags) currentTags - normalized else currentTags + normalized
+            it.withCalendarData(transactionFilters = it.transactionFilters.copy(selectedTags = next))
         }
     }
 
@@ -96,9 +110,9 @@ class CalendarViewModel(
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
         baseCurrencyCode: String = this.baseCurrencyCode,
+        selectedPeriod: ReportPeriod = this.selectedPeriod,
         selectedMonth: LocalDate = this.selectedMonth,
         selectedDate: LocalDate = this.selectedDate,
-        selectedTags: Set<String> = this.selectedTags,
         transactionFilters: TransactionFilters = this.transactionFilters
     ): CalendarUiState {
         return copy(
@@ -106,15 +120,15 @@ class CalendarViewModel(
             categories = categories,
             tagUsage = tagUsage,
             baseCurrencyCode = baseCurrencyCode,
+            selectedPeriod = selectedPeriod,
             selectedMonth = selectedMonth,
             selectedDate = selectedDate,
-            selectedTags = selectedTags,
             transactionFilters = transactionFilters,
             calendarData = buildCalendarData(
                 expenses = expenses,
+                period = selectedPeriod,
                 month = selectedMonth,
-                filters = transactionFilters.copy(currencyCode = null),
-                selectedTags = selectedTags,
+                filters = transactionFilters,
                 timeZone = TimeZone.currentSystemDefault()
             )
         )
@@ -122,18 +136,18 @@ class CalendarViewModel(
 
     private fun buildCalendarData(
         expenses: List<Expense>,
+        period: ReportPeriod,
         month: LocalDate,
         filters: TransactionFilters,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): CalendarData {
         val datedTransactions = expenses
             .asSequence()
             .map { expense -> expense to expense.spentDate(timeZone) }
-            .filter { (_, spentDate) -> spentDate.isSameMonth(month) }
+            .filter { (_, spentDate) -> spentDate.matchesPeriod(period, month) }
             .map { (expense, _) -> expense }
             .toList()
-            .filterByTransactionFilters(filters, selectedTags)
+            .filterByTransactionFilters(filters)
             .sortedByDescending { it.spentAtMillis }
             .map { expense -> expense to expense.spentDate(timeZone) }
 
@@ -149,15 +163,15 @@ class CalendarViewModel(
         }
         val transactionItems = buildList {
             groupedTransactions.forEach { (date, dayExpenses) ->
-                add(CalendarTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
+                add(DateTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
                 dayExpenses.forEach { expense ->
-                    add(CalendarTransactionListItem.Transaction(expense))
+                    add(DateTransactionListItem.Transaction(expense))
                 }
             }
         }
         val headerIndexes = buildMap {
             transactionItems.forEachIndexed { index, item ->
-                if (item is CalendarTransactionListItem.Header) {
+                if (item is DateTransactionListItem.Header) {
                     put(item.date, index)
                 }
             }
@@ -179,3 +193,9 @@ private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
 
 private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
     year == month.year && this.month == month.month
+
+private fun LocalDate.matchesPeriod(period: ReportPeriod, month: LocalDate): Boolean =
+    when (period) {
+        ReportPeriod.Month -> isSameMonth(month)
+        ReportPeriod.Annual -> year == month.year
+    }

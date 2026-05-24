@@ -2,6 +2,7 @@ package com.spendwise.ui.reports
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,8 +37,10 @@ import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +49,8 @@ internal fun AnnualReport(
     state: ReportUiState,
     reportViewModel: ReportViewModel,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onMonthClick: (LocalDate) -> Unit
 ) {
     val year = state.selectedMonth.year
     val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
@@ -67,35 +71,47 @@ internal fun AnnualReport(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+                },
+                actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        onTagClick = reportViewModel::toggleTagFilter,
+                        onQueryChange = reportViewModel::updateTransactionQuery,
+                        onCategoryChange = reportViewModel::updateTransactionCategory
+                    )
                 }
             )
         }
     ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-            item {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    YearHeader(
-                        year = year,
-                        onPreviousYear = reportViewModel::previousYear,
-                        onNextYear = reportViewModel::nextYear
-                    )
-                    AnnualColumnChart(
-                        rows = monthlyTotals,
+        Column(modifier = Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                YearHeader(
+                    year = year,
+                    onPreviousYear = reportViewModel::previousYear,
+                    onNextYear = reportViewModel::nextYear
+                )
+                AnnualColumnChart(
+                    rows = monthlyTotals,
+                    currencyCode = state.baseCurrencyCode,
+                    modifier = Modifier.fillMaxWidth().height(230.dp)
+                )
+            }
+            AnnualTotalRow(total = total, currencyCode = state.baseCurrencyCode)
+            SectionDivider()
+            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                items(monthlyTotals, key = { it.monthNumber }) { row ->
+                    AnnualMonthRow(
+                        row = row,
                         currencyCode = state.baseCurrencyCode,
-                        modifier = Modifier.fillMaxWidth().height(360.dp)
+                        onClick = { onMonthClick(LocalDate(year, row.monthNumber, 1)) }
                     )
+                    HorizontalDivider()
                 }
-            }
-            item {
-                AnnualTotalRow(total = total, currencyCode = state.baseCurrencyCode)
-                SectionDivider()
-            }
-            items(monthlyTotals, key = { it.monthNumber }) { row ->
-                AnnualMonthRow(row = row, currencyCode = state.baseCurrencyCode)
-                HorizontalDivider()
             }
         }
     }
@@ -115,16 +131,16 @@ private fun AnnualColumnChart(
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val format = currencyDisplayFormat(currencyCode)
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(modifier = Modifier.weight(1f)) {
             Column(
-                modifier = Modifier.width(74.dp).fillMaxSize(),
+                modifier = Modifier.width(36.dp).fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End
             ) {
                 gridValues.forEach { value ->
                     Text(
-                        text = format.format(value),
+                        text = format.formatCompact(value),
                         color = labelColor,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1
@@ -161,7 +177,7 @@ private fun AnnualColumnChart(
                 }
             }
         }
-        Row(modifier = Modifier.padding(start = 74.dp)) {
+        Row(modifier = Modifier.padding(start = 36.dp)) {
             (1..12).forEach { monthNumber ->
                 Text(
                     text = monthNumber.toString(),
@@ -179,7 +195,7 @@ private fun AnnualColumnChart(
 @Composable
 private fun AnnualTotalRow(total: Long, currencyCode: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 20.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -198,9 +214,16 @@ private fun AnnualTotalRow(total: Long, currencyCode: String) {
 }
 
 @Composable
-private fun AnnualMonthRow(row: MonthlyExpenseTotal, currencyCode: String) {
+private fun AnnualMonthRow(
+    row: MonthlyExpenseTotal,
+    currencyCode: String,
+    onClick: () -> Unit
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -220,8 +243,8 @@ private fun AnnualMonthRow(row: MonthlyExpenseTotal, currencyCode: String) {
 
 @Composable
 private fun SectionDivider() {
-    Box(Modifier.fillMaxWidth().height(14.dp).background(MaterialTheme.colorScheme.surfaceVariant))
-    HorizontalDivider()
+    Box(Modifier.fillMaxWidth().height(8.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+//    HorizontalDivider()
 }
 
 private val monthShortNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")

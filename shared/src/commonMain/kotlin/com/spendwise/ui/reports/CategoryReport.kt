@@ -11,11 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +24,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,17 +36,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
-import com.spendwise.domain.TagParser
+import com.spendwise.domain.usecase.filterByTransactionFilters
+import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
-import com.spendwise.ui.components.CategoryIcon
-import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
-import com.spendwise.ui.components.formatCompactMoney
+import com.spendwise.ui.components.TransactionFiltersMenu
+import com.spendwise.ui.components.TransactionsByDateList
+import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -56,19 +60,23 @@ import kotlin.math.ceil
 internal fun CategoryReport(
     state: ReportUiState,
     category: Category,
+    reportViewModel: ReportViewModel,
     onBack: () -> Unit,
     onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeZone = TimeZone.currentSystemDefault()
+    var selectedMonth by remember(state.selectedMonth) { mutableStateOf(state.selectedMonth) }
     val categoryExpenses = state.expenses
         .filter { it.categoryId == category.id }
-        .filter { it.matchesSelectedTags(state.selectedTags) }
+        .filterByTransactionFilters(state.transactionFilters.copy(categoryId = null))
     val monthExpenses = categoryExpenses
-        .filter { it.spentDate(timeZone).isSameMonth(state.selectedMonth) }
+        .filter { it.spentDate(timeZone).isSameMonth(selectedMonth) }
         .sortedByDescending { it.spentAtMillis }
     val monthTotal = monthExpenses.sumOf { it.baseAmountCents }
-    val monthTotals = recentMonths(state.selectedMonth, count = 6).map { month ->
+    val transactionListState = rememberLazyListState()
+    val categoryById = mapOf(category.id to category)
+    val monthTotals = recentMonths(state.selectedMonth, count = 12).map { month ->
         CategoryMonthTotal(
             month = month,
             total = categoryExpenses
@@ -76,7 +84,13 @@ internal fun CategoryReport(
                 .sumOf { it.baseAmountCents }
         )
     }
-    val groupedTransactions = monthExpenses.groupBy { it.spentDate(timeZone) }.toList()
+    val transactionItems = monthExpenses
+        .groupBy { it.spentDate(timeZone) }
+        .toList()
+        .flatMap { (date, expenses) ->
+            listOf(DateTransactionListItem.Header(date, expenses.sumOf { it.baseAmountCents })) +
+                expenses.map(DateTransactionListItem::Transaction)
+        }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -89,60 +103,48 @@ internal fun CategoryReport(
                 },
                 title = {
                     Text(
-                        text = "${category.name} (${state.selectedMonth.shortMonthName()}) ${formatMoney(monthTotal, state.baseCurrencyCode)}",
+                        text = "${category.name} (${selectedMonth.shortMonthName()}) ${formatMoney(monthTotal, state.baseCurrencyCode)}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                },
+                actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        onTagClick = reportViewModel::toggleTagFilter,
+                        onQueryChange = reportViewModel::updateTransactionQuery,
+                        onCategoryChange = reportViewModel::updateTransactionCategory,
+                        showCategories = false
+                    )
                 }
             )
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(top = padding.calculateTopPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            item {
-                CategoryMonthlyBarChart(
-                    monthTotals = monthTotals,
-                    selectedMonth = state.selectedMonth,
-                    color = Color(category.color.toInt()),
-                    currencyCode = state.baseCurrencyCode
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-            if (groupedTransactions.isEmpty()) {
-                item {
-                    Text(
-                        text = "No transactions",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            groupedTransactions.forEach { (date, expenses) ->
-                item(key = "category-header-$date") {
-                    CategoryTransactionDateHeader(
-                        date = date,
-                        total = expenses.sumOf { it.baseAmountCents },
-                        currencyCode = state.baseCurrencyCode
-                    )
-                }
-                items(expenses, key = { it.id }) { expense ->
-                    CategoryTransactionRow(
-                        expense = expense,
-                        category = category,
-                        currencyCode = state.baseCurrencyCode,
-                        onClick = { onExpenseClick(expense) }
-                    )
-                }
-            }
+            CategoryMonthlyBarChart(
+                monthTotals = monthTotals,
+                selectedMonth = selectedMonth,
+                color = Color(category.color.toInt()),
+                onMonthSelected = { selectedMonth = it }
+            )
+            Spacer(Modifier.height(4.dp))
+            TransactionsByDateList(
+                transactionItems = transactionItems,
+                categoryById = categoryById,
+                currencyCode = state.baseCurrencyCode,
+                onExpenseClick = onExpenseClick,
+                listState = transactionListState,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -152,38 +154,22 @@ private fun CategoryMonthlyBarChart(
     monthTotals: List<CategoryMonthTotal>,
     selectedMonth: LocalDate,
     color: Color,
-    currencyCode: String
+    onMonthSelected: (LocalDate) -> Unit
 ) {
     val chartHeight = 230.dp
     val maxValue = niceChartMax(monthTotals.maxOfOrNull { it.total } ?: 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            Column(
-                modifier = Modifier.width(88.dp).height(chartHeight),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End
-            ) {
-                yAxisValues(maxValue).asReversed().forEach { value ->
-                    Text(
-                        text = formatMoney(value, currencyCode),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = labelColor,
-                        maxLines = 1
-                    )
-                }
-            }
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .height(chartHeight)
-                    .padding(start = 8.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -196,7 +182,7 @@ private fun CategoryMonthlyBarChart(
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     monthTotals.forEach { monthTotal ->
                         val selected = monthTotal.month.isSameMonth(selectedMonth)
@@ -204,7 +190,7 @@ private fun CategoryMonthlyBarChart(
                             total = monthTotal.total,
                             maxValue = maxValue,
                             color = if (selected) color else color.copy(alpha = 0.55f),
-                            currencyCode = currencyCode,
+                            onClick = { onMonthSelected(monthTotal.month) },
                             chartHeight = chartHeight,
                             modifier = Modifier.weight(1f)
                         )
@@ -215,7 +201,7 @@ private fun CategoryMonthlyBarChart(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 96.dp, top = 4.dp),
+                .padding(top = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             monthTotals.forEach { monthTotal ->
@@ -237,24 +223,30 @@ private fun MonthlyBar(
     total: Long,
     maxValue: Long,
     color: Color,
-    currencyCode: String,
+    onClick: () -> Unit,
     chartHeight: Dp,
     modifier: Modifier = Modifier
 ) {
     val barHeight = ((chartHeight - 30.dp) * (total.toFloat() / maxValue.toFloat()).coerceIn(0f, 1f))
 
     Column(
-        modifier = modifier.height(chartHeight),
+        modifier = modifier
+            .height(chartHeight)
+            .clickable(onClick = onClick),
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (total > 0L) {
             Text(
-                text = formatCompactMoney(total, currencyCode),
+                text = formatCompactAmount(total, displayMillions = false),
                 style = MaterialTheme.typography.labelLarge,
                 color = color,
                 maxLines = 1,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Visible,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 6.sp,
+                    maxFontSize = 11.sp
+                )
             )
         }
         Box(
@@ -262,82 +254,6 @@ private fun MonthlyBar(
                 .width(42.dp)
                 .height(if (total > 0L) barHeight.coerceAtLeast(4.dp) else 0.dp)
                 .background(color, RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
-        )
-    }
-}
-
-@Composable
-private fun CategoryTransactionDateHeader(
-    date: LocalDate,
-    total: Long,
-    currencyCode: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = date.detailDateWithDayName(),
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = formatMoney(-total, currencyCode),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-private fun CategoryTransactionRow(
-    expense: Expense,
-    category: Category,
-    currencyCode: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(Modifier.padding(end = 14.dp), contentAlignment = Alignment.Center) {
-            CategoryIcon(
-                iconKey = category.icon,
-                tint = Color(category.color.toInt()),
-                modifier = Modifier.size(26.dp)
-            )
-        }
-        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
-            )
-            if (expense.note.isNotBlank()) {
-                Text(
-                    text = "  ${expense.note}",
-                    modifier = Modifier.weight(1f, fill = false),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-        MoneyText(
-            amountCents = expense.baseAmountCents,
-            currencyCode = currencyCode,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1
         )
     }
 }
@@ -350,9 +266,6 @@ private data class CategoryMonthTotal(
 private fun recentMonths(selectedMonth: LocalDate, count: Int): List<LocalDate> {
     return List(count) { index -> selectedMonth.minus(count - 1 - index, DateTimeUnit.MONTH) }
 }
-
-private fun yAxisValues(maxValue: Long): List<Long> =
-    List(6) { index -> maxValue / 5 * index }
 
 private fun niceChartMax(value: Long): Long {
     if (value <= 0L) return 100L
@@ -368,20 +281,11 @@ private fun niceChartMax(value: Long): Long {
     return (ceil(whole.toDouble() / step).toLong() * step).coerceAtLeast(step) * 100L
 }
 
-private fun Expense.matchesSelectedTags(selectedTags: Set<String>): Boolean {
-    if (selectedTags.isEmpty()) return true
-    val normalizedTags = tags.map(TagParser::normalize).toSet()
-    return selectedTags.map(TagParser::normalize).all { it in normalizedTags }
-}
-
 private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
     kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
 
 private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
     year == month.year && this.month == month.month
-
-private fun LocalDate.detailDateWithDayName(): String =
-    "${month.number}.$day $year (${dayOfWeek.shortName()})"
 
 private fun LocalDate.shortMonthName(): String =
     month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
@@ -390,6 +294,3 @@ private fun LocalDate.axisLabel(): String {
     val monthLabel = shortMonthName()
     return if (month.number == 1) "$monthLabel $year" else monthLabel
 }
-
-private fun DayOfWeek.shortName(): String =
-    name.lowercase().replaceFirstChar { it.uppercase() }.take(3)

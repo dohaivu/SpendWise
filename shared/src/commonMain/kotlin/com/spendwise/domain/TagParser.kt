@@ -26,6 +26,7 @@ object TagParser {
         val safeCursor = cursorIndex.coerceIn(0, text.length)
         val hashIndex = text.lastIndexOf('#', startIndex = (safeCursor - 1).coerceAtLeast(0))
         if (hashIndex < 0) return null
+        if (hashIndex >= safeCursor) return null
         if (hashIndex > 0 && !text[hashIndex - 1].isWhitespace()) return null
 
         val query = text.substring(hashIndex + 1, safeCursor)
@@ -48,4 +49,3 @@ object TagParser {
         }.replace(Regex("""\s{2,}"""), " ")
     }
 }
-

@@ -223,12 +223,13 @@ private fun SettingsHomeScreen(
                     )
                 }
             }
+            item { DataTransferSettings(state, viewModel) }
         }
     }
 }
 
 @Composable
-private fun SettingsRow(
+internal fun SettingsRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit

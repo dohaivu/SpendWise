@@ -48,13 +48,17 @@ import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
-import com.spendwise.ui.CalendarTransactionListItem
+import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
+import com.spendwise.ui.components.ReportPeriod
+import com.spendwise.ui.components.ReportPeriodSwitcher
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
+import com.spendwise.ui.components.TransactionsByDateList
+import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
 import com.spendwise.ui.firstDayOfMonth
@@ -95,7 +99,6 @@ internal fun CalendarScreen(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
-                        selectedTags = state.selectedTags,
                         onTagClick = calendarViewModel::toggleTagFilter,
                         onQueryChange = calendarViewModel::updateTransactionQuery,
                         onCategoryChange = calendarViewModel::updateTransactionCategory
@@ -127,40 +130,64 @@ internal fun CalendarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
+                .padding(horizontal = 12.dp, vertical = 0.dp)
+                .padding(top = padding.calculateTopPadding()),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MonthHeader(
-                    month = state.selectedMonth,
-                    onPreviousMonth = calendarViewModel::previousMonth,
-                    onNextMonth = calendarViewModel::nextMonth
-                )
-                MonthCalendar(
-                    month = state.selectedMonth,
-                    selectedDate = state.selectedDate,
-                    totalsByDate = state.calendarData.totalsByDate,
-                    currencyCode = state.baseCurrencyCode,
-                    onDateSelected = { date ->
-                        calendarViewModel.selectDate(date)
-                        state.calendarData.headerIndexes[date]?.let { index ->
-                            coroutineScope.launch {
-                                transactionListState.scrollToItem(index)
+            ReportPeriodSwitcher(
+                selectedPeriod = state.selectedPeriod,
+                onPeriodSelected = calendarViewModel::selectPeriod
+            )
+            when (state.selectedPeriod) {
+                ReportPeriod.Month -> {
+                    MonthHeader(
+                        month = state.selectedMonth,
+                        onPreviousMonth = calendarViewModel::previousMonth,
+                        onNextMonth = calendarViewModel::nextMonth
+                    )
+                    MonthCalendar(
+                        month = state.selectedMonth,
+                        selectedDate = state.selectedDate,
+                        totalsByDate = state.calendarData.totalsByDate,
+                        currencyCode = state.baseCurrencyCode,
+                        onDateSelected = { date ->
+                            calendarViewModel.selectDate(date)
+                            state.calendarData.headerIndexes[date]?.let { index ->
+                                coroutineScope.launch {
+                                    transactionListState.scrollToItem(index)
+                                }
+                            }
+                        },
+                        onDateDoubleClick = onDateDoubleClick
+                    )
+                }
+                ReportPeriod.Annual -> {
+                    YearHeader(
+                        year = state.selectedMonth.year,
+                        onPreviousYear = calendarViewModel::previousYear,
+                        onNextYear = calendarViewModel::nextYear
+                    )
+                    YearCalendar(
+                        year = state.selectedMonth.year,
+                        selectedMonth = state.selectedMonth,
+                        totalsByDate = state.calendarData.totalsByDate,
+                        currencyCode = state.baseCurrencyCode,
+                        onMonthSelected = { month ->
+                            calendarViewModel.selectMonth(month)
+                            state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
+                                coroutineScope.launch {
+                                    transactionListState.scrollToItem(index)
+                                }
                             }
                         }
-                    },
-                    onDateDoubleClick = onDateDoubleClick
-                )
-                TotalRow(
-                    total = state.calendarData.filteredMonthTotal,
-                    transactionCount = state.calendarData.monthTransactionCount,
-                    currencyCode = state.baseCurrencyCode
-                )
+                    )
+                }
             }
+            TotalRow(
+                total = state.calendarData.filteredMonthTotal,
+                transactionCount = state.calendarData.monthTransactionCount,
+                currencyCode = state.baseCurrencyCode
+            )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
@@ -232,6 +259,96 @@ private fun MonthCalendar(
 }
 
 @Composable
+private fun YearCalendar(
+    year: Int,
+    selectedMonth: LocalDate,
+    totalsByDate: Map<LocalDate, DailyExpenseTotal>,
+    currencyCode: String,
+    onMonthSelected: (LocalDate) -> Unit
+) {
+    val monthTotals = remember(totalsByDate, year) {
+        totalsByDate.values
+            .filter { it.date.year == year }
+            .groupBy { it.date.month.number }
+            .mapValues { (_, totals) ->
+                YearMonthTotal(
+                    totalBaseAmountCents = totals.sumOf { it.totalBaseAmountCents },
+                    expenseCount = totals.sumOf { it.expenseCount }
+                )
+            }
+    }
+    val months = remember(year) { (1..12).map { month -> LocalDate(year, month, 1) } }
+
+    Column(Modifier.fillMaxWidth()) {
+        months.chunked(6).forEach { rowMonths ->
+            Row(Modifier.fillMaxWidth()) {
+                rowMonths.forEach { month ->
+                    YearMonthCell(
+                        month = month,
+                        total = monthTotals[month.month.number],
+                        selected = month.isSameMonth(selectedMonth),
+                        currencyCode = currencyCode,
+                        onClick = { onMonthSelected(month) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun YearMonthCell(
+    month: LocalDate,
+    total: YearMonthTotal?,
+    selected: Boolean,
+    currencyCode: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier
+            .height(74.dp)
+            .border(0.5.dp, colorScheme.outline.copy(alpha = 0.22f))
+            .background(if (selected) colorScheme.primaryContainer.copy(alpha = 0.45f) else colorScheme.surface)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = month.month.shortName(),
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
+        if (total != null) {
+            Text(
+                text = formatMoneyValue(total.totalBaseAmountCents, currencyCode),
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.labelSmall.copy(color = colorScheme.error),
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 6.sp,
+                    maxFontSize = 11.sp
+                )
+            )
+            Text(
+                text = total.expenseCount.toString(),
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.labelSmall,
+                color = colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
 private fun CalendarWeekRow(
     week: List<LocalDate>,
     month: LocalDate,
@@ -282,7 +399,7 @@ private fun CalendarDayCell(
 
     Box(
         modifier = modifier
-            .height(46.dp)
+            .height(44.dp)
             .border(0.5.dp, colors.outline)
             .background(if (isSelected) colors.selectedBackground else colors.defaultBackground)
             .combinedClickable(
@@ -343,127 +460,7 @@ internal fun TotalRow(
     }
 }
 
-@Composable
-internal fun TransactionsByDateList(
-    transactionItems: List<CalendarTransactionListItem>,
-    categoryById: Map<Long, Category>,
-    currencyCode: String,
-    onExpenseClick: (Expense) -> Unit,
-    listState: LazyListState,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
-        if (transactionItems.isEmpty()) {
-            item {
-                Text(
-                    text = "No transactions",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        items(
-            items = transactionItems,
-            key = { item ->
-                when (item) {
-                    is CalendarTransactionListItem.Header -> "header-${item.date}"
-                    is CalendarTransactionListItem.Transaction -> item.expense.id
-                }
-            }
-        ) { item ->
-            when (item) {
-                is CalendarTransactionListItem.Header -> TransactionDateHeader(
-                    date = item.date,
-                    total = item.total,
-                    currencyCode = currencyCode
-                )
-                is CalendarTransactionListItem.Transaction -> CalendarTransactionRow(
-                    expense = item.expense,
-                    category = categoryById[item.expense.categoryId],
-                    currencyCode = currencyCode,
-                    onExpenseClick = onExpenseClick
-                )
-            }
-        }
-    }
-}
 
-@Composable
-private fun TransactionDateHeader(
-    date: LocalDate,
-    total: Long,
-    currencyCode: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = date.compactDateWithDayName(),
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = formatMoney(-total, currencyCode),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-private fun CalendarTransactionRow(
-    expense: Expense,
-    category: Category?,
-    currencyCode: String,
-    onExpenseClick: (Expense) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onExpenseClick(expense) }
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CategoryIcon(
-            iconKey = category?.icon.orEmpty(),
-            tint = category?.let { Color(it.color.toInt()) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(end = 14.dp).size(28.dp)
-        )
-        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = category?.name ?: "Category",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
-            )
-            if (expense.note.isNotBlank()) {
-                Text(
-                    text = "  ${expense.note}",
-                    modifier = Modifier.weight(1f, fill = false),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-        MoneyText(
-            amountCents = expense.baseAmountCents,
-            currencyCode = currencyCode,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1
-        )
-    }
-}
 
 private fun calendarGridDates(month: LocalDate): List<LocalDate> {
     val first = month.firstDayOfMonth()
@@ -479,7 +476,7 @@ private fun calendarGridDates(month: LocalDate): List<LocalDate> {
     return dates
 }
 
-private data class CalendarCellColors(
+data class CalendarCellColors(
     val outline: Color,
     val selectedBackground: Color,
     val defaultBackground: Color,
@@ -510,13 +507,27 @@ private fun daysToSunday(dayOfWeek: DayOfWeek): Int =
 private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
     year == month.year && this.month == month.month
 
-private fun LocalDate.compactDateWithDayName(): String =
+internal fun LocalDate.compactDateWithDayName(): String =
     "${month.number}.${day} (${dayOfWeek.shortName()})"
 
-private fun DayOfWeek.shortName(): String =
+internal fun Map<LocalDate, Int>.firstHeaderIndexForMonth(month: LocalDate): Int? =
+    entries
+        .filter { (date, _) -> date.isSameMonth(month) }
+        .maxByOrNull { (date, _) -> date }
+        ?.value
+
+internal data class YearMonthTotal(
+    val totalBaseAmountCents: Long,
+    val expenseCount: Int
+)
+
+internal fun kotlinx.datetime.Month.shortName(): String =
     name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
 
-private fun DayOfWeek.headerColor(colors: CalendarCellColors): Color = when (this) {
+internal fun DayOfWeek.shortName(): String =
+    name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+
+internal fun DayOfWeek.headerColor(colors: CalendarCellColors): Color = when (this) {
     DayOfWeek.SATURDAY -> colors.saturday
     DayOfWeek.SUNDAY -> colors.sunday
     else -> colors.headerDay

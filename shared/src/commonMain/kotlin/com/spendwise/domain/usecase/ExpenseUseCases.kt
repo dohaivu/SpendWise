@@ -50,32 +50,25 @@ class GetTransactionsByDateUseCase {
         expenses: List<Expense>,
         date: LocalDate,
         timeZone: TimeZone,
-        selectedTags: Set<String> = emptySet(),
         filters: TransactionFilters = TransactionFilters()
     ): List<Expense> {
         return expenses
             .filter { expense ->
                 Instant.fromEpochMilliseconds(expense.spentAtMillis).toLocalDateTime(timeZone).date == date
             }
-            .filterByTransactionFilters(filters, selectedTags)
+            .filterByTransactionFilters(filters)
     }
 }
 
 class GetTransactionsByFiltersUseCase {
     operator fun invoke(
         expenses: List<Expense>,
-        filters: TransactionFilters,
-        selectedTags: Set<String> = emptySet()
-    ): List<Expense> = expenses.filterByTransactionFilters(filters, selectedTags)
+        filters: TransactionFilters
+    ): List<Expense> = expenses.filterByTransactionFilters(filters)
 }
 
-fun List<Expense>.filterByTransactionFilters(
-    filters: TransactionFilters,
-    selectedTags: Set<String>
-): List<Expense> {
-    return with(ReportCalculator) { filterByTags(selectedTags) }
+fun List<Expense>.filterByTransactionFilters(filters: TransactionFilters): List<Expense> {
+    return with(ReportCalculator) { filterByTags(filters.selectedTags) }
         .filter { filters.categoryId == null || it.categoryId == filters.categoryId }
-        .filter { filters.currencyCode == null || it.originalCurrencyCode == filters.currencyCode }
         .filter { filters.query.isBlank() || it.note.contains(filters.query, ignoreCase = true) }
 }
-

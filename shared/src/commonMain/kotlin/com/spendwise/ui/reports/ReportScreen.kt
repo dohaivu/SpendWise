@@ -1,18 +1,14 @@
 package com.spendwise.ui.reports
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.ReportPeriod
+import com.spendwise.ui.components.ReportPeriodSwitcher
 import com.spendwise.ui.components.TinyTopAppBar
 
 @Composable
@@ -38,7 +36,7 @@ internal fun ReportScreen(
     onAnnualReportClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedReport by rememberSaveable { mutableStateOf(CategoryReportPeriod.Month) }
+    var selectedReport by rememberSaveable { mutableStateOf(ReportPeriod.Month) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -78,18 +76,19 @@ internal fun ReportScreen(
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
         ) {
-            CategoryReportSwitcher(
-                selectedReport = selectedReport,
-                onReportSelected = { selectedReport = it }
+            ReportPeriodSwitcher(
+                selectedPeriod = selectedReport,
+                onPeriodSelected = { selectedReport = it },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
             )
             when (selectedReport) {
-                CategoryReportPeriod.Month -> MonthCategoryReport(
+                ReportPeriod.Month -> MonthCategoryReport(
                     state = state,
                     reportViewModel = reportViewModel,
                     onCategoryClick = onCategoryClick,
                     modifier = Modifier.weight(1f)
                 )
-                CategoryReportPeriod.Annual -> AnnualCategoryReport(
+                ReportPeriod.Annual -> AnnualCategoryReport(
                     state = state,
                     reportViewModel = reportViewModel,
                     onCategoryClick = onCategoryClick,
@@ -98,30 +97,4 @@ internal fun ReportScreen(
             }
         }
     }
-}
-
-@Composable
-private fun CategoryReportSwitcher(
-    selectedReport: CategoryReportPeriod,
-    onReportSelected: (CategoryReportPeriod) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 0.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CategoryReportPeriod.entries.forEach { report ->
-            FilterChip(
-                selected = selectedReport == report,
-                onClick = { onReportSelected(report) },
-                label = { Text(report.label) }
-            )
-        }
-    }
-}
-
-private enum class CategoryReportPeriod(val label: String) {
-    Month("Monthly"),
-    Annual("Annual")
 }

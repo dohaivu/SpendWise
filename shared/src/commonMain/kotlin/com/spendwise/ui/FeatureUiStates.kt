@@ -9,6 +9,7 @@ import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
+import com.spendwise.ui.components.ReportPeriod
 import kotlin.time.Clock
 
 data class ExpenseUiState(
@@ -27,9 +28,9 @@ data class CalendarUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrencyCode: String = "USD",
+    val selectedPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedDate: kotlinx.datetime.LocalDate = today(),
-    val selectedTags: Set<String> = emptySet(),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val calendarData: CalendarData = CalendarData()
 )
@@ -39,28 +40,27 @@ data class AllTransactionsUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrencyCode: String = "USD",
-    val selectedTags: Set<String> = emptySet(),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val transactionData: CalendarData = CalendarData()
 )
 
 data class CalendarData(
     val monthTransactionCount: Int = 0,
-    val transactionItems: List<CalendarTransactionListItem> = emptyList(),
+    val transactionItems: List<DateTransactionListItem> = emptyList(),
     val totalsByDate: Map<kotlinx.datetime.LocalDate, DailyExpenseTotal> = emptyMap(),
     val headerIndexes: Map<kotlinx.datetime.LocalDate, Int> = emptyMap(),
     val filteredMonthTotal: Long = 0L
 )
 
-sealed interface CalendarTransactionListItem {
+sealed interface DateTransactionListItem {
     data class Header(
         val date: kotlinx.datetime.LocalDate,
         val total: Long
-    ) : CalendarTransactionListItem
+    ) : DateTransactionListItem
 
     data class Transaction(
         val expense: Expense
-    ) : CalendarTransactionListItem
+    ) : DateTransactionListItem
 }
 
 data class ReportUiState(
@@ -70,7 +70,7 @@ data class ReportUiState(
     val baseCurrencyCode: String = "USD",
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
-    val selectedTags: Set<String> = emptySet()
+    val transactionFilters: TransactionFilters = TransactionFilters()
 )
 
 data class SettingsUiState(

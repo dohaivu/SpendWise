@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,10 +21,10 @@ interface SpendWiseDao {
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun countCategories(): Int
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun insertCategories(categories: List<CategoryEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun insertCategory(category: CategoryEntity): Long
 
     @Update
@@ -81,7 +82,7 @@ interface SpendWiseDao {
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpense(id: Long): ExpenseEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun insertExpense(expense: ExpenseEntity): Long
 
     @Update
@@ -96,7 +97,7 @@ interface SpendWiseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpenseTags(tags: List<ExpenseTagEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertTags(tags: List<TagEntity>)
 
     @Query("SELECT * FROM tags ORDER BY lastUsedAtMillis DESC")
@@ -135,7 +136,7 @@ interface SpendWiseDao {
     )
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): ExchangeRateEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertExchangeRate(rate: ExchangeRateEntity)
 
     @Query("SELECT * FROM currency_settings WHERE id = 1")
@@ -144,7 +145,7 @@ interface SpendWiseDao {
     @Query("SELECT * FROM currency_settings WHERE id = 1")
     suspend fun getCurrencySettingsOnce(): CurrencySettingsEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertCurrencySettings(settings: CurrencySettingsEntity)
 
     @Query("SELECT * FROM expense_reminders ORDER BY hour, minute")

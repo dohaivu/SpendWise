@@ -65,8 +65,9 @@ object ReportCalculator {
 
     fun List<Expense>.filterByTags(selectedTags: Set<String>): List<Expense> {
         if (selectedTags.isEmpty()) return this
-        val normalized = selectedTags.map(TagParser::normalize).toSet()
-        return filter { expense -> normalized.all { it in expense.tags.map(TagParser::normalize) } }
+        val normalized = selectedTags.map(TagParser::normalize).filter { it.isNotBlank() }.toSet()
+        if (normalized.isEmpty()) return this
+        return filter { expense -> expense.tags.map(TagParser::normalize).any { it in normalized } }
     }
 
     fun LocalDate.monthKey(): Int = year * 100 + month.number

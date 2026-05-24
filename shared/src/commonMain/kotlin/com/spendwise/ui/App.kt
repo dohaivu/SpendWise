@@ -4,6 +4,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.ui.NavDisplay
@@ -36,6 +38,7 @@ import com.spendwise.ui.calendar.AllTransactions
 import com.spendwise.ui.calendar.AllTransactionsViewModel
 import com.spendwise.ui.calendar.CalendarScreen
 import com.spendwise.ui.calendar.CalendarViewModel
+import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
 import com.spendwise.ui.reports.AnnualReport
@@ -146,9 +149,6 @@ fun SpendWiseApp(
                                 NavigationBarItem(
                                     selected = selectedTab == tab,
                                     onClick = {
-                                        if (route == Routes.Calendar) {
-                                            calendarViewModel.resetToToday()
-                                        }
                                         resetTo(route)
                                     },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
@@ -222,7 +222,13 @@ fun SpendWiseApp(
                                     AnnualReport(
                                         state = reportState,
                                         reportViewModel = reportViewModel,
-                                        onBack = { onBack() }
+                                        onBack = { onBack() },
+                                        onMonthClick = { month ->
+                                            calendarViewModel.selectPeriod(ReportPeriod.Month)
+                                            calendarViewModel.selectMonth(month)
+                                            calendarViewModel.selectDate(month)
+                                            push(Routes.Calendar)
+                                        }
                                     )
                                 }
                                 is Routes.CategoryReport -> {
@@ -232,6 +238,7 @@ fun SpendWiseApp(
                                         CategoryReport(
                                             state = reportState,
                                             category = category,
+                                            reportViewModel = reportViewModel,
                                             onBack = { onBack() },
                                             onExpenseClick = { expense ->
                                                 expenseViewModel.editExpense(expense)

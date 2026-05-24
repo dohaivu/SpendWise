@@ -24,6 +24,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersPanel
+import com.spendwise.ui.components.TransactionsByDateList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,6 @@ internal fun AllTransactions(
                 categories = state.categories,
                 tagUsage = state.tagUsage,
                 filters = state.transactionFilters,
-                selectedTags = state.selectedTags,
                 isCollapsed = false,
                 onTagClick = viewModel::toggleTagFilter,
                 onQueryChange = viewModel::updateTransactionQuery,
