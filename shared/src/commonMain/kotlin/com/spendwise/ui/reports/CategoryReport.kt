@@ -370,8 +370,10 @@ private fun niceChartMax(value: Long): Long {
 
 private fun Expense.matchesSelectedTags(selectedTags: Set<String>): Boolean {
     if (selectedTags.isEmpty()) return true
+    val normalizedSelectedTags = selectedTags.map(TagParser::normalize).filter { it.isNotBlank() }.toSet()
+    if (normalizedSelectedTags.isEmpty()) return true
     val normalizedTags = tags.map(TagParser::normalize).toSet()
-    return selectedTags.map(TagParser::normalize).all { it in normalizedTags }
+    return normalizedTags.any { it in normalizedSelectedTags }
 }
 
 private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
