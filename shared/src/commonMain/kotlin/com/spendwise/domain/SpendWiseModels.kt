@@ -80,7 +80,7 @@ data class CategoryDraft(
 data class TransactionFilters(
     val query: String = "",
     val categoryId: Long? = null,
-    val currencyCode: String? = null
+    val selectedTags: Set<String> = emptySet()
 )
 
 data class UserSettings(

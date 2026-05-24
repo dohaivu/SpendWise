@@ -46,8 +46,9 @@ class AllTransactionsViewModel(
     fun toggleTagFilter(tag: String) {
         val normalized = TagParser.normalize(tag)
         _uiState.update {
-            val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
-            it.withTransactionData(selectedTags = next)
+            val currentTags = it.transactionFilters.selectedTags
+            val next = if (normalized in currentTags) currentTags - normalized else currentTags + normalized
+            it.withTransactionData(transactionFilters = it.transactionFilters.copy(selectedTags = next))
         }
     }
 
@@ -64,7 +65,6 @@ class AllTransactionsViewModel(
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
         baseCurrencyCode: String = this.baseCurrencyCode,
-        selectedTags: Set<String> = this.selectedTags,
         transactionFilters: TransactionFilters = this.transactionFilters
     ): AllTransactionsUiState {
         return copy(
@@ -72,12 +72,10 @@ class AllTransactionsViewModel(
             categories = categories,
             tagUsage = tagUsage,
             baseCurrencyCode = baseCurrencyCode,
-            selectedTags = selectedTags,
             transactionFilters = transactionFilters,
             transactionData = buildAllTransactionsData(
                 expenses = expenses,
                 filters = transactionFilters,
-                selectedTags = selectedTags,
                 timeZone = TimeZone.currentSystemDefault()
             )
         )
@@ -86,11 +84,10 @@ class AllTransactionsViewModel(
     private fun buildAllTransactionsData(
         expenses: List<Expense>,
         filters: TransactionFilters,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): CalendarData {
         val datedTransactions = expenses
-            .filterByTransactionFilters(filters, selectedTags)
+            .filterByTransactionFilters(filters)
             .sortedByDescending { it.spentAtMillis }
             .map { expense -> expense to expense.spentDate(timeZone) }
 

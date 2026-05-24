@@ -31,7 +31,6 @@ data class CalendarUiState(
     val selectedPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedDate: kotlinx.datetime.LocalDate = today(),
-    val selectedTags: Set<String> = emptySet(),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val calendarData: CalendarData = CalendarData()
 )
@@ -41,7 +40,6 @@ data class AllTransactionsUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrencyCode: String = "USD",
-    val selectedTags: Set<String> = emptySet(),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val transactionData: CalendarData = CalendarData()
 )
@@ -72,7 +70,7 @@ data class ReportUiState(
     val baseCurrencyCode: String = "USD",
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
-    val selectedTags: Set<String> = emptySet()
+    val transactionFilters: TransactionFilters = TransactionFilters()
 )
 
 data class SettingsUiState(

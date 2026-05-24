@@ -99,7 +99,6 @@ internal fun CalendarScreen(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
-                        selectedTags = state.selectedTags,
                         onTagClick = calendarViewModel::toggleTagFilter,
                         onQueryChange = calendarViewModel::updateTransactionQuery,
                         onCategoryChange = calendarViewModel::updateTransactionCategory

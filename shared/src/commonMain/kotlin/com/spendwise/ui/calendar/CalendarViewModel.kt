@@ -91,8 +91,9 @@ class CalendarViewModel(
     fun toggleTagFilter(tag: String) {
         val normalized = TagParser.normalize(tag)
         _uiState.update {
-            val next = if (normalized in it.selectedTags) it.selectedTags - normalized else it.selectedTags + normalized
-            it.withCalendarData(selectedTags = next)
+            val currentTags = it.transactionFilters.selectedTags
+            val next = if (normalized in currentTags) currentTags - normalized else currentTags + normalized
+            it.withCalendarData(transactionFilters = it.transactionFilters.copy(selectedTags = next))
         }
     }
 
@@ -112,7 +113,6 @@ class CalendarViewModel(
         selectedPeriod: ReportPeriod = this.selectedPeriod,
         selectedMonth: LocalDate = this.selectedMonth,
         selectedDate: LocalDate = this.selectedDate,
-        selectedTags: Set<String> = this.selectedTags,
         transactionFilters: TransactionFilters = this.transactionFilters
     ): CalendarUiState {
         return copy(
@@ -123,14 +123,12 @@ class CalendarViewModel(
             selectedPeriod = selectedPeriod,
             selectedMonth = selectedMonth,
             selectedDate = selectedDate,
-            selectedTags = selectedTags,
             transactionFilters = transactionFilters,
             calendarData = buildCalendarData(
                 expenses = expenses,
                 period = selectedPeriod,
                 month = selectedMonth,
-                filters = transactionFilters.copy(currencyCode = null),
-                selectedTags = selectedTags,
+                filters = transactionFilters,
                 timeZone = TimeZone.currentSystemDefault()
             )
         )
@@ -141,7 +139,6 @@ class CalendarViewModel(
         period: ReportPeriod,
         month: LocalDate,
         filters: TransactionFilters,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): CalendarData {
         val datedTransactions = expenses
@@ -150,7 +147,7 @@ class CalendarViewModel(
             .filter { (_, spentDate) -> spentDate.matchesPeriod(period, month) }
             .map { (expense, _) -> expense }
             .toList()
-            .filterByTransactionFilters(filters, selectedTags)
+            .filterByTransactionFilters(filters)
             .sortedByDescending { it.spentAtMillis }
             .map { expense -> expense to expense.spentDate(timeZone) }
 

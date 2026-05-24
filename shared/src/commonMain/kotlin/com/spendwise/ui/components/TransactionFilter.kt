@@ -56,7 +56,6 @@ internal fun TransactionFiltersPanel(
     categories: List<Category>,
     tagUsage: List<TagUsage>,
     filters: TransactionFilters,
-    selectedTags: Set<String>,
     modifier: Modifier = Modifier,
     isCollapsed: Boolean = true,
     onTagClick: (String) -> Unit,
@@ -98,7 +97,7 @@ internal fun TransactionFiltersPanel(
             ) {
                 tagUsage.forEach { usage ->
                     FilterChip(
-                        selected = usage.name in selectedTags,
+                        selected = usage.name in filters.selectedTags,
                         onClick = { onTagClick(usage.name) },
                         label = { Text("#${usage.name}") },
                         contentPadding = PaddingValues(0.dp)
@@ -181,7 +180,6 @@ internal fun TransactionFiltersMenu(
     categories: List<Category>,
     tagUsage: List<TagUsage>,
     filters: TransactionFilters,
-    selectedTags: Set<String>,
     onTagClick: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     onCategoryChange: (Long?) -> Unit
@@ -190,7 +188,7 @@ internal fun TransactionFiltersMenu(
     val visibleState = remember { MutableTransitionState(false) }
     val hasActiveFilters = filters.query.isNotBlank() ||
         filters.categoryId != null ||
-        selectedTags.isNotEmpty()
+        filters.selectedTags.isNotEmpty()
     val contentDescription = if (hasActiveFilters) {
         "Open transaction filters, filters active"
     } else {
@@ -266,7 +264,6 @@ internal fun TransactionFiltersMenu(
                             categories = categories,
                             tagUsage = tagUsage,
                             filters = filters,
-                            selectedTags = selectedTags,
                             modifier = Modifier.padding(8.dp),
                             isCollapsed = false,
                             onTagClick = onTagClick,

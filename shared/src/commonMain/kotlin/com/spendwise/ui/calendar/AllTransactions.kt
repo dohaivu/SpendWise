@@ -69,7 +69,6 @@ internal fun AllTransactions(
                 categories = state.categories,
                 tagUsage = state.tagUsage,
                 filters = state.transactionFilters,
-                selectedTags = state.selectedTags,
                 isCollapsed = false,
                 onTagClick = viewModel::toggleTagFilter,
                 onQueryChange = viewModel::updateTransactionQuery,

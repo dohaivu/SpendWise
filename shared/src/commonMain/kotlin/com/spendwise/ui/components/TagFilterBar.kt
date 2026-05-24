@@ -33,13 +33,13 @@ internal fun TagFilterBar(state: ReportUiState, viewModel: ReportViewModel) {
     ) {
         state.tagUsage.forEach { usage ->
             FilterChip(
-                selected = usage.name in state.selectedTags,
+                selected = usage.name in state.transactionFilters.selectedTags,
                 onClick = { viewModel.toggleTagFilter(usage.name) },
                 label = { Text("#${usage.name}") },
                 contentPadding = PaddingValues(0.dp)
             )
         }
-        if (state.selectedTags.isNotEmpty()) {
+        if (state.transactionFilters.selectedTags.isNotEmpty()) {
             AssistChip(onClick = viewModel::clearTagFilters, label = { Text("Clear") })
         }
     }

@@ -37,6 +37,7 @@ import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.datetime.LocalDate
@@ -69,6 +70,16 @@ internal fun AnnualReport(
                         "Annual Report",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold
+                    )
+                },
+                actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        onTagClick = reportViewModel::toggleTagFilter,
+                        onQueryChange = reportViewModel::updateTransactionQuery,
+                        onCategoryChange = reportViewModel::updateTransactionCategory
                     )
                 }
             )

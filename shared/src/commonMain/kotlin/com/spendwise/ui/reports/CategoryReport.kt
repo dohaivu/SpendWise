@@ -65,7 +65,7 @@ internal fun CategoryReport(
     var selectedMonth by remember(state.selectedMonth) { mutableStateOf(state.selectedMonth) }
     val categoryExpenses = state.expenses
         .filter { it.categoryId == category.id }
-        .filter { it.matchesSelectedTags(state.selectedTags) }
+        .filter { it.matchesSelectedTags(state.transactionFilters.selectedTags) }
     val monthExpenses = categoryExpenses
         .filter { it.spentDate(timeZone).isSameMonth(selectedMonth) }
         .sortedByDescending { it.spentAtMillis }
