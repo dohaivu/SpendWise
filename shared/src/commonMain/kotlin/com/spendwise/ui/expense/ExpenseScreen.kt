@@ -157,6 +157,11 @@ internal fun ExpenseScreen(
                 }
             }
             item {
+                val tagChips = state.tagSuggestions.ifEmpty {
+                    state.tagUsage
+                        .sortedByDescending { it.lastUsedAtMillis }
+                        .map { it.name }
+                }
                 OutlinedTextField(
                     value = noteField,
                     onValueChange = { value ->
@@ -171,17 +176,20 @@ internal fun ExpenseScreen(
                 FlowRow(
                     modifier = Modifier.heightIn(min = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                    maxLines = 1
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    state.tagSuggestions.forEach { tag ->
+                    tagChips.forEach { tag ->
                         AssistChip(
                             onClick = {
-                                state.activeTagToken?.let { token ->
-                                    val note = TagParser.replaceActiveToken(noteField.text, token, tag)
-                                    noteField = TextFieldValue(note, TextRange(note.length))
+                                val note = state.activeTagToken?.let { token ->
+                                    TagParser.replaceActiveToken(noteField.text, token, tag)
+                                } ?: appendTagToNote(noteField.text, tag)
+                                noteField = TextFieldValue(note, TextRange(note.length))
+                                if (state.activeTagToken != null) {
+                                    viewModel.selectTagSuggestion(tag)
+                                } else {
+                                    viewModel.updateNote(note)
                                 }
-                                viewModel.selectTagSuggestion(tag)
                             },
                             label = { Text("#$tag") },
                             contentPadding = PaddingValues(0.dp),
@@ -227,6 +235,11 @@ internal fun ExpenseScreen(
             }
         }
     }
+}
+
+private fun appendTagToNote(note: String, tag: String): String {
+    val separator = if (note.isBlank() || note.endsWith(" ") || note.endsWith("\n")) "" else " "
+    return "$note$separator#$tag "
 }
 
 @Composable

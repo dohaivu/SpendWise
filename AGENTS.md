@@ -1,55 +1,57 @@
 # AGENTS.md - SpendWise
 
-## Purpose
+## Project
 
-Kotlin Multiplatform app for expenses. Targets Android and iOS with shared Compose UI.
+SpendWise is a Kotlin Multiplatform expense app targeting Android and iOS, with shared Compose UI in `shared`.
 
-## Build & Test Commands
+## Common Commands
 
 ```bash
-# Android
+# Android app compile/package check
 ./gradlew :androidApp:assembleDebug
 
-# Shared tests
+# Shared KMP tests
 ./gradlew :shared:allTests
 
-# iOS framework
+# iOS simulator framework check
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
 
-## Testing Strategy (Required)
-- Many unit tests: fast, isolated, and focused on edge cases and logic branches at function/module level.
-- Some integration tests: verify component boundaries and wiring (for example repository/service to DAO/database behavior).
-- Few end-to-end tests: cover only the 3-5 most critical user flows.
+Do not run the full `./gradlew build` by default. Use the smallest relevant task set for the files changed.
 
-When changing code:
-- Always run relevant tests before finishing.
-- At minimum for shared/business logic changes, run `./gradlew :shared:allTests`.
-- For Android-impacting changes, also run `./gradlew :androidApp:assembleDebug` and any relevant Android test task.
-- Add or update tests whenever behavior changes, bug fixes are made, or uncovered branches are introduced.
-- Prefer unit tests first; add integration/E2E tests only when interaction-level behavior is what must be verified.
+## Verification
+
+- Docs-only changes: no build required.
+- Shared/business-logic changes: run `./gradlew :shared:allTests`.
+- Android-impacting changes, including shared Compose UI: run `./gradlew :androidApp:assembleDebug`.
+- iOS-specific or KMP framework changes: run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64`.
+- If a requested verification task cannot run, report the failure and what completed successfully.
+
+## Testing Strategy
+
+- Prefer many fast unit tests for edge cases and logic branches.
+- Add integration tests when repository, DAO, service, or DI wiring behavior changes.
+- Keep end-to-end tests limited to the most critical user flows.
+- Add or update tests when behavior changes, bugs are fixed, or meaningful branches are introduced.
+- Prefer fakes over mocks.
 
 ## Coding Conventions
-- Platform actual file naming: `{Name}.{platform}.kt`
-- Add new dependencies in `gradle/libs.versions.toml` first, then consume via version catalog.
-- Use suspend functions + coroutines for async work.
-- Prefer fakes over mocks in tests.
-- Keep changes minimal and scoped; avoid unrelated refactors.
 
-## Android Architecture Best Practices
-- Follow UDF/MVI-style state: immutable UI state + explicit UI events/actions.
-- Keep ViewModels platform-light and business logic in use cases.
+- Keep changes minimal and scoped; avoid unrelated refactors.
+- Re-read target files before editing to avoid stale patch/context mistakes.
+- Platform actual file naming: `{Name}.{platform}.kt`.
+- Add new dependencies in `gradle/libs.versions.toml` first, then consume via the version catalog.
+- Use suspend functions and coroutines for async work.
+
+## Architecture
+
+- Follow UDF/MVI-style state: immutable UI state plus explicit events/actions.
+- Keep ViewModels platform-light; put business logic in use cases.
 - Depend on interfaces in domain; bind implementations in DI modules.
-- Model loading/error/success states explicitly; avoid nullable-state ambiguity.
+- Model loading, error, and success states explicitly.
 - Use structured concurrency (`viewModelScope`, supervisor boundaries, cancellation-aware code).
 - Keep persistence and networking behind repositories; avoid direct DAO/network calls from UI.
-- Write tests at use-case/repository boundaries and for ViewModel state transitions.
 
-## Task Completion
-After each completed task:
-1. Build `:androidApp:assembleDebug` unless the task is docs-only.
-2. Commit only if explicitly asked.
+## Git
 
-Before making edits, always re-read the target file to verify exact string content and avoid edit failures due to mismatches
-After any code changes, always run ./gradlew build (or platform-specific build) to catch compilation errors before committing
-Prefer simple, direct solutions over comprehensive plans unless complexity is required; ask user if unsure about approach scope
+Commit only when explicitly asked.

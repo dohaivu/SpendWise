@@ -2,6 +2,7 @@ package com.spendwise.domain
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class TagParserTest {
     @Test
@@ -30,5 +31,11 @@ class TagParserTest {
         val tags = TagParser.parse("Taxi # #trip, coffee #work.")
 
         assertEquals(listOf("trip", "work"), tags)
+    }
+
+    @Test
+    fun activeTokenReturnsNullWhenCursorIsNotAfterHash() {
+        assertNull(TagParser.activeToken("#food", cursorIndex = 0))
+        assertNull(TagParser.activeToken("Lunch #food", cursorIndex = 6))
     }
 }
