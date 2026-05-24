@@ -11,7 +11,7 @@ import com.spendwise.domain.TransactionFilters
 import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.CalendarData
-import com.spendwise.ui.CalendarTransactionListItem
+import com.spendwise.ui.DateTransactionListItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,9 +99,9 @@ class AllTransactionsViewModel(
             .toList()
         val transactionItems = buildList {
             groupedTransactions.forEach { (date, dayExpenses) ->
-                add(CalendarTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
+                add(DateTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
                 dayExpenses.forEach { expense ->
-                    add(CalendarTransactionListItem.Transaction(expense))
+                    add(DateTransactionListItem.Transaction(expense))
                 }
             }
         }

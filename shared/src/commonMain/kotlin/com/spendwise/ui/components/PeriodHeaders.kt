@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +21,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
+
+enum class ReportPeriod(val label: String) {
+    Month("Monthly"),
+    Annual("Annual")
+}
+
+@Composable
+internal fun ReportPeriodSwitcher(
+    selectedPeriod: ReportPeriod,
+    onPeriodSelected: (ReportPeriod) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ReportPeriod.entries.forEach { period ->
+            FilterChip(
+                selected = selectedPeriod == period,
+                onClick = { onPeriodSelected(period) },
+                label = { Text(period.label) }
+            )
+        }
+    }
+}
 
 @Composable
 internal fun MonthHeader(

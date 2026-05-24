@@ -146,9 +146,6 @@ fun SpendWiseApp(
                                 NavigationBarItem(
                                     selected = selectedTab == tab,
                                     onClick = {
-                                        if (route == Routes.Calendar) {
-                                            calendarViewModel.resetToToday()
-                                        }
                                         resetTo(route)
                                     },
                                     icon = { Icon(tab.icon(), contentDescription = tab.name) },
