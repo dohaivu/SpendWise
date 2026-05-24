@@ -238,6 +238,7 @@ fun SpendWiseApp(
                                         CategoryReport(
                                             state = reportState,
                                             category = category,
+                                            reportViewModel = reportViewModel,
                                             onBack = { onBack() },
                                             onExpenseClick = { expense ->
                                                 expenseViewModel.editExpense(expense)

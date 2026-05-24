@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,12 +36,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
-import com.spendwise.domain.TagParser
+import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.TransactionsByDateList
 import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
@@ -57,6 +60,7 @@ import kotlin.math.ceil
 internal fun CategoryReport(
     state: ReportUiState,
     category: Category,
+    reportViewModel: ReportViewModel,
     onBack: () -> Unit,
     onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
@@ -65,14 +69,14 @@ internal fun CategoryReport(
     var selectedMonth by remember(state.selectedMonth) { mutableStateOf(state.selectedMonth) }
     val categoryExpenses = state.expenses
         .filter { it.categoryId == category.id }
-        .filter { it.matchesSelectedTags(state.transactionFilters.selectedTags) }
+        .filterByTransactionFilters(state.transactionFilters.copy(categoryId = null))
     val monthExpenses = categoryExpenses
         .filter { it.spentDate(timeZone).isSameMonth(selectedMonth) }
         .sortedByDescending { it.spentAtMillis }
     val monthTotal = monthExpenses.sumOf { it.baseAmountCents }
     val transactionListState = rememberLazyListState()
     val categoryById = mapOf(category.id to category)
-    val monthTotals = recentMonths(state.selectedMonth, count = 6).map { month ->
+    val monthTotals = recentMonths(state.selectedMonth, count = 12).map { month ->
         CategoryMonthTotal(
             month = month,
             total = categoryExpenses
@@ -104,6 +108,17 @@ internal fun CategoryReport(
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
+                    )
+                },
+                actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        onTagClick = reportViewModel::toggleTagFilter,
+                        onQueryChange = reportViewModel::updateTransactionQuery,
+                        onCategoryChange = reportViewModel::updateTransactionCategory,
+                        showCategories = false
                     )
                 }
             )
@@ -167,7 +182,7 @@ private fun CategoryMonthlyBarChart(
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     monthTotals.forEach { monthTotal ->
                         val selected = monthTotal.month.isSameMonth(selectedMonth)
@@ -227,7 +242,11 @@ private fun MonthlyBar(
                 style = MaterialTheme.typography.labelLarge,
                 color = color,
                 maxLines = 1,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Visible,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 6.sp,
+                    maxFontSize = 11.sp
+                )
             )
         }
         Box(
@@ -260,14 +279,6 @@ private fun niceChartMax(value: Long): Long {
         else -> 10_000_000L
     }
     return (ceil(whole.toDouble() / step).toLong() * step).coerceAtLeast(step) * 100L
-}
-
-private fun Expense.matchesSelectedTags(selectedTags: Set<String>): Boolean {
-    if (selectedTags.isEmpty()) return true
-    val normalizedSelectedTags = selectedTags.map(TagParser::normalize).filter { it.isNotBlank() }.toSet()
-    if (normalizedSelectedTags.isEmpty()) return true
-    val normalizedTags = tags.map(TagParser::normalize).toSet()
-    return normalizedTags.any { it in normalizedSelectedTags }
 }
 
 private fun Expense.spentDate(timeZone: TimeZone): LocalDate =

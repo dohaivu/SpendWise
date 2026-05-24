@@ -61,7 +61,8 @@ internal fun TransactionFiltersPanel(
     onTagClick: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     onCategoryChange: (Long?) -> Unit,
-    singleLineCategories: Boolean = false
+    singleLineCategories: Boolean = false,
+    showCategories: Boolean = true
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -110,6 +111,9 @@ internal fun TransactionFiltersPanel(
             onValueChange = onQueryChange,
             label = "Search note"
         )
+        if (!showCategories) {
+            return@Column
+        }
         if (singleLineCategories) {
             Row(
                 modifier = Modifier
@@ -182,12 +186,13 @@ internal fun TransactionFiltersMenu(
     filters: TransactionFilters,
     onTagClick: (String) -> Unit,
     onQueryChange: (String) -> Unit,
-    onCategoryChange: (Long?) -> Unit
+    onCategoryChange: (Long?) -> Unit,
+    showCategories: Boolean = true
 ) {
     var isPopupOpen by remember { mutableStateOf(false) }
     val visibleState = remember { MutableTransitionState(false) }
     val hasActiveFilters = filters.query.isNotBlank() ||
-        filters.categoryId != null ||
+        (showCategories && filters.categoryId != null) ||
         filters.selectedTags.isNotEmpty()
     val contentDescription = if (hasActiveFilters) {
         "Open transaction filters, filters active"
@@ -269,7 +274,8 @@ internal fun TransactionFiltersMenu(
                             onTagClick = onTagClick,
                             onQueryChange = onQueryChange,
                             onCategoryChange = onCategoryChange,
-                            singleLineCategories = true
+                            singleLineCategories = true,
+                            showCategories = showCategories
                         )
                     }
                 }
