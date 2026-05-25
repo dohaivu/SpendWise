@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.androidgitversion)
 }
 
 val appVersionCode = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 3
@@ -20,7 +21,8 @@ val hasReleaseSigning = listOf(
     releaseKeyAlias,
     releaseKeyPassword
 ).all { !it.isNullOrBlank() }
-println("hasReleaseSigning: $hasReleaseSigning")
+
+println("version name: ${androidGitVersion.name()} - hasReleaseSigning: $hasReleaseSigning")
 
 kotlin {
     compilerOptions {
@@ -35,8 +37,8 @@ android {
         applicationId = "com.aimpact.app.spendwise"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = appVersionCode
-        versionName = appVersionName
+        versionCode = androidGitVersion.code()
+        versionName = androidGitVersion.name()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
@@ -82,13 +84,30 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.kotlinx.coroutine.android)
+
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.components.resources)
+    implementation(libs.compose.preview)
+
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.koin.core.coroutines)
+    implementation(libs.koin.android)
 
     // Android instrumented UI tests
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.compose.ui.test.junit4)
-    androidTestImplementation(libs.kotlin.test)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.testExt.junit)
+//    androidTestImplementation(platform(libs.androidx.compose.bom))
+//    androidTestImplementation(libs.compose.ui.test.junit4)
+//    androidTestImplementation(libs.kotlin.test)
+//    androidTestImplementation(libs.kotlinx.coroutines.test)
+//    androidTestImplementation(libs.androidx.testExt.junit)
     debugImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.compose.ui.test.manifest)
 }

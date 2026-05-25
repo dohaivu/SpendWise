@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -184,46 +185,57 @@ private fun SettingsHomeScreen(
     onReminders: () -> Unit
 ) {
     SettingsScaffold(title = "Settings") { contentModifier ->
-        LazyColumn(
+        Column(
             modifier = contentModifier.fillMaxSize().padding(16.dp)
         ) {
-            item {
-                SettingsRow(
-                    title = "Edit Categories",
-                    subtitle = "${state.categories.size} categories",
-                    onClick = onEditCategories
-                )
-            }
-            item { CurrencySettings(state, viewModel) }
-            item { LanguageSettings(state, viewModel) }
-            item {
-                SettingsRow(
-                    title = "Reminders",
-                    subtitle = if (state.reminders.isEmpty()) {
-                        "No reminders"
-                    } else {
-                        "${state.reminders.count { it.enabled }} of ${state.reminders.size} enabled"
-                    },
-                    onClick = onReminders
-                )
-            }
-            item {
-                SettingsRow(
-                    title = "Tag usage",
-                    subtitle = "${state.tagUsage.size} tracked tags",
-                    onClick = onTagUsage
-                )
-            }
-            item {
-                Column(modifier = Modifier.padding(top = 18.dp)) {
-                    Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) {
+                item {
+                    SettingsRow(
+                        title = "Edit Categories",
+                        subtitle = "${state.categories.size} categories",
+                        onClick = onEditCategories
                     )
                 }
+                item { CurrencySettings(state, viewModel) }
+                item { LanguageSettings(state, viewModel) }
+                item {
+                    SettingsRow(
+                        title = "Reminders",
+                        subtitle = if (state.reminders.isEmpty()) {
+                            "No reminders"
+                        } else {
+                            "${state.reminders.count { it.enabled }} of ${state.reminders.size} enabled"
+                        },
+                        onClick = onReminders
+                    )
+                }
+                item {
+                    SettingsRow(
+                        title = "Tag usage",
+                        subtitle = "${state.tagUsage.size} tracked tags",
+                        onClick = onTagUsage
+                    )
+                }
+                item {
+                    Column(modifier = Modifier.padding(top = 18.dp)) {
+                        Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                item { DataTransferSettings(state, viewModel) }
             }
-            item { DataTransferSettings(state, viewModel) }
+            Text(
+                text = "Version ${viewModel.versionName}",
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

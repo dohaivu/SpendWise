@@ -94,7 +94,6 @@ kotlin {
             implementation(libs.coil.ktor3)
             implementation(libs.vico.compose)
             implementation(libs.vico.compose.m3)
-            implementation(libs.calendar.compose)
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)

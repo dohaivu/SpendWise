@@ -3,6 +3,7 @@ package com.spendwise.data
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.spendwise.infrastructure.AndroidContextProvider
 
 fun getSpendWiseDatabaseBuilder(context: Context): RoomDatabase.Builder<SpendWiseDatabase> {
     val appContext = context.applicationContext
@@ -13,6 +14,6 @@ fun getSpendWiseDatabaseBuilder(context: Context): RoomDatabase.Builder<SpendWis
 }
 
 actual fun provideSpendWiseDatabaseBuilder(): RoomDatabase.Builder<SpendWiseDatabase> {
-    return getSpendWiseDatabaseBuilder(com.spendwise.MainApplication.instance)
+    return getSpendWiseDatabaseBuilder(AndroidContextProvider.context)
 }
 

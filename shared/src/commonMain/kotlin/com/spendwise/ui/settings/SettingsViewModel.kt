@@ -9,6 +9,7 @@ import com.spendwise.data.formatSpendWiseCsv
 import com.spendwise.data.parseSpendWiseCsv
 import com.spendwise.data.spentAtMillis
 import com.spendwise.domain.AddExpenseInput
+import com.spendwise.domain.AppConfig
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.ExpenseReminder
@@ -29,10 +30,12 @@ import kotlinx.datetime.TimeZone
 class SettingsViewModel(
     private val repository: ExpenseRepository,
     private val useCases: SpendWiseUseCases,
-    private val reminderScheduler: ReminderScheduler
+    private val reminderScheduler: ReminderScheduler,
+    private val appConfig: AppConfig,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    val versionName: String = appConfig.versionName
 
     init {
         viewModelScope.launch {

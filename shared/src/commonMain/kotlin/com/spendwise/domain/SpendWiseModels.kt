@@ -109,3 +109,5 @@ data class AddExpenseInput(
     val tags: List<String>,
     val spentAtMillis: Long
 )
+
+data class AppConfig(val versionName: String)
