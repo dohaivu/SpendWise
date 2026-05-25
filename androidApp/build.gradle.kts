@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.firebase.crashlytics)
 }
 
-val appVersionCode = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 1
+val appVersionCode = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 3
 val appVersionName = providers.environmentVariable("VERSION_NAME").orNull ?: "1.0"
 val releaseKeystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 val releaseKeystorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
@@ -20,6 +20,7 @@ val hasReleaseSigning = listOf(
     releaseKeyAlias,
     releaseKeyPassword
 ).all { !it.isNullOrBlank() }
+println("hasReleaseSigning: $hasReleaseSigning")
 
 kotlin {
     compilerOptions {
@@ -60,7 +61,7 @@ android {
     }
     buildTypes {
         debug {
-
+            signingConfig = signingConfigs.getByName("release")
         }
         release {
             isMinifyEnabled = false
