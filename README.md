@@ -50,6 +50,7 @@ Before using the workflow, add these repository secrets in GitHub:
 - `ANDROID_KEYSTORE_PASSWORD`: keystore password.
 - `ANDROID_KEY_ALIAS`: release key alias.
 - `ANDROID_KEY_PASSWORD`: release key password.
+- `GOOGLE_SERVICES_JSON`: optional Firebase `google-services.json` content. If omitted, CI uses a dummy config so the direct-download APK can still be built.
 
 To create a new release keystore locally:
 
