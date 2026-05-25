@@ -35,6 +35,39 @@ Kotlin Multiplatform expense app with shared Compose UI for Android and iOS.
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
 
+## GitHub Release APK
+
+Pushing any Git tag builds a signed Android APK and attaches it to a GitHub Release. The workflow builds APK only; it does not build an Android App Bundle (`.aab`).
+
+```shell
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+Before using the workflow, add these repository secrets in GitHub:
+
+- `ANDROID_KEYSTORE_BASE64`: base64-encoded release keystore.
+- `ANDROID_KEYSTORE_PASSWORD`: keystore password.
+- `ANDROID_KEY_ALIAS`: release key alias.
+- `ANDROID_KEY_PASSWORD`: release key password.
+
+To create a new release keystore locally:
+
+```shell
+keytool -genkeypair -v \
+  -keystore spendwise-release.jks \
+  -alias spendwise \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+```
+
+On macOS, copy the base64 keystore value with:
+
+```shell
+base64 -i spendwise-release.jks | pbcopy
+```
+
 ### Modules
 
 - `androidApp`: Android app shell.
