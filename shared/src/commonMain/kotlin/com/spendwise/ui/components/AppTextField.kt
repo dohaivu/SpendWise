@@ -4,8 +4,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -42,6 +47,20 @@ fun AppOutlinedTextField(
                 visualTransformation = VisualTransformation.None,
                 interactionSource = interactionSource,
                 label = { Text(label) },
+                trailingIcon = {
+                    if (value.isNotEmpty()) {
+                        IconButton(
+                            onClick = { onValueChange("") },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear text",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                },
                 contentPadding = contentPadding,
                 container = {
                     OutlinedTextFieldDefaults.Container(

@@ -12,15 +12,13 @@ import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.DateTransactionListItem
+import com.spendwise.ui.spentDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Instant
 
 class AllTransactionsViewModel(
     repository: ExpenseRepository
@@ -110,6 +108,3 @@ class AllTransactionsViewModel(
         )
     }
 }
-
-private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
-    Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date

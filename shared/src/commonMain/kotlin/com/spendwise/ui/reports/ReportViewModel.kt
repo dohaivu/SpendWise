@@ -10,6 +10,7 @@ import com.spendwise.domain.TagParser
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.firstDayOfMonth
+import com.spendwise.ui.today
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,6 +58,10 @@ class ReportViewModel(
 
     fun nextYear() {
         _uiState.update { it.copy(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.Companion.YEAR)) }
+    }
+
+    fun resetToCurrentPeriod() {
+        _uiState.update { it.copy(selectedMonth = today().firstDayOfMonth()) }
     }
 
     fun toggleTagFilter(tag: String) {

@@ -1,16 +1,16 @@
 package com.spendwise.platform
 
-import com.spendwise.MainApplication
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import androidx.core.content.FileProvider
 import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.io.RollingFileLogWriter
 import co.touchlab.kermit.io.RollingFileLogWriterConfig
+import com.spendwise.infrastructure.AndroidContextProvider
 import kotlinx.io.files.Path
 import java.io.File
-import android.content.Intent
-import androidx.core.content.FileProvider
 
 actual class Platform {
     actual companion object {
@@ -20,7 +20,7 @@ actual class Platform {
         }
 
         actual fun getFileLogWriter(): LogWriter {
-            val context: Context = MainApplication.instance.applicationContext
+            val context: Context = AndroidContextProvider.context
             val logDirectory = File(context.filesDir, "logs")
             if (!logDirectory.exists()) logDirectory.mkdirs()
 
@@ -37,7 +37,7 @@ actual class Platform {
         }
 
         actual fun shareLogFile() {
-            val context: Context = MainApplication.instance.applicationContext
+            val context: Context = AndroidContextProvider.context
             val logDirectory = File(context.filesDir, "logs")
             val logFile = File(logDirectory, "lingua_log.log")
 

@@ -93,7 +93,8 @@ internal fun AnnualReport(
                 YearHeader(
                     year = year,
                     onPreviousYear = reportViewModel::previousYear,
-                    onNextYear = reportViewModel::nextYear
+                    onNextYear = reportViewModel::nextYear,
+                    onCurrentYear = reportViewModel::resetToCurrentPeriod
                 )
                 AnnualColumnChart(
                     rows = monthlyTotals,

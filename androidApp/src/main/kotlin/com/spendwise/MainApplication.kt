@@ -1,18 +1,16 @@
 package com.spendwise
 
 import android.app.Application
-import co.touchlab.kermit.Logger
+import android.util.Log
+import com.spendwise.android.BuildConfig
+import com.spendwise.domain.AppConfig
 import com.spendwise.infrastructure.initKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
+import org.koin.dsl.module
 
 class MainApplication: Application(), KoinComponent {
-
-    companion object {
-        lateinit var instance: MainApplication
-            private set
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -20,9 +18,11 @@ class MainApplication: Application(), KoinComponent {
         initKoin {
             androidLogger()
             androidContext(this@MainApplication)
+            modules(module {
+                single { AppConfig(versionName = BuildConfig.VERSION_NAME) }
+            })
         }
-        instance = this
 
-        Logger.d("MainApplication onCreate")
+        Log.d("Spendwise", "MainApplication onCreate")
     }
 }

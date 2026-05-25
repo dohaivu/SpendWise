@@ -47,13 +47,12 @@ import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
 import com.spendwise.ui.today
+import com.spendwise.ui.toLocalDate
+import com.spendwise.ui.toUtcLocalDate
+import com.spendwise.ui.toUtcStartMillis
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
-import kotlinx.datetime.toLocalDateTime
 
 @Composable
 internal fun ExpenseScreen(
@@ -305,12 +304,3 @@ private fun DraftDatePickerDialog(
         )
     }
 }
-
-private fun LocalDate.toUtcStartMillis(): Long =
-    atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
-
-private fun Long.toUtcLocalDate(): LocalDate =
-    kotlin.time.Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.UTC).date
-
-private fun Long.toLocalDate(): LocalDate =
-    Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault()).date

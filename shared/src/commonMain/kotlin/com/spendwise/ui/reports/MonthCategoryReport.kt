@@ -47,9 +47,9 @@ import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.TagFilterBar
-import kotlinx.datetime.LocalDate
+import com.spendwise.ui.isSameMonth
+import com.spendwise.ui.spentDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlin.math.roundToInt
 
 @Composable
@@ -80,7 +80,8 @@ internal fun MonthCategoryReport(
                 MonthHeader(
                     month = state.selectedMonth,
                     onPreviousMonth = reportViewModel::previousMonth,
-                    onNextMonth = reportViewModel::nextMonth
+                    onNextMonth = reportViewModel::nextMonth,
+                    onCurrentMonth = reportViewModel::resetToCurrentPeriod
                 )
                 TagFilterBar(state, reportViewModel)
             }
@@ -233,9 +234,3 @@ private fun percentLabel(percentage: Double): String {
         "${tenths / 10}.${tenths % 10}%"
     }
 }
-
-private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
-    kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
-private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
-    year == month.year && this.month == month.month

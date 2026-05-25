@@ -2,6 +2,7 @@ package com.spendwise.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
@@ -54,12 +56,14 @@ internal fun ReportPeriodSwitcher(
 internal fun MonthHeader(
     month: LocalDate,
     onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
+    onNextMonth: () -> Unit,
+    onCurrentMonth: () -> Unit
 ) {
     PeriodHeader(
         title = monthTitle(month),
         onPrevious = onPreviousMonth,
         onNext = onNextMonth,
+        onCurrentPeriod = onCurrentMonth,
         previousContentDescription = "Previous month",
         nextContentDescription = "Next month"
     )
@@ -69,13 +73,15 @@ internal fun MonthHeader(
 internal fun YearHeader(
     year: Int,
     onPreviousYear: () -> Unit,
-    onNextYear: () -> Unit
+    onNextYear: () -> Unit,
+    onCurrentYear: () -> Unit
 ) {
     PeriodHeader(
         title = "$year",
         subtitle = "Jan 01 - Dec 31",
         onPrevious = onPreviousYear,
         onNext = onNextYear,
+        onCurrentPeriod = onCurrentYear,
         previousContentDescription = "Previous year",
         nextContentDescription = "Next year"
     )
@@ -86,6 +92,7 @@ private fun PeriodHeader(
     title: String,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
+    onCurrentPeriod: () -> Unit,
     previousContentDescription: String,
     nextContentDescription: String,
     subtitle: String? = null
@@ -102,6 +109,9 @@ private fun PeriodHeader(
             modifier = Modifier
                 .weight(1f)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                .pointerInput(onCurrentPeriod) {
+                    detectTapGestures(onDoubleTap = { onCurrentPeriod() })
+                }
                 .padding(horizontal = 14.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
