@@ -143,7 +143,8 @@ internal fun CalendarScreen(
                     MonthHeader(
                         month = state.selectedMonth,
                         onPreviousMonth = calendarViewModel::previousMonth,
-                        onNextMonth = calendarViewModel::nextMonth
+                        onNextMonth = calendarViewModel::nextMonth,
+                        onCurrentMonth = calendarViewModel::resetToToday
                     )
                     MonthCalendar(
                         month = state.selectedMonth,
@@ -165,7 +166,8 @@ internal fun CalendarScreen(
                     YearHeader(
                         year = state.selectedMonth.year,
                         onPreviousYear = calendarViewModel::previousYear,
-                        onNextYear = calendarViewModel::nextYear
+                        onNextYear = calendarViewModel::nextYear,
+                        onCurrentYear = calendarViewModel::resetToToday
                     )
                     YearCalendar(
                         year = state.selectedMonth.year,

@@ -42,7 +42,8 @@ internal fun AnnualCategoryReport(
                 YearHeader(
                     year = year,
                     onPreviousYear = reportViewModel::previousYear,
-                    onNextYear = reportViewModel::nextYear
+                    onNextYear = reportViewModel::nextYear,
+                    onCurrentYear = reportViewModel::resetToCurrentPeriod
                 )
                 TagFilterBar(state, reportViewModel)
             }

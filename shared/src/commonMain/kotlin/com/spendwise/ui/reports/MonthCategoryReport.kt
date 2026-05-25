@@ -80,7 +80,8 @@ internal fun MonthCategoryReport(
                 MonthHeader(
                     month = state.selectedMonth,
                     onPreviousMonth = reportViewModel::previousMonth,
-                    onNextMonth = reportViewModel::nextMonth
+                    onNextMonth = reportViewModel::nextMonth,
+                    onCurrentMonth = reportViewModel::resetToCurrentPeriod
                 )
                 TagFilterBar(state, reportViewModel)
             }
