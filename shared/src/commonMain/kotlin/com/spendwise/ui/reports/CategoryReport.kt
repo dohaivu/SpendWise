@@ -47,12 +47,14 @@ import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.TransactionsByDateList
 import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.isSameMonth
+import com.spendwise.ui.monthAxisLabel
+import com.spendwise.ui.shortMonthName
+import com.spendwise.ui.spentDate
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,7 +208,7 @@ private fun CategoryMonthlyBarChart(
         ) {
             monthTotals.forEach { monthTotal ->
                 Text(
-                    text = monthTotal.month.axisLabel(),
+                    text = monthTotal.month.monthAxisLabel(),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -279,18 +281,4 @@ private fun niceChartMax(value: Long): Long {
         else -> 10_000_000L
     }
     return (ceil(whole.toDouble() / step).toLong() * step).coerceAtLeast(step) * 100L
-}
-
-private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
-    kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
-private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
-    year == month.year && this.month == month.month
-
-private fun LocalDate.shortMonthName(): String =
-    month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
-
-private fun LocalDate.axisLabel(): String {
-    val monthLabel = shortMonthName()
-    return if (month.number == 1) "$monthLabel $year" else monthLabel
 }

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.ui.DateTransactionListItem
-import com.spendwise.ui.calendar.compactDateWithDayName
+import com.spendwise.ui.compactDateWithDayName
 import kotlinx.datetime.LocalDate
 
 @Composable

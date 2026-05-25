@@ -62,6 +62,9 @@ import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
 import com.spendwise.ui.firstDayOfMonth
+import com.spendwise.ui.firstHeaderIndexForMonth
+import com.spendwise.ui.isSameMonth
+import com.spendwise.ui.shortName
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -506,28 +509,10 @@ private fun daysFromMonday(dayOfWeek: DayOfWeek): Int =
 private fun daysToSunday(dayOfWeek: DayOfWeek): Int =
     (DayOfWeek.SUNDAY.ordinal - dayOfWeek.ordinal + 7) % 7
 
-private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
-    year == month.year && this.month == month.month
-
-internal fun LocalDate.compactDateWithDayName(): String =
-    "${month.number}.${day} (${dayOfWeek.shortName()})"
-
-internal fun Map<LocalDate, Int>.firstHeaderIndexForMonth(month: LocalDate): Int? =
-    entries
-        .filter { (date, _) -> date.isSameMonth(month) }
-        .maxByOrNull { (date, _) -> date }
-        ?.value
-
 internal data class YearMonthTotal(
     val totalBaseAmountCents: Long,
     val expenseCount: Int
 )
-
-internal fun kotlinx.datetime.Month.shortName(): String =
-    name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
-
-internal fun DayOfWeek.shortName(): String =
-    name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
 
 internal fun DayOfWeek.headerColor(colors: CalendarCellColors): Color = when (this) {
     DayOfWeek.SATURDAY -> colors.saturday

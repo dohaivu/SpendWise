@@ -15,6 +15,8 @@ import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.firstDayOfMonth
+import com.spendwise.ui.isSameMonth
+import com.spendwise.ui.spentDate
 import com.spendwise.ui.today
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +28,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Instant
 
 class CalendarViewModel(
     repository: ExpenseRepository
@@ -187,12 +187,6 @@ class CalendarViewModel(
         )
     }
 }
-
-private fun Expense.spentDate(timeZone: TimeZone): LocalDate =
-    Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
-private fun LocalDate.isSameMonth(month: LocalDate): Boolean =
-    year == month.year && this.month == month.month
 
 private fun LocalDate.matchesPeriod(period: ReportPeriod, month: LocalDate): Boolean =
     when (period) {
