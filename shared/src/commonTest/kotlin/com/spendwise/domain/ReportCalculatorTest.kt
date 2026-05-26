@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class ReportCalculatorTest {
     @Test
-    fun categoryReportAppliesTagFilters() {
+    fun categoryReportCalculatesRowsFromProvidedExpenses() {
         val categories = listOf(foodCategory, travelCategory)
         val expenses = listOf(
             expense(id = 1, categoryId = 1, amount = 1_200, tags = listOf("work")),
@@ -16,10 +16,10 @@ class ReportCalculatorTest {
             expense(id = 3, categoryId = 1, amount = 800, tags = listOf("work", "trip"))
         )
 
-        val rows = ReportCalculator.categoryReport(expenses, categories, selectedTags = setOf("work"))
+        val rows = ReportCalculator.categoryReport(expenses, categories)
 
-        assertEquals(1, rows.size)
-        assertEquals(2_000, rows.first().totalBaseAmountCents)
+        assertEquals(2, rows.size)
+        assertEquals(3_400, rows.first().totalBaseAmountCents)
     }
 
     @Test
@@ -39,7 +39,7 @@ class ReportCalculatorTest {
     }
 
     @Test
-    fun monthlyTotalsReturnsAllMonthsAndAppliesYearAndTagFilters() {
+    fun monthlyTotalsReturnsAllMonthsAndAppliesYearFilter() {
         val expenses = listOf(
             expense(id = 1, categoryId = 1, amount = 1_200, tags = listOf("work"), spentAtMillis = dateMillis(2026, 1, 10)),
             expense(id = 2, categoryId = 1, amount = 800, tags = listOf("work"), spentAtMillis = dateMillis(2026, 1, 20)),
@@ -50,14 +50,13 @@ class ReportCalculatorTest {
         val rows = ReportCalculator.monthlyTotals(
             expenses = expenses,
             year = 2026,
-            selectedTags = setOf("work"),
             timeZone = TimeZone.UTC
         )
 
         assertEquals(12, rows.size)
         assertEquals(2_000, rows[0].totalBaseAmountCents)
         assertEquals(2, rows[0].expenseCount)
-        assertEquals(0, rows[1].totalBaseAmountCents)
+        assertEquals(3_400, rows[1].totalBaseAmountCents)
         assertEquals(12, rows.last().monthNumber)
     }
 

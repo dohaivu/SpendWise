@@ -46,7 +46,6 @@ import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
-import com.spendwise.ui.components.TagFilterBar
 import com.spendwise.ui.isSameMonth
 import com.spendwise.ui.spentDate
 import kotlinx.datetime.TimeZone
@@ -71,11 +70,10 @@ internal fun MonthCategoryReport(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         item {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 MonthHeader(
                     month = state.selectedMonth,
@@ -83,7 +81,6 @@ internal fun MonthCategoryReport(
                     onNextMonth = reportViewModel::nextMonth,
                     onCurrentMonth = reportViewModel::resetToCurrentPeriod
                 )
-                TagFilterBar(state, reportViewModel)
             }
         }
         item {

@@ -22,12 +22,10 @@ object ReportCalculator {
 
     fun categoryReport(
         expenses: List<Expense>,
-        categories: List<Category>,
-        selectedTags: Set<String>
+        categories: List<Category>
     ): List<CategoryReportRow> {
-        val filtered = expenses.filterByTags(selectedTags)
-        val total = filtered.sumOf { it.baseAmountCents }.coerceAtLeast(1L)
-        return filtered
+        val total = expenses.sumOf { it.baseAmountCents }.coerceAtLeast(1L)
+        return expenses
             .groupBy { it.categoryId }
             .mapNotNull { (categoryId, rows) ->
                 val category = categories.firstOrNull { it.id == categoryId } ?: return@mapNotNull null
@@ -44,11 +42,9 @@ object ReportCalculator {
     fun monthlyTotals(
         expenses: List<Expense>,
         year: Int,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): List<MonthlyExpenseTotal> {
         val filtered = expenses
-            .filterByTags(selectedTags)
             .filter { expense -> expense.localDate(timeZone).year == year }
         return (1..12).map { month ->
             val monthExpenses = filtered.filter { expense -> expense.localDate(timeZone).month.number == month }

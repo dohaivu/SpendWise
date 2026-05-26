@@ -27,6 +27,7 @@ import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.components.ReportPeriodSwitcher
 import com.spendwise.ui.components.TinyTopAppBar
+import com.spendwise.ui.components.TransactionFiltersMenu
 
 @Composable
 internal fun ReportScreen(
@@ -47,6 +48,15 @@ internal fun ReportScreen(
                     Text("Report", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
                 actions = {
+                    TransactionFiltersMenu(
+                        categories = state.categories,
+                        tagUsage = state.tagUsage,
+                        filters = state.transactionFilters,
+                        onTagClick = reportViewModel::toggleTagFilter,
+                        onQueryChange = reportViewModel::updateTransactionQuery,
+                        onCategoryChange = reportViewModel::updateTransactionCategory,
+                        showCategories = false
+                    )
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More options")

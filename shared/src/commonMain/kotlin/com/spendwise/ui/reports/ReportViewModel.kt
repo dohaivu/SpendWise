@@ -82,10 +82,6 @@ class ReportViewModel(
         _uiState.update { it.copy(selectedReportCategoryId = null) }
     }
 
-    fun clearTagFilters() {
-        _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(selectedTags = emptySet())) }
-    }
-
     fun updateTransactionQuery(value: String) {
         _uiState.update { it.copy(transactionFilters = it.transactionFilters.copy(query = value)) }
     }
@@ -96,16 +92,23 @@ class ReportViewModel(
 
     fun getCategoryReport(expenses: List<Expense>): List<CategoryReportRow> {
         val state = _uiState.value
-        return useCases.getCategoryPieReport(expenses, state.categories, state.transactionFilters.selectedTags)
+        val filteredExpenses = useCases.getTransactionsByFilters(
+            expenses = expenses,
+            filters = state.transactionFilters
+        )
+        return useCases.getCategoryPieReport(filteredExpenses, state.categories)
     }
 
     fun getYearlyCategoryReport(year: Int, timeZone: TimeZone): List<CategoryReportRow> {
         val state = _uiState.value
-        return useCases.getYearlyCategoryReport(
+        val filteredExpenses = useCases.getTransactionsByFilters(
             expenses = state.expenses,
+            filters = state.transactionFilters
+        )
+        return useCases.getYearlyCategoryReport(
+            expenses = filteredExpenses,
             categories = state.categories,
             year = year,
-            selectedTags = state.transactionFilters.selectedTags,
             timeZone = timeZone
         )
     }
@@ -119,7 +122,6 @@ class ReportViewModel(
         return useCases.getAnnualMonthlyReport(
             expenses = filteredExpenses,
             year = year,
-            selectedTags = emptySet(),
             timeZone = timeZone
         )
     }
