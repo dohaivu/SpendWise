@@ -48,4 +48,34 @@ object TagParser {
             append(text.substring(token.endIndex))
         }.replace(Regex("""\s{2,}"""), " ")
     }
+
+    fun renameTagInNote(note: String, oldTag: String, newTag: String): String {
+        val oldNormalized = normalize(oldTag)
+        val newNormalized = normalize(newTag)
+        if (oldNormalized.isBlank() || newNormalized.isBlank() || oldNormalized == newNormalized) return note
+
+        return tagRegex.replace(note) { match ->
+            if (normalize(match.groupValues[2]) == oldNormalized) {
+                "${match.groupValues[1]}#$newNormalized"
+            } else {
+                match.value
+            }
+        }
+    }
+
+    fun removeTagFromNote(note: String, tag: String): String {
+        val normalized = normalize(tag)
+        if (normalized.isBlank()) return note
+
+        return tagRegex.replace(note) { match ->
+            if (normalize(match.groupValues[2]) == normalized) {
+                match.groupValues[1]
+            } else {
+                match.value
+            }
+        }
+            .replace(Regex("""[ \t]{2,}"""), " ")
+            .replace(Regex("""\s+([,.!?;:])"""), "$1")
+            .trim()
+    }
 }

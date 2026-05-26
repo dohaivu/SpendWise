@@ -98,17 +98,17 @@ internal fun AnnualReport(
                 )
                 AnnualColumnChart(
                     rows = monthlyTotals,
-                    currencyCode = state.baseCurrencyCode,
+                    currencyCode = state.baseCurrencyCode.code,
                     modifier = Modifier.fillMaxWidth().height(230.dp)
                 )
             }
-            AnnualTotalRow(total = total, currencyCode = state.baseCurrencyCode)
+            AnnualTotalRow(total = total, currencyCode = state.baseCurrencyCode.code)
             SectionDivider()
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(monthlyTotals, key = { it.monthNumber }) { row ->
                     AnnualMonthRow(
                         row = row,
-                        currencyCode = state.baseCurrencyCode,
+                        currencyCode = state.baseCurrencyCode.code,
                         onClick = { onMonthClick(LocalDate(year, row.monthNumber, 1)) }
                     )
                     HorizontalDivider()

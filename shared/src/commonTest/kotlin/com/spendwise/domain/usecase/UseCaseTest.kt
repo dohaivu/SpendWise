@@ -60,7 +60,7 @@ class UseCaseTest {
     }
 
     @Test
-    fun categoryReportUseCaseCalculatesFilteredRows() {
+    fun categoryReportUseCaseCalculatesRows() {
         val useCase = GetCategoryPieReportUseCase()
         val categories = listOf(Category(1, "Food", "F", 0xFFE76F51, 0))
         val expenses = listOf(
@@ -68,10 +68,10 @@ class UseCaseTest {
             expense(id = 2, categoryId = 1, amount = 2_000, tags = listOf("personal"))
         )
 
-        val rows = useCase(expenses, categories, selectedTags = setOf("work"))
+        val rows = useCase(expenses, categories)
 
         assertEquals(1, rows.size)
-        assertEquals(1_000, rows.first().totalBaseAmountCents)
+        assertEquals(3_000, rows.first().totalBaseAmountCents)
     }
 
     @Test

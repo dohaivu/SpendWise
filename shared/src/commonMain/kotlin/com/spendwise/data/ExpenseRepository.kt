@@ -30,6 +30,8 @@ interface ExpenseRepository {
     suspend fun saveReminder(reminder: ExpenseReminder): Long
     suspend fun setReminderEnabled(id: Long, enabled: Boolean)
     suspend fun deleteReminder(id: Long)
+    suspend fun renameTag(oldTag: String, newTag: String)
+    suspend fun deleteTag(tag: String)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
 }
 
@@ -197,6 +199,14 @@ class RoomExpenseRepository(
 
     override suspend fun deleteReminder(id: Long) {
         dao.deleteExpenseReminder(id)
+    }
+
+    override suspend fun renameTag(oldTag: String, newTag: String) {
+        dao.renameTag(oldTag, newTag, Clock.System.now().toEpochMilliseconds())
+    }
+
+    override suspend fun deleteTag(tag: String) {
+        dao.deleteTag(tag, Clock.System.now().toEpochMilliseconds())
     }
 
     override suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double? {

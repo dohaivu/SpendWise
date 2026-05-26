@@ -2,7 +2,6 @@ package com.spendwise.ui.reports
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spendwise.ui.ReportUiState
-import com.spendwise.ui.components.TagFilterBar
 import com.spendwise.ui.components.YearHeader
 import kotlinx.datetime.TimeZone
 
@@ -33,11 +31,10 @@ internal fun AnnualCategoryReport(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         item {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 YearHeader(
                     year = year,
@@ -45,19 +42,18 @@ internal fun AnnualCategoryReport(
                     onNextYear = reportViewModel::nextYear,
                     onCurrentYear = reportViewModel::resetToCurrentPeriod
                 )
-                TagFilterBar(state, reportViewModel)
             }
         }
         item {
             Box(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                 CategoryPie(rows)
             }
-            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrencyCode)
+            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrencyCode.code)
         }
         items(rows, key = { it.category.id }) { row ->
             CategoryReportRowView(
                 row = row,
-                currencyCode = state.baseCurrencyCode,
+                currencyCode = state.baseCurrencyCode.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
             HorizontalDivider()

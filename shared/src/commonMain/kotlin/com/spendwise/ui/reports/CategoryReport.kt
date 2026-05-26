@@ -55,6 +55,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
+import kotlinx.datetime.number
 import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,7 +143,7 @@ internal fun CategoryReport(
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode,
+                currencyCode = state.baseCurrencyCode.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)
@@ -208,9 +209,9 @@ private fun CategoryMonthlyBarChart(
         ) {
             monthTotals.forEach { monthTotal ->
                 Text(
-                    text = monthTotal.month.monthAxisLabel(),
+                    text = "${monthTotal.month.month.number}",
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     textAlign = TextAlign.Center

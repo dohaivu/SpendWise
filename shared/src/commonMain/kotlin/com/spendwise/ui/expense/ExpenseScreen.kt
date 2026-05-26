@@ -111,12 +111,12 @@ internal fun ExpenseScreen(
                     )
                 }
             }
-            if (state.draft.currencyCode != state.baseCurrencyCode) {
+            if (state.draft.currencyCode != state.baseCurrencyCode.code) {
                 item {
                     OutlinedTextField(
                         value = state.draft.exchangeRateText,
                         onValueChange = viewModel::updateExchangeRate,
-                        label = { Text("Rate to ${state.baseCurrencyCode}") },
+                        label = { Text("Rate to ${state.baseCurrencyCode.code}") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -173,9 +173,9 @@ internal fun ExpenseScreen(
                     maxLines = 3
                 )
                 FlowRow(
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    modifier = Modifier.padding(top = 4.dp).heightIn(min = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     tagChips.forEach { tag ->
                         AssistChip(
@@ -192,6 +192,7 @@ internal fun ExpenseScreen(
                             },
                             label = { Text("#$tag") },
                             contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.height(32.dp)
                         )
                     }
                 }

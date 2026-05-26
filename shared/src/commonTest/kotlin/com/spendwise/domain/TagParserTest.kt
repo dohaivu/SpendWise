@@ -38,4 +38,24 @@ class TagParserTest {
         assertNull(TagParser.activeToken("#food", cursorIndex = 0))
         assertNull(TagParser.activeToken("Lunch #food", cursorIndex = 6))
     }
+
+    @Test
+    fun renameTagInNoteUpdatesMatchingTagsOnly() {
+        val note = "Lunch #Food and #foodie, then #FOOD."
+
+        assertEquals(
+            "Lunch #meal and #foodie, then #meal.",
+            TagParser.renameTagInNote(note, "food", "meal")
+        )
+    }
+
+    @Test
+    fun removeTagFromNoteRemovesMatchingTagsOnly() {
+        val note = "Lunch #Food and #foodie, then #FOOD."
+
+        assertEquals(
+            "Lunch and #foodie, then.",
+            TagParser.removeTagFromNote(note, "food")
+        )
+    }
 }

@@ -16,10 +16,9 @@ class GetDailyExpenseTotalsUseCase {
 class GetCategoryPieReportUseCase {
     operator fun invoke(
         expenses: List<Expense>,
-        categories: List<Category>,
-        selectedTags: Set<String>
+        categories: List<Category>
     ): List<CategoryReportRow> =
-        ReportCalculator.categoryReport(expenses, categories, selectedTags)
+        ReportCalculator.categoryReport(expenses, categories)
 }
 
 class GetYearlyCategoryReportUseCase {
@@ -27,11 +26,10 @@ class GetYearlyCategoryReportUseCase {
         expenses: List<Expense>,
         categories: List<Category>,
         year: Int,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): List<CategoryReportRow> {
         val filtered = expenses.filter { expense -> with(ReportCalculator) { expense.localDate(timeZone).year == year } }
-        return ReportCalculator.categoryReport(filtered, categories, selectedTags)
+        return ReportCalculator.categoryReport(filtered, categories)
     }
 }
 
@@ -39,8 +37,7 @@ class GetAnnualMonthlyReportUseCase {
     operator fun invoke(
         expenses: List<Expense>,
         year: Int,
-        selectedTags: Set<String>,
         timeZone: TimeZone
     ): List<MonthlyExpenseTotal> =
-        ReportCalculator.monthlyTotals(expenses, year, selectedTags, timeZone)
+        ReportCalculator.monthlyTotals(expenses, year, timeZone)
 }

@@ -9,7 +9,9 @@ import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.ReportPeriod
+import com.spendwise.ui.components.currencyDisplayFormat
 import kotlin.time.Clock
 
 data class ExpenseUiState(
@@ -17,7 +19,7 @@ data class ExpenseUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val draft: ExpenseDraft = ExpenseDraft(spentAtMillis = Clock.System.now().toEpochMilliseconds()),
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val activeTagToken: ActiveTagToken? = null,
     val tagSuggestions: List<String> = emptyList(),
     val message: String? = null
@@ -27,7 +29,7 @@ data class CalendarUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val selectedPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedDate: kotlinx.datetime.LocalDate = today(),
@@ -39,7 +41,7 @@ data class AllTransactionsUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val transactionData: CalendarData = CalendarData()
 )
@@ -67,7 +69,7 @@ data class ReportUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
     val transactionFilters: TransactionFilters = TransactionFilters()
@@ -78,7 +80,7 @@ data class SettingsUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val categoryDraft: CategoryDraft = CategoryDraft(),
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val language: AppLanguage = AppLanguage.English,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
