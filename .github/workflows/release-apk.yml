@@ -97,7 +97,7 @@ jobs:
           fi
 
       - name: Build release APK
-        run: ./gradlew :androidApp:assembleRelease
+        run: ./gradlew :androidApp:assembleRelease --no-configuration-cache
 
       - name: Prepare APK artifact
         run: |
