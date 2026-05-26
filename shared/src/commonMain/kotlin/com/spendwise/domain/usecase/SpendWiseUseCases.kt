@@ -4,6 +4,8 @@ data class SpendWiseUseCases(
     val addExpense: AddExpenseUseCase,
     val updateExpense: UpdateExpenseUseCase,
     val deleteExpense: DeleteExpenseUseCase,
+    val renameTag: RenameTagUseCase,
+    val deleteTag: DeleteTagUseCase,
     val getExpenses: GetExpensesUseCase,
     val getTransactionsByDate: GetTransactionsByDateUseCase,
     val getTransactionsByFilters: GetTransactionsByFiltersUseCase,

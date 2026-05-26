@@ -8,7 +8,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.spendwise.domain.TagParser
 import kotlinx.coroutines.flow.Flow
+import kotlin.math.max
 
 @Dao
 interface SpendWiseDao {
@@ -82,6 +84,16 @@ interface SpendWiseDao {
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpense(id: Long): ExpenseEntity?
 
+    @Query(
+        """
+        SELECT expenses.* FROM expenses
+        INNER JOIN expense_tags ON expense_tags.expenseId = expenses.id
+        WHERE expense_tags.tagName = :tagName
+        ORDER BY spentAtMillis DESC, id DESC
+        """
+    )
+    suspend fun getExpensesForTag(tagName: String): List<ExpenseEntity>
+
     @Insert
     suspend fun insertExpense(expense: ExpenseEntity): Long
 
@@ -94,11 +106,23 @@ interface SpendWiseDao {
     @Query("DELETE FROM expense_tags WHERE expenseId = :expenseId")
     suspend fun deleteTagsForExpense(expenseId: Long)
 
+    @Query("DELETE FROM expense_tags WHERE tagName = :tagName")
+    suspend fun deleteExpenseTagRefs(tagName: String)
+
+    @Query("DELETE FROM expense_tags WHERE expenseId = :expenseId AND tagName = :tagName")
+    suspend fun deleteExpenseTagRef(expenseId: Long, tagName: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpenseTags(tags: List<ExpenseTagEntity>)
 
     @Upsert
     suspend fun upsertTags(tags: List<TagEntity>)
+
+    @Query("SELECT * FROM tags WHERE normalizedName = :tagName")
+    suspend fun getTag(tagName: String): TagEntity?
+
+    @Query("DELETE FROM tags WHERE normalizedName = :tagName")
+    suspend fun deleteTagEntity(tagName: String)
 
     @Query("SELECT * FROM tags ORDER BY lastUsedAtMillis DESC")
     fun observeTags(): Flow<List<TagEntity>>
@@ -124,6 +148,49 @@ interface SpendWiseDao {
             upsertTags(tags)
             insertExpenseTags(tags.map { ExpenseTagEntity(expenseId = expense.id, tagName = it.normalizedName) })
         }
+    }
+
+    @Transaction
+    suspend fun renameTag(oldTag: String, newTag: String, nowMillis: Long) {
+        val oldNormalized = TagParser.normalize(oldTag)
+        val newNormalized = TagParser.normalize(newTag)
+        if (oldNormalized.isBlank() || newNormalized.isBlank() || oldNormalized == newNormalized) return
+
+        val oldEntity = getTag(oldNormalized)
+        val existingNewEntity = getTag(newNormalized)
+        val expenses = getExpensesForTag(oldNormalized)
+        if (oldEntity == null && expenses.isEmpty()) return
+
+        val nextTag = existingNewEntity?.copy(
+            lastUsedAtMillis = max(existingNewEntity.lastUsedAtMillis, oldEntity?.lastUsedAtMillis ?: nowMillis)
+        ) ?: TagEntity(
+            normalizedName = newNormalized,
+            displayName = newNormalized,
+            createdAtMillis = oldEntity?.createdAtMillis ?: nowMillis,
+            lastUsedAtMillis = oldEntity?.lastUsedAtMillis ?: nowMillis
+        )
+        upsertTags(listOf(nextTag))
+
+        expenses.forEach { expense ->
+            val renamedNote = TagParser.renameTagInNote(expense.note, oldNormalized, newNormalized)
+            updateExpense(expense.copy(note = renamedNote, updatedAtMillis = nowMillis))
+            insertExpenseTags(listOf(ExpenseTagEntity(expenseId = expense.id, tagName = newNormalized)))
+            deleteExpenseTagRef(expense.id, oldNormalized)
+        }
+        deleteTagEntity(oldNormalized)
+    }
+
+    @Transaction
+    suspend fun deleteTag(tag: String, nowMillis: Long) {
+        val normalized = TagParser.normalize(tag)
+        if (normalized.isBlank()) return
+
+        getExpensesForTag(normalized).forEach { expense ->
+            val nextNote = TagParser.removeTagFromNote(expense.note, normalized)
+            updateExpense(expense.copy(note = nextNote, updatedAtMillis = nowMillis))
+        }
+        deleteExpenseTagRefs(normalized)
+        deleteTagEntity(normalized)
     }
 
     @Query(

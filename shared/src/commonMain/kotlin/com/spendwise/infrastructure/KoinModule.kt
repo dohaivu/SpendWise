@@ -11,6 +11,7 @@ import com.spendwise.domain.usecase.AddExpenseUseCase
 import com.spendwise.domain.usecase.ConvertToBaseCurrencyUseCase
 import com.spendwise.domain.usecase.DeleteCategoryUseCase
 import com.spendwise.domain.usecase.DeleteExpenseUseCase
+import com.spendwise.domain.usecase.DeleteTagUseCase
 import com.spendwise.domain.usecase.GetCategoryPieReportUseCase
 import com.spendwise.domain.usecase.GetCurrencySettingsUseCase
 import com.spendwise.domain.usecase.GetDailyExpenseTotalsUseCase
@@ -25,6 +26,7 @@ import com.spendwise.domain.usecase.GetTransactionsByFiltersUseCase
 import com.spendwise.domain.usecase.GetYearlyCategoryReportUseCase
 import com.spendwise.domain.usecase.MoveCategoryUseCase
 import com.spendwise.domain.usecase.ParseTagsFromNoteUseCase
+import com.spendwise.domain.usecase.RenameTagUseCase
 import com.spendwise.domain.usecase.SaveCategoryUseCase
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.domain.usecase.UpdateBaseCurrencyUseCase
@@ -66,6 +68,8 @@ val provideInteractorModule = module {
     single { AddExpenseUseCase(get()) }
     single { UpdateExpenseUseCase(get()) }
     single { DeleteExpenseUseCase(get()) }
+    single { RenameTagUseCase(get()) }
+    single { DeleteTagUseCase(get()) }
     single { GetExpensesUseCase(get()) }
     single { GetTransactionsByDateUseCase() }
     single { GetTransactionsByFiltersUseCase() }
@@ -89,6 +93,8 @@ val provideInteractorModule = module {
             addExpense = get(),
             updateExpense = get(),
             deleteExpense = get(),
+            renameTag = get(),
+            deleteTag = get(),
             getExpenses = get(),
             getTransactionsByDate = get(),
             getTransactionsByFilters = get(),

@@ -38,6 +38,22 @@ class DeleteExpenseUseCase(
     }
 }
 
+class RenameTagUseCase(
+    private val repository: ExpenseRepository
+) {
+    suspend operator fun invoke(oldTag: String, newTag: String) {
+        repository.renameTag(oldTag, newTag)
+    }
+}
+
+class DeleteTagUseCase(
+    private val repository: ExpenseRepository
+) {
+    suspend operator fun invoke(tag: String) {
+        repository.deleteTag(tag)
+    }
+}
+
 class GetExpensesUseCase(
     private val repository: ExpenseRepository
 ) {

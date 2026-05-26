@@ -254,6 +254,24 @@ class SettingsViewModel(
         }
     }
 
+    fun renameTag(oldTag: String, newTag: String) {
+        if (newTag.isBlank()) {
+            _uiState.update { it.copy(message = "Tag name is required") }
+            return
+        }
+        viewModelScope.launch {
+            useCases.renameTag(oldTag, newTag)
+            _uiState.update { it.copy(message = "Tag renamed") }
+        }
+    }
+
+    fun deleteTag(tag: String) {
+        viewModelScope.launch {
+            useCases.deleteTag(tag)
+            _uiState.update { it.copy(message = "Tag deleted") }
+        }
+    }
+
     fun consumeMessage() {
         _uiState.update { it.copy(message = null) }
     }
