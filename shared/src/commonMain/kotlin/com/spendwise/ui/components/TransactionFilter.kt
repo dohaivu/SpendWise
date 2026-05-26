@@ -125,7 +125,7 @@ internal fun TransactionFiltersPanel(
                 FilterChip(
                     selected = filters.categoryId == null,
                     onClick = { onCategoryChange(null) },
-                    label = { Text("All categories") },
+                    label = { Text("All") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -141,7 +141,8 @@ internal fun TransactionFiltersPanel(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        ),
+                        contentPadding = PaddingValues(0.dp)
                     )
                 }
             }
@@ -153,7 +154,7 @@ internal fun TransactionFiltersPanel(
                 FilterChip(
                     selected = filters.categoryId == null,
                     onClick = { onCategoryChange(null) },
-                    label = { Text("All categories") },
+                    label = { Text("All") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -171,6 +172,7 @@ internal fun TransactionFiltersPanel(
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
+                        contentPadding = PaddingValues(0.dp),
                         modifier = Modifier.height(32.dp)
                     )
                 }
