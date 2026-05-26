@@ -9,6 +9,7 @@ import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.firstDayOfMonth
 import com.spendwise.ui.today
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,7 @@ class ReportViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = snapshot.settings.baseCurrencyCode
+                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }

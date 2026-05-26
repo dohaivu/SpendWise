@@ -20,6 +20,7 @@ import com.spendwise.platform.ReminderScheduler
 import com.spendwise.ui.AppLanguage
 import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.TagUsageSort
+import com.spendwise.ui.components.currencyDisplayFormat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,7 +48,7 @@ class SettingsViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = snapshot.settings.baseCurrencyCode,
+                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode),
                         language = AppLanguage.Companion.fromCode(snapshot.settings.languageCode),
                         reminders = reminders
                     )
@@ -72,7 +73,7 @@ class SettingsViewModel(
     fun setBaseCurrency(currency: String) {
         _uiState.update {
             it.copy(
-                baseCurrencyCode = currency
+                baseCurrencyCode = currencyDisplayFormat(currency)
             )
         }
         viewModelScope.launch { useCases.updateBaseCurrency(currency) }
@@ -262,7 +263,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.saveSettings(
                 UserSettings(
-                    baseCurrencyCode = state.baseCurrencyCode,
+                    baseCurrencyCode = state.baseCurrencyCode.code,
                     languageCode = state.language.code
                 )
             )

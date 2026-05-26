@@ -111,12 +111,12 @@ internal fun ExpenseScreen(
                     )
                 }
             }
-            if (state.draft.currencyCode != state.baseCurrencyCode) {
+            if (state.draft.currencyCode != state.baseCurrencyCode.code) {
                 item {
                     OutlinedTextField(
                         value = state.draft.exchangeRateText,
                         onValueChange = viewModel::updateExchangeRate,
-                        label = { Text("Rate to ${state.baseCurrencyCode}") },
+                        label = { Text("Rate to ${state.baseCurrencyCode.code}") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )

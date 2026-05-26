@@ -12,6 +12,8 @@ import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.DateTransactionListItem
+import com.spendwise.ui.components.CurrencyDisplayFormat
+import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.spentDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +36,7 @@ class AllTransactionsViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = snapshot.settings.baseCurrencyCode
+                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }
@@ -62,7 +64,7 @@ class AllTransactionsViewModel(
         expenses: List<Expense> = this.expenses,
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
-        baseCurrencyCode: String = this.baseCurrencyCode,
+        baseCurrencyCode: CurrencyDisplayFormat = this.baseCurrencyCode,
         transactionFilters: TransactionFilters = this.transactionFilters
     ): AllTransactionsUiState {
         return copy(

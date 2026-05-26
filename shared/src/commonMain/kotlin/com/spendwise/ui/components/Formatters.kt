@@ -7,12 +7,12 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.absoluteValue
 
-internal enum class CurrencySymbolPosition {
+enum class CurrencySymbolPosition {
     Prefix,
     Suffix
 }
 
-internal data class CurrencyDisplayFormat(
+data class CurrencyDisplayFormat(
     val code: String,
     val name: String,
     val symbol: String,
@@ -120,11 +120,18 @@ internal fun monthTitle(date: LocalDate): String =
     "${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.year}"
 
 internal fun formatMoney(cents: Long, currencyCode: String): String {
-    return currencyDisplayFormat(currencyCode).format(cents)
+    return formatMoney(cents, currencyDisplayFormat(currencyCode))
+}
+
+internal fun formatMoney(cents: Long, format: CurrencyDisplayFormat): String {
+    return format.format(cents)
 }
 
 internal fun formatMoneyValue(cents: Long, currencyCode: String): String {
-    val format = currencyDisplayFormat(currencyCode)
+    return formatMoneyValue(cents, currencyDisplayFormat(currencyCode))
+}
+
+internal fun formatMoneyValue(cents: Long, format: CurrencyDisplayFormat): String {
     val sign = if (cents < 0) "-" else ""
     val amount = cents.absoluteValue
     val whole = amount / 100
@@ -140,7 +147,11 @@ internal fun formatMoneyValue(cents: Long, currencyCode: String): String {
 }
 
 internal fun formatCompactMoney(cents: Long, currencyCode: String): String {
-    return currencyDisplayFormat(currencyCode).formatCompact(cents)
+    return formatCompactMoney(cents, currencyDisplayFormat(currencyCode))
+}
+
+internal fun formatCompactMoney(cents: Long, format: CurrencyDisplayFormat): String {
+    return format.formatCompact(cents)
 }
 
 internal fun formatCompactAmount(cents: Long, displayMillions: Boolean = true): String {

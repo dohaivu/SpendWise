@@ -142,7 +142,7 @@ internal fun CategoryReport(
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode,
+                currencyCode = state.baseCurrencyCode.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)

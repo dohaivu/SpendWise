@@ -264,7 +264,7 @@ internal fun SettingsRow(
 @Composable
 private fun CurrencySettings(state: SettingsUiState, viewModel: SettingsViewModel) {
     var showDialog by remember { mutableStateOf(false) }
-    val format = currencyDisplayFormat(state.baseCurrencyCode)
+    val format = state.baseCurrencyCode
 
     SettingValueRow(
         title = "Base currency",
@@ -273,7 +273,7 @@ private fun CurrencySettings(state: SettingsUiState, viewModel: SettingsViewMode
     )
     if (showDialog) {
         CurrencySelectionDialog(
-            selected = state.baseCurrencyCode,
+            selected = state.baseCurrencyCode.code,
             onDismiss = { showDialog = false },
             onSelected = { currency ->
                 viewModel.setBaseCurrency(currency)

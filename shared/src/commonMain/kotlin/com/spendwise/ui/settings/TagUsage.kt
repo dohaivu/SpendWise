@@ -67,7 +67,7 @@ internal fun TagUsage(
                         Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                         Text("${usage.expenseCount} uses", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.width(14.dp))
-                        MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode)
+                        MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode.code)
                     }
                     if (index < tagUsage.lastIndex) {
                         HorizontalDivider()

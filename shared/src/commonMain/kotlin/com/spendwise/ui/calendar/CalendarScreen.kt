@@ -51,6 +51,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.CategoryIcon
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.components.ReportPeriod
@@ -153,7 +154,7 @@ internal fun CalendarScreen(
                         month = state.selectedMonth,
                         selectedDate = state.selectedDate,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyCode = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrencyCode,
                         onDateSelected = { date ->
                             calendarViewModel.selectDate(date)
                             state.calendarData.headerIndexes[date]?.let { index ->
@@ -176,7 +177,7 @@ internal fun CalendarScreen(
                         year = state.selectedMonth.year,
                         selectedMonth = state.selectedMonth,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyCode = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrencyCode,
                         onMonthSelected = { month ->
                             calendarViewModel.selectMonth(month)
                             state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
@@ -191,12 +192,12 @@ internal fun CalendarScreen(
             TotalRow(
                 total = state.calendarData.filteredMonthTotal,
                 transactionCount = state.calendarData.monthTransactionCount,
-                currencyCode = state.baseCurrencyCode
+                currencyCode = state.baseCurrencyCode.code
             )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode,
+                currencyCode = state.baseCurrencyCode.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)
@@ -210,7 +211,7 @@ private fun MonthCalendar(
     month: LocalDate,
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onDateSelected: (LocalDate) -> Unit,
     onDateDoubleClick: (LocalDate) -> Unit
 ) {
@@ -254,7 +255,7 @@ private fun MonthCalendar(
                 month = month,
                 selectedDate = selectedDate,
                 totalsByDate = totalsByDate,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 colors = colors,
                 onDateSelected = onDateSelected,
                 onDateDoubleClick = onDateDoubleClick
@@ -268,7 +269,7 @@ private fun YearCalendar(
     year: Int,
     selectedMonth: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onMonthSelected: (LocalDate) -> Unit
 ) {
     val monthTotals = remember(totalsByDate, year) {
@@ -292,7 +293,7 @@ private fun YearCalendar(
                         month = month,
                         total = monthTotals[month.month.number],
                         selected = month.isSameMonth(selectedMonth),
-                        currencyCode = currencyCode,
+                        currencyFormat = currencyFormat,
                         onClick = { onMonthSelected(month) },
                         modifier = Modifier.weight(1f)
                     )
@@ -307,7 +308,7 @@ private fun YearMonthCell(
     month: LocalDate,
     total: YearMonthTotal?,
     selected: Boolean,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -331,7 +332,7 @@ private fun YearMonthCell(
         )
         if (total != null) {
             Text(
-                text = formatMoneyValue(total.totalBaseAmountCents, currencyCode),
+                text = formatMoneyValue(total.totalBaseAmountCents, currencyFormat),
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.labelSmall.copy(color = colorScheme.error),
                 maxLines = 1,
@@ -359,7 +360,7 @@ private fun CalendarWeekRow(
     month: LocalDate,
     selectedDate: LocalDate,
     totalsByDate: Map<LocalDate, DailyExpenseTotal>,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     colors: CalendarCellColors,
     onDateSelected: (LocalDate) -> Unit,
     onDateDoubleClick: (LocalDate) -> Unit
@@ -371,7 +372,7 @@ private fun CalendarWeekRow(
                 month = month,
                 isSelected = date == selectedDate,
                 total = totalsByDate[date],
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 colors = colors,
                 onDateSelected = onDateSelected,
                 onDateDoubleClick = onDateDoubleClick,
@@ -388,7 +389,7 @@ private fun CalendarDayCell(
     month: LocalDate,
     isSelected: Boolean,
     total: DailyExpenseTotal?,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     colors: CalendarCellColors,
     onDateSelected: (LocalDate) -> Unit,
     onDateDoubleClick: (LocalDate) -> Unit,
@@ -401,6 +402,8 @@ private fun CalendarDayCell(
         date.dayOfWeek == DayOfWeek.SUNDAY -> colors.sunday
         else -> colors.day
     }
+    val totalColor = total?.let { dailyTotalColor(it.totalBaseAmountCents, currencyFormat) }
+        ?: MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = modifier
@@ -423,9 +426,9 @@ private fun CalendarDayCell(
             )
             if (isMonthDate && total != null) {
                 Text(
-                    text = formatMoneyValue(total.totalBaseAmountCents, currencyCode),
+                    text = formatMoneyValue(total.totalBaseAmountCents, currencyFormat),
                     modifier = Modifier.padding(end = 2.dp).fillMaxWidth(),
-                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.error),
+                    style = MaterialTheme.typography.labelSmall.copy(color = totalColor),
                     maxLines = 1,
                     textAlign = TextAlign.End,
                     autoSize = TextAutoSize.StepBased(
@@ -435,6 +438,24 @@ private fun CalendarDayCell(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun dailyTotalColor(
+    totalBaseAmountCents: Long,
+    currencyFormat: CurrencyDisplayFormat
+): Color {
+    val wholeAmount = totalBaseAmountCents / 100
+    val highlightThreshold = if (currencyFormat.fractionDigits > 0) {
+        500
+    } else {
+        500_000
+    }
+    return if (wholeAmount > highlightThreshold) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
     }
 }
 

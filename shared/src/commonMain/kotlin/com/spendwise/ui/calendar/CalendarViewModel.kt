@@ -13,7 +13,9 @@ import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.ReportPeriod
+import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.firstDayOfMonth
 import com.spendwise.ui.isSameMonth
 import com.spendwise.ui.spentDate
@@ -43,7 +45,7 @@ class CalendarViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = snapshot.settings.baseCurrencyCode
+                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }
@@ -109,7 +111,7 @@ class CalendarViewModel(
         expenses: List<Expense> = this.expenses,
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
-        baseCurrencyCode: String = this.baseCurrencyCode,
+        baseCurrencyCode: CurrencyDisplayFormat = this.baseCurrencyCode,
         selectedPeriod: ReportPeriod = this.selectedPeriod,
         selectedMonth: LocalDate = this.selectedMonth,
         selectedDate: LocalDate = this.selectedDate,
