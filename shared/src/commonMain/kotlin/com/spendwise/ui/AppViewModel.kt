@@ -47,10 +47,6 @@ enum class TagUsageSort {
 
 val supportedCurrencies = currencyDisplayFormats.map { it.code }
 
-fun today(): LocalDate =
-    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-
-fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
 
 fun centsToAmountText(cents: Long, currencyCode: String): String {
     val fractionDigits = currencyDisplayFormat(currencyCode).fractionDigits

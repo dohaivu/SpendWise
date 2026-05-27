@@ -8,6 +8,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 internal fun LocalDate.toUtcStartMillis(): Long =
@@ -47,3 +48,8 @@ internal fun LocalDate.monthAxisLabel(): String {
     val monthLabel = shortMonthName()
     return if (month.number == 1) "$monthLabel $year" else monthLabel
 }
+
+fun today(): LocalDate =
+    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
