@@ -38,7 +38,7 @@ class ReportViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+                        baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }

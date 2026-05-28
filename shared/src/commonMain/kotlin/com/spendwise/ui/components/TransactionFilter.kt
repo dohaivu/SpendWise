@@ -50,6 +50,9 @@ import androidx.compose.ui.window.PopupProperties
 import com.spendwise.domain.Category
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun TransactionFiltersPanel(
@@ -78,7 +81,11 @@ internal fun TransactionFiltersPanel(
             ) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Collapse filters" else "Expand filters",
+                    contentDescription = if (expanded) {
+                        stringResource(Res.string.collapse_filters)
+                    } else {
+                        stringResource(Res.string.expand_filters)
+                    },
                     modifier = Modifier.size(16.dp).clickable {
                         expanded = !expanded
                     }
@@ -109,7 +116,7 @@ internal fun TransactionFiltersPanel(
         AppOutlinedTextField(
             value = filters.query,
             onValueChange = onQueryChange,
-            label = "Search note"
+            label = stringResource(Res.string.search_note)
         )
         if (!showCategories) {
             return@Column
@@ -125,7 +132,7 @@ internal fun TransactionFiltersPanel(
                 FilterChip(
                     selected = filters.categoryId == null,
                     onClick = { onCategoryChange(null) },
-                    label = { Text("All") },
+                    label = { Text(stringResource(Res.string.all)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -154,7 +161,7 @@ internal fun TransactionFiltersPanel(
                 FilterChip(
                     selected = filters.categoryId == null,
                     onClick = { onCategoryChange(null) },
-                    label = { Text("All") },
+                    label = { Text(stringResource(Res.string.all)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -197,9 +204,9 @@ internal fun TransactionFiltersMenu(
         (showCategories && filters.categoryId != null) ||
         filters.selectedTags.isNotEmpty()
     val contentDescription = if (hasActiveFilters) {
-        "Open transaction filters, filters active"
+        stringResource(Res.string.open_transaction_filters_active)
     } else {
-        "Open transaction filters"
+        stringResource(Res.string.open_transaction_filters)
     }
 
     Box(

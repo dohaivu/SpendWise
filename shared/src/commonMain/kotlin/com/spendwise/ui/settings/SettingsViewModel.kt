@@ -48,7 +48,7 @@ class SettingsViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode),
+                        baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode),
                         language = AppLanguage.Companion.fromCode(snapshot.settings.languageCode),
                         reminders = reminders
                     )
@@ -73,7 +73,7 @@ class SettingsViewModel(
     fun setBaseCurrency(currency: String) {
         _uiState.update {
             it.copy(
-                baseCurrencyCode = currencyDisplayFormat(currency)
+                baseCurrency = currencyDisplayFormat(currency)
             )
         }
         viewModelScope.launch { useCases.updateBaseCurrency(currency) }
@@ -281,7 +281,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.saveSettings(
                 UserSettings(
-                    baseCurrencyCode = state.baseCurrencyCode.code,
+                    baseCurrencyCode = state.baseCurrency.code,
                     languageCode = state.language.code
                 )
             )

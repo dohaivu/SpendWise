@@ -50,6 +50,10 @@ import com.spendwise.ui.isSameMonth
 import com.spendwise.ui.spentDate
 import kotlinx.datetime.TimeZone
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.no_data
+import spendwise.shared.generated.resources.total
 
 @Composable
 internal fun MonthCategoryReport(
@@ -87,12 +91,12 @@ internal fun MonthCategoryReport(
             Box(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                 CategoryPie(rows)
             }
-            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrencyCode.code)
+            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrency.code)
         }
         items(rows, key = { it.category.id }) { row ->
             CategoryReportRowView(
                 row = row,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
             HorizontalDivider()
@@ -109,7 +113,7 @@ internal fun CategoryReportTotalRow(total: Long, currencyCode: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Total",
+            text = stringResource(Res.string.total),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
@@ -152,7 +156,7 @@ internal fun CategoryPie(rows: List<CategoryReportRow>) {
         ) {
             Box(modifier = Modifier.size(148.dp), contentAlignment = Alignment.Center) {
                 if (rows.isEmpty()) {
-                    Text("No data", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(Res.string.no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     PieChartHost(
                         chart = pieChart,

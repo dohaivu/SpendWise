@@ -63,21 +63,27 @@ internal val currencyDisplayFormats = listOf(
         name = "US Dollar",
         symbol = "$",
         fractionDigits = 2,
-        symbolPosition = CurrencySymbolPosition.Prefix
+        symbolPosition = CurrencySymbolPosition.Prefix,
+        groupSeparator = ',',
+        decimalSeparator = '.'
     ),
     CurrencyDisplayFormat(
         code = "VND",
         name = "Vietnamese Dong",
         symbol = "₫",
         fractionDigits = 0,
-        symbolPosition = CurrencySymbolPosition.Suffix
+        symbolPosition = CurrencySymbolPosition.Suffix,
+        groupSeparator = '.',
+        decimalSeparator = ','
     ),
     CurrencyDisplayFormat(
         code = "CNY",
         name = "Chinese Yuan",
         symbol = "¥",
         fractionDigits = 2,
-        symbolPosition = CurrencySymbolPosition.Prefix
+        symbolPosition = CurrencySymbolPosition.Prefix,
+        groupSeparator = ',',
+        decimalSeparator = '.'
     ),
     CurrencyDisplayFormat(
         code = "EUR",
@@ -94,14 +100,18 @@ internal val currencyDisplayFormats = listOf(
         name = "Japanese Yen",
         symbol = "¥",
         fractionDigits = 0,
-        symbolPosition = CurrencySymbolPosition.Prefix
+        symbolPosition = CurrencySymbolPosition.Prefix,
+        groupSeparator = ',',
+        decimalSeparator = '.'
     ),
     CurrencyDisplayFormat(
         code = "SGD",
         name = "Singapore Dollar",
         symbol = "S$",
         fractionDigits = 2,
-        symbolPosition = CurrencySymbolPosition.Prefix
+        symbolPosition = CurrencySymbolPosition.Prefix,
+        groupSeparator = ',',
+        decimalSeparator = '.'
     )
 )
 

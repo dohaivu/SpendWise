@@ -48,8 +48,8 @@ import com.spendwise.ui.components.TransactionsByDateList
 import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.isSameMonth
+import com.spendwise.ui.localizedShortMonthName
 import com.spendwise.ui.monthAxisLabel
-import com.spendwise.ui.shortMonthName
 import com.spendwise.ui.spentDate
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -57,6 +57,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlin.math.ceil
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.back
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,12 +104,12 @@ internal fun CategoryReport(
             TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 title = {
                     Text(
-                        text = "${category.name} (${selectedMonth.shortMonthName()}) ${formatMoney(monthTotal, state.baseCurrencyCode)}",
+                        text = "${category.name} (${selectedMonth.localizedShortMonthName()}) ${formatMoney(monthTotal, state.baseCurrency)}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -143,7 +146,7 @@ internal fun CategoryReport(
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)

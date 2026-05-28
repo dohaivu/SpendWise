@@ -36,7 +36,7 @@ class AllTransactionsViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+                        baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }
@@ -52,6 +52,17 @@ class AllTransactionsViewModel(
         }
     }
 
+    fun showOnlyTag(tag: String) {
+        val normalized = TagParser.normalize(tag)
+        _uiState.update {
+            it.withTransactionData(
+                transactionFilters = TransactionFilters(
+                    selectedTags = if (normalized.isBlank()) emptySet() else setOf(normalized)
+                )
+            )
+        }
+    }
+
     fun updateTransactionQuery(value: String) {
         _uiState.update { it.withTransactionData(transactionFilters = it.transactionFilters.copy(query = value)) }
     }
@@ -64,14 +75,14 @@ class AllTransactionsViewModel(
         expenses: List<Expense> = this.expenses,
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
-        baseCurrencyCode: CurrencyDisplayFormat = this.baseCurrencyCode,
+        baseCurrency: CurrencyDisplayFormat = this.baseCurrency,
         transactionFilters: TransactionFilters = this.transactionFilters
     ): AllTransactionsUiState {
         return copy(
             expenses = expenses,
             categories = categories,
             tagUsage = tagUsage,
-            baseCurrencyCode = baseCurrencyCode,
+            baseCurrency = baseCurrency,
             transactionFilters = transactionFilters,
             transactionData = buildAllTransactionsData(
                 expenses = expenses,

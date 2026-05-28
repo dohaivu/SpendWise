@@ -11,7 +11,7 @@ class CurrencyFormatTest {
 
     @Test
     fun formatsVndWithSuffixSymbolAndNoFraction() {
-        assertEquals("123,456,789₫", formatMoney(12_345_678_900, "VND"))
+        assertEquals("123.456.789₫", formatMoney(12_345_678_900, "VND"))
     }
 
     @Test
@@ -28,7 +28,7 @@ class CurrencyFormatTest {
     @Test
     fun formatsCurrencyValueWithoutSymbol() {
         assertEquals("123,456,789.00", formatMoneyValue(12_345_678_900, "USD"))
-        assertEquals("123,456,789", formatMoneyValue(12_345_678_900, "VND"))
+        assertEquals("123.456.789", formatMoneyValue(12_345_678_900, "VND"))
         assertEquals("-123.456.789,00", formatMoneyValue(-12_345_678_900, "EUR"))
     }
 }

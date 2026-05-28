@@ -35,6 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.ExpenseReminder
 import com.spendwise.ui.SettingsUiState
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun Reminders(
@@ -46,12 +49,12 @@ internal fun Reminders(
     var showTimePicker by remember { mutableStateOf(false) }
 
     SettingsScaffold(
-        title = "Reminders",
+        title = stringResource(Res.string.reminders),
         modifier = modifier,
         navigationIcon = { SettingsBackButton(onBack) },
         actions = {
             IconButton(onClick = { showTimePicker = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add reminder")
+                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_reminder))
             }
         }
     ) { contentModifier ->
@@ -94,9 +97,9 @@ private fun EmptyReminders(modifier: Modifier) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text("No reminders", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(Res.string.no_reminders), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(
-                "Add a time to be reminded to enter expenses.",
+                stringResource(Res.string.no_reminders_body),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -117,14 +120,18 @@ private fun ReminderRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(formatReminderTime(reminder), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
             Text(
-                if (reminder.enabled) "Notification enabled" else "Notification paused",
+                if (reminder.enabled) {
+                    stringResource(Res.string.notification_enabled)
+                } else {
+                    stringResource(Res.string.notification_paused)
+                },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
         }
         Switch(checked = reminder.enabled, onCheckedChange = onEnabledChange)
         IconButton(onClick = onDelete) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete reminder")
+            Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_reminder))
         }
     }
 }
@@ -139,16 +146,16 @@ private fun AddReminderDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add reminder") },
+        title = { Text(stringResource(Res.string.add_reminder)) },
         text = { TimePicker(state = timePickerState) },
         confirmButton = {
             TextButton(onClick = { onAdd(timePickerState.hour, timePickerState.minute) }) {
-                Text("Add")
+                Text(stringResource(Res.string.add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )

@@ -73,6 +73,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.plus
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +99,7 @@ internal fun CalendarScreen(
             var showOverflowMenu by remember { mutableStateOf(false) }
             TinyTopAppBar(
                 title = {
-                    Text("Calendar", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(Res.string.calendar_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
                 actions = {
                     TransactionFiltersMenu(
@@ -109,20 +112,20 @@ internal fun CalendarScreen(
                     )
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(Res.string.more_options))
                         }
                         DropdownMenu(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("All Transactions") },
+                                text = { Text(stringResource(Res.string.all_transactions)) },
                                 onClick = {
                                     showOverflowMenu = false
                                     onAllTransactionsClick()
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Outlined.Dataset, contentDescription = "All Transactions")
+                                    Icon(Icons.Outlined.Dataset, contentDescription = stringResource(Res.string.all_transactions))
                                 }
                             )
                         }
@@ -154,7 +157,7 @@ internal fun CalendarScreen(
                         month = state.selectedMonth,
                         selectedDate = state.selectedDate,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyFormat = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrency,
                         onDateSelected = { date ->
                             calendarViewModel.selectDate(date)
                             state.calendarData.headerIndexes[date]?.let { index ->
@@ -177,7 +180,7 @@ internal fun CalendarScreen(
                         year = state.selectedMonth.year,
                         selectedMonth = state.selectedMonth,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyFormat = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrency,
                         onMonthSelected = { month ->
                             calendarViewModel.selectMonth(month)
                             state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
@@ -192,12 +195,12 @@ internal fun CalendarScreen(
             TotalRow(
                 total = state.calendarData.filteredMonthTotal,
                 transactionCount = state.calendarData.monthTransactionCount,
-                currencyCode = state.baseCurrencyCode.code
+                currencyCode = state.baseCurrency.code
             )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)
@@ -473,7 +476,7 @@ internal fun TotalRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "$transactionCount transactions",
+            text = stringResource(Res.string.transactions_count, transactionCount),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

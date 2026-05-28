@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.ui.DateTransactionListItem
-import com.spendwise.ui.compactDateWithDayName
+import com.spendwise.ui.localizedCompactDateWithDayName
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.category_fallback
+import spendwise.shared.generated.resources.no_transactions
 
 @Composable
 internal fun TransactionsByDateList(
@@ -38,7 +42,7 @@ internal fun TransactionsByDateList(
         if (transactionItems.isEmpty()) {
             item {
                 Text(
-                    text = "No transactions",
+                    text = stringResource(Res.string.no_transactions),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp),
@@ -87,7 +91,7 @@ private fun TransactionDateHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = date.compactDateWithDayName(),
+            text = date.localizedCompactDateWithDayName(),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
@@ -121,7 +125,7 @@ private fun TransactionRow(
         )
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = category?.name ?: "Category",
+                text = category?.name ?: stringResource(Res.string.category_fallback),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1

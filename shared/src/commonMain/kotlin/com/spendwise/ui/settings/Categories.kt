@@ -43,6 +43,9 @@ import com.spendwise.domain.CategoryDraft
 import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.categoryIconOptions
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 private val categoryColors = listOf(
     0xFF0000D8, 0xFF5E16B5, 0xFFB0B0B0, 0xFF505050, 0xFF2B2B2B,
@@ -53,7 +56,7 @@ private val categoryColors = listOf(
 )
 
 @Composable
-internal fun EditCategories(
+internal fun Categories(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
@@ -65,12 +68,12 @@ internal fun EditCategories(
         .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
 
     SettingsScaffold(
-        title = "Edit categories",
+        title = stringResource(Res.string.categories),
         modifier = modifier,
         navigationIcon = { SettingsBackButton(onBack) },
         actions = {
             IconButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Add category")
+                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_category))
             }
         }
     ) { contentModifier ->
@@ -99,7 +102,7 @@ internal fun CategoryEditorScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val title = state.categoryDraft.name.ifBlank { "New category" }
+    val title = state.categoryDraft.name.ifBlank { stringResource(Res.string.new_category) }
 
     SettingsScaffold(
         title = title,
@@ -114,7 +117,7 @@ internal fun CategoryEditorScreen(
                         onBack()
                     }
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete category")
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_category))
                 }
             }
         }
@@ -129,7 +132,7 @@ internal fun CategoryEditorScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Text("Name", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.name), style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(
                     value = state.categoryDraft.name,
                     onValueChange = viewModel::updateCategoryName,
@@ -141,13 +144,13 @@ internal fun CategoryEditorScreen(
             Column(
                 modifier = Modifier.weight(0.4f)
             ) {
-                Text("Icon", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.icon), modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
                 IconGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
             Column(
                 modifier = Modifier.weight(0.4f)
             ) {
-                Text("Color", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.color), modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
                 ColorGrid(state.categoryDraft, viewModel, Modifier.weight(1f))
             }
         }
@@ -160,7 +163,7 @@ internal fun CategoryEditorScreen(
                 .clip(RoundedCornerShape(999.dp))
                 .background(MaterialTheme.colorScheme.primary)
         ) {
-            Text("Save", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(Res.string.save), color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge)
         }
         }
     }
@@ -169,7 +172,7 @@ internal fun CategoryEditorScreen(
 @Composable
 internal fun SettingsBackButton(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
-        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.back))
     }
 }
 
@@ -179,7 +182,7 @@ private fun CategoryTypeTabs() {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Text(
-                    "Expense",
+                    stringResource(Res.string.expense_type),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
@@ -188,7 +191,7 @@ private fun CategoryTypeTabs() {
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Text(
-                    "Income",
+                    stringResource(Res.string.income_type),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(vertical = 18.dp)
@@ -256,7 +259,7 @@ private fun IconGrid(
             ) {
                 Icon(
                     imageVector = icon.imageVector,
-                    contentDescription = icon.label,
+                    contentDescription = stringResource(icon.label),
                     tint = if (selected) Color(categoryDraft.color.toInt()) else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(28.dp)
                 )

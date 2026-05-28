@@ -40,8 +40,12 @@ import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
+import com.spendwise.ui.localizedMonthName
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,12 +66,12 @@ internal fun AnnualReport(
             TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 title = {
                     Text(
-                        "Annual Report",
+                        stringResource(Res.string.annual_report),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -98,17 +102,17 @@ internal fun AnnualReport(
                 )
                 AnnualColumnChart(
                     rows = monthlyTotals,
-                    currencyCode = state.baseCurrencyCode.code,
+                    currencyCode = state.baseCurrency.code,
                     modifier = Modifier.fillMaxWidth().height(230.dp)
                 )
             }
-            AnnualTotalRow(total = total, currencyCode = state.baseCurrencyCode.code)
+            AnnualTotalRow(total = total, currencyCode = state.baseCurrency.code)
             SectionDivider()
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(monthlyTotals, key = { it.monthNumber }) { row ->
                     AnnualMonthRow(
                         row = row,
-                        currencyCode = state.baseCurrencyCode.code,
+                        currencyCode = state.baseCurrency.code,
                         onClick = { onMonthClick(LocalDate(year, row.monthNumber, 1)) }
                     )
                     HorizontalDivider()
@@ -200,7 +204,7 @@ private fun AnnualTotalRow(total: Long, currencyCode: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Total",
+            stringResource(Res.string.total),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
@@ -228,7 +232,7 @@ private fun AnnualMonthRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            monthFullNames[row.monthNumber - 1],
+            localizedMonthName(row.monthNumber),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
@@ -247,19 +251,3 @@ private fun SectionDivider() {
     Box(Modifier.fillMaxWidth().height(8.dp).background(MaterialTheme.colorScheme.surfaceVariant))
 //    HorizontalDivider()
 }
-
-private val monthShortNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-private val monthFullNames = listOf(
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-)
