@@ -25,11 +25,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.spendwise.ui.localizedMonthTitle
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
-enum class ReportPeriod(val label: String) {
-    Month("Monthly"),
-    Annual("Annual")
+enum class ReportPeriod {
+    Month,
+    Annual
 }
 
 @Composable
@@ -46,10 +50,16 @@ internal fun ReportPeriodSwitcher(
             FilterChip(
                 selected = selectedPeriod == period,
                 onClick = { onPeriodSelected(period) },
-                label = { Text(period.label) }
+                label = { Text(period.label()) }
             )
         }
     }
+}
+
+@Composable
+private fun ReportPeriod.label(): String = when (this) {
+    ReportPeriod.Month -> stringResource(Res.string.monthly)
+    ReportPeriod.Annual -> stringResource(Res.string.annual)
 }
 
 @Composable
@@ -60,12 +70,12 @@ internal fun MonthHeader(
     onCurrentMonth: () -> Unit
 ) {
     PeriodHeader(
-        title = monthTitle(month),
+        title = month.localizedMonthTitle(),
         onPrevious = onPreviousMonth,
         onNext = onNextMonth,
         onCurrentPeriod = onCurrentMonth,
-        previousContentDescription = "Previous month",
-        nextContentDescription = "Next month"
+        previousContentDescription = stringResource(Res.string.previous_month),
+        nextContentDescription = stringResource(Res.string.next_month)
     )
 }
 
@@ -78,12 +88,12 @@ internal fun YearHeader(
 ) {
     PeriodHeader(
         title = "$year",
-        subtitle = "Jan 01 - Dec 31",
+        subtitle = stringResource(Res.string.year_range),
         onPrevious = onPreviousYear,
         onNext = onNextYear,
         onCurrentPeriod = onCurrentYear,
-        previousContentDescription = "Previous year",
-        nextContentDescription = "Next year"
+        previousContentDescription = stringResource(Res.string.previous_year),
+        nextContentDescription = stringResource(Res.string.next_year)
     )
 }
 

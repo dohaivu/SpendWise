@@ -25,6 +25,10 @@ import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersPanel
 import com.spendwise.ui.components.TransactionsByDateList
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.all_transactions
+import spendwise.shared.generated.resources.back
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,12 +50,12 @@ internal fun AllTransactions(
             TinyTopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 title = {
                     Text(
-                        "All Transactions",
+                        stringResource(Res.string.all_transactions),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold
                     )

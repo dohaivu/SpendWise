@@ -14,6 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.spendwise.ui.supportedCurrencies
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.currency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +24,7 @@ internal fun CurrencyMenu(
     selected: String,
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: String = "Currency"
+    label: String = stringResource(Res.string.currency)
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {

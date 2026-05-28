@@ -28,6 +28,9 @@ import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.components.ReportPeriodSwitcher
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun ReportScreen(
@@ -45,7 +48,7 @@ internal fun ReportScreen(
             var showOverflowMenu by remember { mutableStateOf(false) }
             TinyTopAppBar(
                 title = {
-                    Text("Report", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(Res.string.tab_report), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 },
                 actions = {
                     TransactionFiltersMenu(
@@ -59,20 +62,20 @@ internal fun ReportScreen(
                     )
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(Res.string.more_options))
                         }
                         DropdownMenu(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Annual Report") },
+                                text = { Text(stringResource(Res.string.annual_report)) },
                                 onClick = {
                                     showOverflowMenu = false
                                     onAnnualReportClick()
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Outlined.Analytics, contentDescription = "Annual Report")
+                                    Icon(Icons.Outlined.Analytics, contentDescription = stringResource(Res.string.annual_report))
                                 }
                             )
                         }

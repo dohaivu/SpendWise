@@ -41,6 +41,7 @@ import com.spendwise.ui.calendar.CalendarViewModel
 import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.expense.ExpenseScreen
+import com.spendwise.ui.localization.AppLocaleProvider
 import com.spendwise.ui.reports.AnnualReport
 import com.spendwise.ui.reports.CategoryReport
 import com.spendwise.ui.reports.ReportScreen
@@ -51,6 +52,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.tab_calendar
+import spendwise.shared.generated.resources.tab_expense
+import spendwise.shared.generated.resources.tab_report
+import spendwise.shared.generated.resources.tab_settings
 
 private data object Routes {
     @Serializable
@@ -134,8 +141,9 @@ fun SpendWiseApp(
         onBackCompleted = { onBack() }
     )
 
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    AppLocaleProvider(appLanguage.code) {
+        MaterialTheme {
+            Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
@@ -151,8 +159,8 @@ fun SpendWiseApp(
                                     onClick = {
                                         resetTo(route)
                                     },
-                                    icon = { Icon(tab.icon(), contentDescription = tab.name) },
-                                    label = { Text(tab.label(appLanguage)) }
+                                    icon = { Icon(tab.icon(), contentDescription = tab.label()) },
+                                    label = { Text(tab.label()) }
                                 )
                             }
                         }
@@ -265,6 +273,7 @@ fun SpendWiseApp(
             }
         }
     }
+    }
 }
 
 private fun NavKey.asTab(): SpendWiseTab? = when (this) {
@@ -292,18 +301,10 @@ private fun SpendWiseTab.icon() = when (this) {
     SpendWiseTab.Settings -> Icons.Default.MoreHoriz
 }
 
-private fun SpendWiseTab.label(language: AppLanguage): String = when (language) {
-    AppLanguage.English -> name
-    AppLanguage.Vietnamese -> when (this) {
-        SpendWiseTab.Expense -> "Nhập"
-        SpendWiseTab.Calendar -> "Lịch"
-        SpendWiseTab.Report -> "Báo cáo"
-        SpendWiseTab.Settings -> "Khác"
-    }
-    AppLanguage.Chinese -> when (this) {
-        SpendWiseTab.Expense -> "输入"
-        SpendWiseTab.Calendar -> "日历"
-        SpendWiseTab.Report -> "报表"
-        SpendWiseTab.Settings -> "其他"
-    }
+@Composable
+private fun SpendWiseTab.label(): String = when (this) {
+    SpendWiseTab.Expense -> stringResource(Res.string.tab_expense)
+    SpendWiseTab.Calendar -> stringResource(Res.string.tab_calendar)
+    SpendWiseTab.Report -> stringResource(Res.string.tab_report)
+    SpendWiseTab.Settings -> stringResource(Res.string.tab_settings)
 }

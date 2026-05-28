@@ -56,6 +56,9 @@ import com.spendwise.ui.toUtcStartMillis
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun ExpenseScreen(
@@ -83,7 +86,11 @@ internal fun ExpenseScreen(
             TinyTopAppBar(
                 title = {
                     Text(
-                        if (state.draft.editingExpenseId == null) "Expense" else "Edit expense",
+                        if (state.draft.editingExpenseId == null) {
+                            stringResource(Res.string.expense_title)
+                        } else {
+                            stringResource(Res.string.edit_expense_title)
+                        },
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -103,7 +110,7 @@ internal fun ExpenseScreen(
                     OutlinedTextField(
                         value = state.draft.amountText,
                         onValueChange = viewModel::updateAmount,
-                        label = { Text("Amount") },
+                        label = { Text(stringResource(Res.string.amount)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -126,7 +133,7 @@ internal fun ExpenseScreen(
                     OutlinedTextField(
                         value = state.draft.exchangeRateText,
                         onValueChange = viewModel::updateExchangeRate,
-                        label = { Text("Rate to ${state.baseCurrency.code}") },
+                        label = { Text(stringResource(Res.string.rate_to, state.baseCurrency.code)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -141,12 +148,12 @@ internal fun ExpenseScreen(
                     DateAssistChip(
                         selected = selectedDate == today,
                         onClick = viewModel::selectTodayForDraft,
-                        label = "Today"
+                        label = stringResource(Res.string.today)
                     )
                     DateAssistChip(
                         selected = selectedDate == yesterday,
                         onClick = viewModel::selectYesterdayForDraft,
-                        label = "Yesterday"
+                        label = stringResource(Res.string.yesterday)
                     )
                     DateAssistChip(
                         selected = selectedDate != today && selectedDate != yesterday,
@@ -177,7 +184,7 @@ internal fun ExpenseScreen(
                         noteField = value
                         viewModel.updateNote(value.text, value.selection.end)
                     },
-                    label = { Text("Note with #tags") },
+                    label = { Text(stringResource(Res.string.note_with_tags)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 1,
                     maxLines = 3
@@ -209,7 +216,7 @@ internal fun ExpenseScreen(
             }
 
             item {
-                Text("Category", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                Text(stringResource(Res.string.category), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     state.categories.forEach { category ->
@@ -227,7 +234,11 @@ internal fun ExpenseScreen(
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = viewModel::saveExpense, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = if (state.draft.editingExpenseId == null) "Save expense" else "Update expense",
+                        text = if (state.draft.editingExpenseId == null) {
+                            stringResource(Res.string.save_expense)
+                        } else {
+                            stringResource(Res.string.update_expense)
+                        },
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -235,10 +246,10 @@ internal fun ExpenseScreen(
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         OutlinedButton(onClick = viewModel::cancelExpenseEdit, modifier = Modifier.weight(1f)) {
-                            Text("Cancel")
+                            Text(stringResource(Res.string.cancel))
                         }
                         OutlinedButton(onClick = viewModel::deleteEditingExpense, modifier = Modifier.weight(1f)) {
-                            Text("Delete")
+                            Text(stringResource(Res.string.delete))
                         }
                     }
                 }
@@ -298,12 +309,12 @@ private fun DraftDatePickerDialog(
                         ?: onDismiss()
                 }
             ) {
-                Text("OK")
+                Text(stringResource(Res.string.ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     ) {

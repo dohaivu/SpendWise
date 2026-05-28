@@ -42,6 +42,9 @@ import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.TagUsageSort
 import com.spendwise.ui.components.MoneyText
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun TagUsage(
@@ -60,7 +63,7 @@ internal fun TagUsage(
     var menuAnchorOffset by remember { mutableStateOf(IntOffset.Zero) }
 
     SettingsScaffold(
-        title = "Tags",
+        title = stringResource(Res.string.tags),
         modifier = modifier,
         navigationIcon = { SettingsBackButton(onBack) }
     ) { contentModifier ->
@@ -117,7 +120,7 @@ internal fun TagUsage(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                            Text("${usage.expenseCount} uses", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(Res.string.uses_count, usage.expenseCount), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(14.dp))
                             MoneyText(usage.totalBaseAmountCents, state.baseCurrency.code)
                         }
@@ -138,7 +141,7 @@ internal fun TagUsage(
                     onDismissRequest = { optionsTag = null }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Rename") },
+                        text = { Text(stringResource(Res.string.rename)) },
                         onClick = {
                             optionsTag?.let { tag ->
                                 renamingTag = tag
@@ -148,7 +151,7 @@ internal fun TagUsage(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Delete") },
+                        text = { Text(stringResource(Res.string.delete)) },
                         onClick = {
                             optionsTag?.let { tag -> deletingTag = tag }
                             optionsTag = null
@@ -192,12 +195,12 @@ private fun RenameTagDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename #$tag") },
+        title = { Text(stringResource(Res.string.rename_tag, tag)) },
         text = {
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text("Tag") },
+                label = { Text(stringResource(Res.string.tag)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -207,12 +210,12 @@ private fun RenameTagDialog(
                 onClick = onRename,
                 enabled = value.isNotBlank()
             ) {
-                Text("Rename")
+                Text(stringResource(Res.string.rename))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
@@ -226,24 +229,25 @@ private fun DeleteTagDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete #$tag") },
-        text = { Text("Remove this tag from matching transactions?") },
+        title = { Text(stringResource(Res.string.delete_tag, tag)) },
+        text = { Text(stringResource(Res.string.delete_tag_body)) },
         confirmButton = {
             TextButton(onClick = onDelete) {
-                Text("Delete")
+                Text(stringResource(Res.string.delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
 }
 
+@Composable
 private fun TagUsageSort.label(): String = when (this) {
-    TagUsageSort.MostUsed -> "Most used"
-    TagUsageSort.HighestSpending -> "Highest spending"
-    TagUsageSort.RecentlyUsed -> "Recently used"
-    TagUsageSort.Alphabetical -> "A-Z"
+    TagUsageSort.MostUsed -> stringResource(Res.string.sort_most_used)
+    TagUsageSort.HighestSpending -> stringResource(Res.string.sort_highest_spending)
+    TagUsageSort.RecentlyUsed -> stringResource(Res.string.sort_recently_used)
+    TagUsageSort.Alphabetical -> stringResource(Res.string.sort_alphabetical)
 }

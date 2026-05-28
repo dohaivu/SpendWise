@@ -46,6 +46,9 @@ import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.supportedCurrencies
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.*
 
 @Composable
 internal fun SettingsScreen(
@@ -186,7 +189,7 @@ private fun SettingsHomeScreen(
     onTagUsage: () -> Unit,
     onReminders: () -> Unit
 ) {
-    SettingsScaffold(title = "Settings") { contentModifier ->
+    SettingsScaffold(title = stringResource(Res.string.settings_title)) { contentModifier ->
         Column(
             modifier = contentModifier.fillMaxSize().padding(16.dp)
         ) {
@@ -195,8 +198,8 @@ private fun SettingsHomeScreen(
             ) {
                 item {
                     SettingsRow(
-                        title = "Categories",
-                        subtitle = "${state.categories.size} categories",
+                        title = stringResource(Res.string.categories),
+                        subtitle = stringResource(Res.string.categories_count, state.categories.size),
                         onClick = onEditCategories
                     )
                 }
@@ -204,27 +207,36 @@ private fun SettingsHomeScreen(
                 item { LanguageSettings(state, viewModel) }
                 item {
                     SettingsRow(
-                        title = "Reminders",
+                        title = stringResource(Res.string.reminders),
                         subtitle = if (state.reminders.isEmpty()) {
-                            "No reminders"
+                            stringResource(Res.string.no_reminders)
                         } else {
-                            "${state.reminders.count { it.enabled }} of ${state.reminders.size} enabled"
+                            stringResource(
+                                Res.string.reminders_enabled_count,
+                                state.reminders.count { it.enabled },
+                                state.reminders.size
+                            )
                         },
                         onClick = onReminders
                     )
                 }
                 item {
                     SettingsRow(
-                        title = "Tags",
-                        subtitle = "${state.tagUsage.size} tracked tags",
+                        title = stringResource(Res.string.tags),
+                        subtitle = stringResource(Res.string.tracked_tags_count, state.tagUsage.size),
                         onClick = onTagUsage
                     )
                 }
                 item {
                     Column(modifier = Modifier.padding(top = 18.dp)) {
-                        Text("Data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(Res.string.data), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "${state.expenses.size} expenses • ${state.categories.size} categories • ${state.tagUsage.size} tags",
+                            stringResource(
+                                Res.string.data_summary,
+                                state.expenses.size,
+                                state.categories.size,
+                                state.tagUsage.size
+                            ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -232,7 +244,7 @@ private fun SettingsHomeScreen(
                 item { DataTransferSettings(state, viewModel) }
             }
             Text(
-                text = "Version ${viewModel.versionName}",
+                text = stringResource(Res.string.version, viewModel.versionName),
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
@@ -269,8 +281,8 @@ private fun CurrencySettings(state: SettingsUiState, viewModel: SettingsViewMode
     val format = state.baseCurrency
 
     SettingValueRow(
-        title = "Currency",
-        value = "${format.symbol} ${format.code}",
+        title = stringResource(Res.string.currency_title),
+        value = stringResource(Res.string.currency_value, format.symbol, format.code),
         onClick = { showDialog = true }
     )
     if (showDialog) {
@@ -290,7 +302,7 @@ private fun LanguageSettings(state: SettingsUiState, viewModel: SettingsViewMode
     var showDialog by remember { mutableStateOf(false) }
 
     SettingValueRow(
-        title = "Language",
+        title = stringResource(Res.string.language),
         value = state.language.label,
         onClick = { showDialog = true }
     )
@@ -333,7 +345,7 @@ private fun CurrencySelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Base currency") },
+        title = { Text(stringResource(Res.string.base_currency)) },
         text = {
             Column {
                 supportedCurrencies.forEach { currency ->
@@ -347,7 +359,7 @@ private fun CurrencySelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
@@ -361,7 +373,7 @@ private fun LanguageSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Language") },
+        title = { Text(stringResource(Res.string.language)) },
         text = {
             Column {
                 AppLanguage.entries.forEach { language ->
@@ -375,7 +387,7 @@ private fun LanguageSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
@@ -401,7 +413,7 @@ private fun CurrencySelectionRow(
             Column(modifier = Modifier.weight(1.8f)) {
                 Text(formatMoney(CURRENCY_FORMAT_SAMPLE_CENTS, currencyCode))
                 Text(
-                    "${format.code} • ${format.name}",
+                    stringResource(Res.string.currency_option, format.code, format.name),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )

@@ -19,6 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.clear_text
 
 @Composable
 fun AppOutlinedTextField(
@@ -55,7 +58,7 @@ fun AppOutlinedTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear text",
+                                contentDescription = stringResource(Res.string.clear_text),
                                 modifier = Modifier.size(16.dp)
                             )
                         }
