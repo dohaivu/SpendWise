@@ -39,6 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ExpenseUiState
 import com.spendwise.ui.components.CategoryLabel
@@ -66,6 +69,13 @@ internal fun ExpenseScreen(
             noteField = TextFieldValue(state.draft.note, TextRange(state.draft.note.length))
         }
     }
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+
+    NavigationBackHandler(
+        state = backState,
+        isBackEnabled = state.draft.editingExpenseId != null,
+        onBackCompleted = viewModel::cancelExpenseEdit
+    )
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -111,12 +121,12 @@ internal fun ExpenseScreen(
                     )
                 }
             }
-            if (state.draft.currencyCode != state.baseCurrencyCode.code) {
+            if (state.draft.currencyCode != state.baseCurrency.code) {
                 item {
                     OutlinedTextField(
                         value = state.draft.exchangeRateText,
                         onValueChange = viewModel::updateExchangeRate,
-                        label = { Text("Rate to ${state.baseCurrencyCode.code}") },
+                        label = { Text("Rate to ${state.baseCurrency.code}") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )

@@ -154,7 +154,7 @@ internal fun CalendarScreen(
                         month = state.selectedMonth,
                         selectedDate = state.selectedDate,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyFormat = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrency,
                         onDateSelected = { date ->
                             calendarViewModel.selectDate(date)
                             state.calendarData.headerIndexes[date]?.let { index ->
@@ -177,7 +177,7 @@ internal fun CalendarScreen(
                         year = state.selectedMonth.year,
                         selectedMonth = state.selectedMonth,
                         totalsByDate = state.calendarData.totalsByDate,
-                        currencyFormat = state.baseCurrencyCode,
+                        currencyFormat = state.baseCurrency,
                         onMonthSelected = { month ->
                             calendarViewModel.selectMonth(month)
                             state.calendarData.headerIndexes.firstHeaderIndexForMonth(month)?.let { index ->
@@ -192,12 +192,12 @@ internal fun CalendarScreen(
             TotalRow(
                 total = state.calendarData.filteredMonthTotal,
                 transactionCount = state.calendarData.monthTransactionCount,
-                currencyCode = state.baseCurrencyCode.code
+                currencyCode = state.baseCurrency.code
             )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)

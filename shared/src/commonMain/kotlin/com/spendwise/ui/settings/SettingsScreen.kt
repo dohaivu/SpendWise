@@ -103,7 +103,7 @@ internal fun SettingsScreen(
 
                     SettingsRoute.CategoryList -> {
                         val currentState by settingsViewModel.uiState.collectAsState()
-                        EditCategories(
+                        Categories(
                             state = currentState,
                             viewModel = settingsViewModel,
                             onBack = { pop() },
@@ -193,7 +193,7 @@ private fun SettingsHomeScreen(
             ) {
                 item {
                     SettingsRow(
-                        title = "Edit Categories",
+                        title = "Categories",
                         subtitle = "${state.categories.size} categories",
                         onClick = onEditCategories
                     )
@@ -213,7 +213,7 @@ private fun SettingsHomeScreen(
                 }
                 item {
                     SettingsRow(
-                        title = "Tag usage",
+                        title = "Tags",
                         subtitle = "${state.tagUsage.size} tracked tags",
                         onClick = onTagUsage
                     )
@@ -264,16 +264,16 @@ internal fun SettingsRow(
 @Composable
 private fun CurrencySettings(state: SettingsUiState, viewModel: SettingsViewModel) {
     var showDialog by remember { mutableStateOf(false) }
-    val format = state.baseCurrencyCode
+    val format = state.baseCurrency
 
     SettingValueRow(
-        title = "Base currency",
+        title = "Currency",
         value = "${format.symbol} ${format.code}",
         onClick = { showDialog = true }
     )
     if (showDialog) {
         CurrencySelectionDialog(
-            selected = state.baseCurrencyCode.code,
+            selected = state.baseCurrency.code,
             onDismiss = { showDialog = false },
             onSelected = { currency ->
                 viewModel.setBaseCurrency(currency)

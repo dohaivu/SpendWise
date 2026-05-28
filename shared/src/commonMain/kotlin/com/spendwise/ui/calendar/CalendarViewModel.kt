@@ -45,7 +45,7 @@ class CalendarViewModel(
                         expenses = snapshot.expenses,
                         categories = snapshot.categories,
                         tagUsage = snapshot.tagUsage,
-                        baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+                        baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
                     )
                 }
             }
@@ -111,7 +111,7 @@ class CalendarViewModel(
         expenses: List<Expense> = this.expenses,
         categories: List<Category> = this.categories,
         tagUsage: List<TagUsage> = this.tagUsage,
-        baseCurrencyCode: CurrencyDisplayFormat = this.baseCurrencyCode,
+        baseCurrency: CurrencyDisplayFormat = this.baseCurrency,
         selectedPeriod: ReportPeriod = this.selectedPeriod,
         selectedMonth: LocalDate = this.selectedMonth,
         selectedDate: LocalDate = this.selectedDate,
@@ -121,7 +121,7 @@ class CalendarViewModel(
             expenses = expenses,
             categories = categories,
             tagUsage = tagUsage,
-            baseCurrencyCode = baseCurrencyCode,
+            baseCurrency = baseCurrency,
             selectedPeriod = selectedPeriod,
             selectedMonth = selectedMonth,
             selectedDate = selectedDate,

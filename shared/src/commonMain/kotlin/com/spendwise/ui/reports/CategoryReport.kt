@@ -106,7 +106,7 @@ internal fun CategoryReport(
                 },
                 title = {
                     Text(
-                        text = "${category.name} (${selectedMonth.shortMonthName()}) ${formatMoney(monthTotal, state.baseCurrencyCode)}",
+                        text = "${category.name} (${selectedMonth.shortMonthName()}) ${formatMoney(monthTotal, state.baseCurrency)}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -143,7 +143,7 @@ internal fun CategoryReport(
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)

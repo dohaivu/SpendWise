@@ -87,12 +87,12 @@ internal fun MonthCategoryReport(
             Box(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                 CategoryPie(rows)
             }
-            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrencyCode.code)
+            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrency.code)
         }
         items(rows, key = { it.category.id }) { row ->
             CategoryReportRowView(
                 row = row,
-                currencyCode = state.baseCurrencyCode.code,
+                currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
             HorizontalDivider()

@@ -59,7 +59,7 @@ internal fun TagUsage(
     var menuAnchorOffset by remember { mutableStateOf(IntOffset.Zero) }
 
     SettingsScaffold(
-        title = "Tag usage",
+        title = "Tags",
         modifier = modifier,
         navigationIcon = { SettingsBackButton(onBack) }
     ) { contentModifier ->
@@ -115,7 +115,7 @@ internal fun TagUsage(
                             Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                             Text("${usage.expenseCount} uses", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(14.dp))
-                            MoneyText(usage.totalBaseAmountCents, state.baseCurrencyCode.code)
+                            MoneyText(usage.totalBaseAmountCents, state.baseCurrency.code)
                         }
                         if (index < tagUsage.lastIndex) {
                             HorizontalDivider()

@@ -53,7 +53,7 @@ private val categoryColors = listOf(
 )
 
 @Composable
-internal fun EditCategories(
+internal fun Categories(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
@@ -65,7 +65,7 @@ internal fun EditCategories(
         .sortedWith(compareBy<Category> { it.sortOrder }.thenBy { it.name })
 
     SettingsScaffold(
-        title = "Edit categories",
+        title = "Categories",
         modifier = modifier,
         navigationIcon = { SettingsBackButton(onBack) },
         actions = {

@@ -57,7 +57,7 @@ class ExpenseViewModel(
 
     fun updateCurrency(value: String) {
         _uiState.update { state ->
-            val rate = if (value == state.baseCurrencyCode.code) "1.0" else state.draft.exchangeRateText
+            val rate = if (value == state.baseCurrency.code) "1.0" else state.draft.exchangeRateText
             val fractionDigits = currencyDisplayFormat(value).fractionDigits
             state.copy(
                 draft = state.draft.copy(
@@ -122,7 +122,7 @@ class ExpenseViewModel(
             _uiState.update { it.copy(message = "Enter an amount and category") }
             return
         }
-        val rate = if (state.draft.currencyCode == state.baseCurrencyCode.code) {
+        val rate = if (state.draft.currencyCode == state.baseCurrency.code) {
             1.0
         } else {
             state.draft.exchangeRateText.toDoubleOrNull() ?: 1.0
@@ -130,7 +130,7 @@ class ExpenseViewModel(
         val baseAmountCents = useCases.convertToBaseCurrency(
             amountCents = amountCents,
             sourceCurrencyCode = state.draft.currencyCode,
-            baseCurrencyCode = state.baseCurrencyCode.code,
+            baseCurrencyCode = state.baseCurrency.code,
             exchangeRate = rate
         )
         val tags = useCases.parseTagsFromNote(state.draft.note)
@@ -141,7 +141,7 @@ class ExpenseViewModel(
                 originalAmountCents = amountCents,
                 originalCurrencyCode = state.draft.currencyCode,
                 baseAmountCents = baseAmountCents,
-                baseCurrencyCode = state.baseCurrencyCode.code,
+                baseCurrencyCode = state.baseCurrency.code,
                 exchangeRate = rate,
                 categoryId = categoryId,
                 note = state.draft.note,
@@ -155,7 +155,7 @@ class ExpenseViewModel(
             }
             _uiState.update {
                 it.copy(
-                    draft = emptyDraft(it.baseCurrencyCode.code, it.categories),
+                    draft = emptyDraft(it.baseCurrency.code, it.categories),
                     activeTagToken = null,
                     tagSuggestions = emptyList(),
                     message = if (state.draft.editingExpenseId == null) "Expense saved" else "Expense updated"
@@ -185,7 +185,7 @@ class ExpenseViewModel(
     fun cancelExpenseEdit() {
         _uiState.update {
             it.copy(
-                draft = emptyDraft(it.baseCurrencyCode.code, it.categories),
+                draft = emptyDraft(it.baseCurrency.code, it.categories),
                 activeTagToken = null,
                 tagSuggestions = emptyList()
             )
@@ -198,7 +198,7 @@ class ExpenseViewModel(
             useCases.deleteExpense(id)
             _uiState.update {
                 it.copy(
-                    draft = emptyDraft(it.baseCurrencyCode.code, it.categories),
+                    draft = emptyDraft(it.baseCurrency.code, it.categories),
                     message = "Expense deleted"
                 )
             }
@@ -211,13 +211,13 @@ class ExpenseViewModel(
 
     private fun refreshExchangeRate() {
         val state = _uiState.value
-        if (state.draft.currencyCode == state.baseCurrencyCode.code) return
+        if (state.draft.currencyCode == state.baseCurrency.code) return
         viewModelScope.launch {
-            val rate = useCases.getExchangeRate(state.draft.currencyCode, state.baseCurrencyCode.code)
+            val rate = useCases.getExchangeRate(state.draft.currencyCode, state.baseCurrency.code)
             if (rate != null) {
                 _uiState.update { current ->
                     if (current.draft.currencyCode == state.draft.currencyCode &&
-                        current.baseCurrencyCode.code == state.baseCurrencyCode.code
+                        current.baseCurrency.code == state.baseCurrency.code
                     ) {
                         current.copy(draft = current.draft.copy(exchangeRateText = rate.toExchangeRateText()))
                     } else {
@@ -244,7 +244,7 @@ class ExpenseViewModel(
             categories = snapshot.categories,
             tagUsage = snapshot.tagUsage,
             draft = nextDraft,
-            baseCurrencyCode = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+            baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
         )
     }
 
