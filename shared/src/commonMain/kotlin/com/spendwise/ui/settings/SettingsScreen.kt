@@ -50,7 +50,8 @@ import com.spendwise.ui.supportedCurrencies
 @Composable
 internal fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onTagClick: (String) -> Unit
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(SettingsRoute.Home) }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -133,7 +134,8 @@ internal fun SettingsScreen(
                         TagUsage(
                             state = currentState,
                             viewModel = settingsViewModel,
-                            onBack = { pop() }
+                            onBack = { pop() },
+                            onTagClick = onTagClick
                         )
                     }
 

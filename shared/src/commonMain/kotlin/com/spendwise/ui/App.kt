@@ -252,7 +252,11 @@ fun SpendWiseApp(
                                     }
                                 }
                                 Routes.Settings -> SettingsScreen(
-                                    settingsViewModel = settingsViewModel
+                                    settingsViewModel = settingsViewModel,
+                                    onTagClick = { tag ->
+                                        allTransactionsViewModel.showOnlyTag(tag)
+                                        push(Routes.AllTransactions)
+                                    }
                                 )
                             }
                         }

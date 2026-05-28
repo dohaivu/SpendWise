@@ -48,7 +48,8 @@ internal fun TagUsage(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTagClick: (String) -> Unit
 ) {
     val tagUsage = viewModel.getSortedTagUsage()
     var optionsTag by remember { mutableStateOf<String?>(null) }
@@ -98,8 +99,11 @@ internal fun TagUsage(
                                 .onGloballyPositioned { coordinates ->
                                     rowOffset = coordinates.positionInRoot() - menuContainerOffset
                                 }
-                                .pointerInput(Unit) {
+                                .pointerInput(usage.name) {
                                     detectTapGestures(
+                                        onTap = {
+                                            onTagClick(usage.name)
+                                        },
                                         onLongPress = { offset ->
                                             optionsTag = usage.name
                                             menuAnchorOffset = IntOffset(

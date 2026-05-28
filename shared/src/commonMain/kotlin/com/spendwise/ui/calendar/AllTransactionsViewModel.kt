@@ -52,6 +52,17 @@ class AllTransactionsViewModel(
         }
     }
 
+    fun showOnlyTag(tag: String) {
+        val normalized = TagParser.normalize(tag)
+        _uiState.update {
+            it.withTransactionData(
+                transactionFilters = TransactionFilters(
+                    selectedTags = if (normalized.isBlank()) emptySet() else setOf(normalized)
+                )
+            )
+        }
+    }
+
     fun updateTransactionQuery(value: String) {
         _uiState.update { it.withTransactionData(transactionFilters = it.transactionFilters.copy(query = value)) }
     }
