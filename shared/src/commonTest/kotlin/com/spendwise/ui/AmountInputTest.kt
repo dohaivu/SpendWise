@@ -1,5 +1,7 @@
 package com.spendwise.ui
 
+import com.spendwise.ui.components.formatCurrencyAmountInputText
+import com.spendwise.ui.components.currencyDisplayFormat
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -20,5 +22,21 @@ class AmountInputTest {
     fun editAmountTextRespectsCurrencyFractionDigits() {
         assertEquals("123", centsToAmountText(12_300, "VND"))
         assertEquals("123.45", centsToAmountText(12_345, "USD"))
+    }
+
+    @Test
+    fun amountInputDisplayUsesCurrencySeparators() {
+        assertEquals(
+            "1,234,567.89",
+            formatCurrencyAmountInputText("1234567.89", currencyDisplayFormat("USD")).text
+        )
+        assertEquals(
+            "1.234.567",
+            formatCurrencyAmountInputText("1234567", currencyDisplayFormat("VND")).text
+        )
+        assertEquals(
+            "1.234,56",
+            formatCurrencyAmountInputText("1234.56", currencyDisplayFormat("EUR")).text
+        )
     }
 }

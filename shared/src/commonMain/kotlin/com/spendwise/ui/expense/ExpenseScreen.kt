@@ -45,6 +45,7 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.spendwise.domain.TagParser
 import com.spendwise.ui.ExpenseUiState
 import com.spendwise.ui.components.CategoryLabel
+import com.spendwise.ui.components.CurrencyAmountInputVisualTransformation
 import com.spendwise.ui.components.CurrencyMenu
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
@@ -106,6 +107,9 @@ internal fun ExpenseScreen(
         ) {
             item {
                 val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
+                val amountVisualTransformation = remember(currencyFormat) {
+                    CurrencyAmountInputVisualTransformation(currencyFormat)
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = state.draft.amountText,
@@ -113,6 +117,7 @@ internal fun ExpenseScreen(
                         label = { Text(stringResource(Res.string.amount)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        visualTransformation = amountVisualTransformation,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (currencyFormat.fractionDigits > 0) {
                                 KeyboardType.Decimal
