@@ -2,6 +2,8 @@ package com.spendwise.ui
 
 import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.Category
+import com.spendwise.ui.components.CurrencyDisplayFormat
+import com.spendwise.ui.components.CurrencySymbolPosition
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.currencyDisplayFormats
 import kotlinx.datetime.LocalDate
@@ -57,8 +59,7 @@ fun centsToAmountText(cents: Long, currencyCode: String): String {
 }
 
 internal fun sanitizeAmountTextForCurrency(value: String, currencyCode: String): String {
-    val fractionDigits = currencyDisplayFormat(currencyCode).fractionDigits
-    return value.filterCurrencyAmountInput(fractionDigits)
+    return value.filterCurrencyAmountInput(currencyDisplayFormat(currencyCode))
 }
 
 internal fun emptyDraft(
@@ -72,14 +73,34 @@ internal fun emptyDraft(
     )
 
 internal fun String.filterCurrencyAmountInput(fractionDigits: Int): String {
-    if (fractionDigits == 0) return filter { it.isDigit() }
+    return filterCurrencyAmountInput(
+        CurrencyDisplayFormat(
+            code = "",
+            name = "",
+            symbol = "",
+            fractionDigits = fractionDigits,
+            symbolPosition = CurrencySymbolPosition.Prefix
+        )
+    )
+}
 
-    val value = filter { it.isDigit() || it == '.' }
-    val firstDot = value.indexOf('.')
-    if (firstDot < 0) return value
+internal fun String.filterCurrencyAmountInput(format: CurrencyDisplayFormat): String {
+    if (format.fractionDigits == 0) return filter { it.isDigit() }
 
-    val whole = value.take(firstDot + 1)
-    val fraction = value.drop(firstDot + 1).replace(".", "").take(fractionDigits)
+    val normalized = buildString {
+        this@filterCurrencyAmountInput.forEach { char ->
+            when {
+                char.isDigit() -> append(char)
+                char == format.groupSeparator -> Unit
+                char == format.decimalSeparator || char == '.' -> append('.')
+            }
+        }
+    }
+    val firstDot = normalized.indexOf('.')
+    if (firstDot < 0) return normalized
+
+    val whole = normalized.take(firstDot + 1)
+    val fraction = normalized.drop(firstDot + 1).replace(".", "").take(format.fractionDigits)
     return whole + fraction
 }
 
