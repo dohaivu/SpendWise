@@ -43,6 +43,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.domain.usecase.filterByTransactionFilters
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.TransactionsByDateList
@@ -59,7 +60,9 @@ import kotlinx.datetime.number
 import kotlin.math.ceil
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
+import spendwise.shared.generated.resources.average
 import spendwise.shared.generated.resources.back
+import spendwise.shared.generated.resources.total
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +93,8 @@ internal fun CategoryReport(
                 .sumOf { it.baseAmountCents }
         )
     }
+    val categoryPeriodTotal = monthTotals.sumOf { it.total }
+    val categoryPeriodAverage = activeCategoryMonthlyAverage(monthTotals)
     val transactionItems = monthExpenses
         .groupBy { it.spentDate(timeZone) }
         .toList()
@@ -138,9 +143,15 @@ internal fun CategoryReport(
         ) {
             CategoryMonthlyColumnChart(
                 monthTotals = monthTotals,
+                averageAmount = categoryPeriodAverage,
                 selectedMonth = selectedMonth,
                 color = Color(category.color.toInt()),
                 onMonthSelected = { selectedMonth = it }
+            )
+            CategoryTotalRow(
+                total = categoryPeriodTotal,
+                averageAmount = categoryPeriodAverage,
+                currencyCode = state.baseCurrency.code
             )
             Spacer(Modifier.height(4.dp))
             TransactionsByDateList(
@@ -158,13 +169,13 @@ internal fun CategoryReport(
 @Composable
 private fun CategoryMonthlyColumnChart(
     monthTotals: List<CategoryMonthTotal>,
+    averageAmount: Long,
     selectedMonth: LocalDate,
     color: Color,
     onMonthSelected: (LocalDate) -> Unit
 ) {
     val chartHeight = 230.dp
     val maxValue = niceChartMax(monthTotals.maxOfOrNull { it.total } ?: 0L)
-    val averageValue = monthTotals.sumOf { it.total }.toFloat() / monthTotals.size.coerceAtLeast(1)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
     val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val valueLabelStyle = MaterialTheme.typography.labelMedium
@@ -239,9 +250,9 @@ private fun CategoryMonthlyColumnChart(
                     }
                 }
 
-                if (averageValue > 0f) {
+                if (averageAmount > 0L) {
                     val averageY = size.height -
-                        (chartAreaHeight * (averageValue / maxValue.toFloat()).coerceIn(0f, 1f))
+                        (chartAreaHeight * (averageAmount.toFloat() / maxValue.toFloat()).coerceIn(0f, 1f))
                     drawLine(
                         color = averageLineColor,
                         start = Offset(0f, averageY),
@@ -272,6 +283,43 @@ private fun CategoryMonthlyColumnChart(
     }
 }
 
+@Composable
+private fun CategoryTotalRow(total: Long, averageAmount: Long, currencyCode: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.total),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            MoneyText(
+                amountCents = total,
+                currencyCode = currencyCode,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.average),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            MoneyText(
+                amountCents = averageAmount,
+                currencyCode = currencyCode,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 private data class CategoryMonthTotal(
     val month: LocalDate,
     val total: Long
@@ -279,6 +327,11 @@ private data class CategoryMonthTotal(
 
 private fun recentMonths(selectedMonth: LocalDate, count: Int): List<LocalDate> {
     return List(count) { index -> selectedMonth.minus(count - 1 - index, DateTimeUnit.MONTH) }
+}
+
+private fun activeCategoryMonthlyAverage(monthTotals: List<CategoryMonthTotal>): Long {
+    val activeMonths = monthTotals.filter { it.total > 0L }
+    return activeMonths.sumOf { it.total } / activeMonths.size.coerceAtLeast(1)
 }
 
 private fun niceChartMax(value: Long): Long {

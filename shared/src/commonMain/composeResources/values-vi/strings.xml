@@ -12,6 +12,7 @@
     <string name="add">Thêm</string>
     <string name="all">Tất cả</string>
     <string name="total">Tổng</string>
+    <string name="average">Trung bình</string>
     <string name="no_data">Không có dữ liệu</string>
     <string name="no_transactions">Không có giao dịch</string>
     <string name="category_fallback">Danh mục</string>
