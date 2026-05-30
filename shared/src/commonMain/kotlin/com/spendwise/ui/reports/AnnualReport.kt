@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,6 +60,7 @@ internal fun AnnualReport(
     val year = state.selectedMonth.year
     val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
     val total = monthlyTotals.sumOf { it.totalBaseAmountCents }
+    val averageAmount = activeMonthlyAverage(monthlyTotals)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -102,11 +104,12 @@ internal fun AnnualReport(
                 )
                 AnnualColumnChart(
                     rows = monthlyTotals,
+                    averageAmount = averageAmount,
                     currencyCode = state.baseCurrency.code,
                     modifier = Modifier.fillMaxWidth().height(230.dp)
                 )
             }
-            AnnualTotalRow(total = total, currencyCode = state.baseCurrency.code)
+            AnnualTotalRow(total = total, averageAmount = averageAmount, currencyCode = state.baseCurrency.code)
             SectionDivider()
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(monthlyTotals, key = { it.monthNumber }) { row ->
@@ -125,6 +128,7 @@ internal fun AnnualReport(
 @Composable
 private fun AnnualColumnChart(
     rows: List<MonthlyExpenseTotal>,
+    averageAmount: Long,
     currencyCode: String,
     modifier: Modifier = Modifier
 ) {
@@ -133,6 +137,7 @@ private fun AnnualColumnChart(
     val gridValues = listOf(axisMax, axisMax * 3 / 4, axisMax / 2, axisMax / 4, 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
     val barColor = Color(0xFF50A8E5)
+    val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val format = currencyDisplayFormat(currencyCode)
 
@@ -180,6 +185,17 @@ private fun AnnualColumnChart(
                         )
                     }
                 }
+                if (averageAmount > 0f) {
+                    val averageY = chartHeight -
+                        (chartHeight * (averageAmount.toFloat() / axisMax.toFloat()).coerceIn(0f, 1f))
+                    drawLine(
+                        color = averageLineColor,
+                        start = Offset(0f, averageY),
+                        end = Offset(chartWidth, averageY),
+                        strokeWidth = 2.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
+                }
             }
         }
         Row(modifier = Modifier.padding(start = 36.dp)) {
@@ -198,24 +214,45 @@ private fun AnnualColumnChart(
 }
 
 @Composable
-private fun AnnualTotalRow(total: Long, currencyCode: String) {
-    Row(
+private fun AnnualTotalRow(total: Long, averageAmount: Long, currencyCode: String) {
+    Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(
-            stringResource(Res.string.total),
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        MoneyText(
-            amountCents = total,
-            currencyCode = currencyCode,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.total),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            MoneyText(
+                amountCents = total,
+                currencyCode = currencyCode,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.average),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            MoneyText(
+                amountCents = averageAmount,
+                currencyCode = currencyCode,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
+}
+
+private fun activeMonthlyAverage(rows: List<MonthlyExpenseTotal>): Long {
+    val activeRows = rows.filter { it.totalBaseAmountCents > 0L }
+    return activeRows.sumOf { it.totalBaseAmountCents } / activeRows.size.coerceAtLeast(1)
 }
 
 @Composable

@@ -12,6 +12,7 @@
     <string name="add">Add</string>
     <string name="all">All</string>
     <string name="total">Total</string>
+    <string name="average">Average</string>
     <string name="no_data">No data</string>
     <string name="no_transactions">No transactions</string>
     <string name="category_fallback">Category</string>

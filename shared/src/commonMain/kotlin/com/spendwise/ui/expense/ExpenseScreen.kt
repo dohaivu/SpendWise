@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -50,16 +51,28 @@ import com.spendwise.ui.components.CurrencyMenu
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatDate
-import com.spendwise.ui.today
 import com.spendwise.ui.toLocalDate
 import com.spendwise.ui.toUtcLocalDate
 import com.spendwise.ui.toUtcStartMillis
+import com.spendwise.ui.today
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
-import spendwise.shared.generated.resources.*
+import spendwise.shared.generated.resources.amount
+import spendwise.shared.generated.resources.cancel
+import spendwise.shared.generated.resources.category
+import spendwise.shared.generated.resources.delete
+import spendwise.shared.generated.resources.edit_expense_title
+import spendwise.shared.generated.resources.expense_title
+import spendwise.shared.generated.resources.note_with_tags
+import spendwise.shared.generated.resources.ok
+import spendwise.shared.generated.resources.rate_to
+import spendwise.shared.generated.resources.save_expense
+import spendwise.shared.generated.resources.today
+import spendwise.shared.generated.resources.update_expense
+import spendwise.shared.generated.resources.yesterday
 
 @Composable
 internal fun ExpenseScreen(
@@ -117,6 +130,7 @@ internal fun ExpenseScreen(
                         label = { Text(stringResource(Res.string.amount)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
                         visualTransformation = amountVisualTransformation,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (currencyFormat.fractionDigits > 0) {
@@ -129,7 +143,7 @@ internal fun ExpenseScreen(
                     CurrencyMenu(
                         selected = state.draft.currencyCode,
                         onSelected = viewModel::updateCurrency,
-                        modifier = Modifier.width(126.dp)
+                        modifier = Modifier.width(110.dp)
                     )
                 }
             }
@@ -140,7 +154,8 @@ internal fun ExpenseScreen(
                         onValueChange = viewModel::updateExchangeRate,
                         label = { Text(stringResource(Res.string.rate_to, state.baseCurrency.code)) },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
                     )
                 }
             }
@@ -191,6 +206,7 @@ internal fun ExpenseScreen(
                     },
                     label = { Text(stringResource(Res.string.note_with_tags)) },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
                     minLines = 1,
                     maxLines = 3
                 )

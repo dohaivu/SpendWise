@@ -12,6 +12,7 @@
     <string name="add">添加</string>
     <string name="all">全部</string>
     <string name="total">总计</string>
+    <string name="average">平均</string>
     <string name="no_data">无数据</string>
     <string name="no_transactions">无交易</string>
     <string name="category_fallback">分类</string>
