@@ -1,10 +1,8 @@
 package com.spendwise.ui.reports
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,15 +26,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.usecase.filterByTransactionFilters
@@ -52,7 +50,6 @@ import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.isSameMonth
 import com.spendwise.ui.localizedShortMonthName
-import com.spendwise.ui.monthAxisLabel
 import com.spendwise.ui.spentDate
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -139,7 +136,7 @@ internal fun CategoryReport(
                 .padding(top = padding.calculateTopPadding()),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            CategoryMonthlyBarChart(
+            CategoryMonthlyColumnChart(
                 monthTotals = monthTotals,
                 selectedMonth = selectedMonth,
                 color = Color(category.color.toInt()),
@@ -159,7 +156,7 @@ internal fun CategoryReport(
 }
 
 @Composable
-private fun CategoryMonthlyBarChart(
+private fun CategoryMonthlyColumnChart(
     monthTotals: List<CategoryMonthTotal>,
     selectedMonth: LocalDate,
     color: Color,
@@ -170,6 +167,8 @@ private fun CategoryMonthlyBarChart(
     val averageValue = monthTotals.sumOf { it.total }.toFloat() / monthTotals.size.coerceAtLeast(1)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
     val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+    val valueLabelStyle = MaterialTheme.typography.labelMedium
+    val textMeasurer = rememberTextMeasurer()
 
     Column(
         modifier = Modifier
@@ -177,49 +176,79 @@ private fun CategoryMonthlyBarChart(
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            Box(
+            Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(chartHeight)
+                    .pointerInput(monthTotals) {
+                        detectTapGestures { offset ->
+                            if (monthTotals.isNotEmpty()) {
+                                val selectedIndex = (offset.x / (size.width / monthTotals.size))
+                                    .toInt()
+                                    .coerceIn(0, monthTotals.lastIndex)
+                                onMonthSelected(monthTotals[selectedIndex].month)
+                            }
+                        }
+                    }
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    repeat(6) {
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(gridColor))
-                    }
+                val valueLabelHeight = 30.dp.toPx()
+                val chartAreaHeight = size.height - valueLabelHeight
+                val slotWidth = size.width / monthTotals.size.coerceAtLeast(1)
+                val columnWidth = minOf(42.dp.toPx(), slotWidth * 0.72f)
+                val cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx())
+
+                repeat(6) { index ->
+                    val y = size.height * index / 5f
+                    drawLine(
+                        color = gridColor,
+                        start = Offset(0f, y),
+                        end = Offset(size.width, y),
+                        strokeWidth = 1f
+                    )
                 }
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    monthTotals.forEach { monthTotal ->
+
+                monthTotals.forEachIndexed { index, monthTotal ->
+                    if (monthTotal.total > 0L) {
                         val selected = monthTotal.month.isSameMonth(selectedMonth)
-                        MonthlyBar(
-                            total = monthTotal.total,
-                            maxValue = maxValue,
-                            color = if (selected) color else color.copy(alpha = 0.55f),
-                            onClick = { onMonthSelected(monthTotal.month) },
-                            chartHeight = chartHeight,
-                            modifier = Modifier.weight(1f)
+                        val columnColor = if (selected) color else color.copy(alpha = 0.55f)
+                        val fraction = (monthTotal.total.toFloat() / maxValue.toFloat()).coerceIn(0f, 1f)
+                        val columnHeight = (chartAreaHeight * fraction).coerceAtLeast(4.dp.toPx())
+                        val left = slotWidth * index + (slotWidth - columnWidth) / 2f
+                        val top = size.height - columnHeight
+                        drawRoundRect(
+                            color = columnColor,
+                            topLeft = Offset(left, top),
+                            size = Size(columnWidth, columnHeight),
+                            cornerRadius = cornerRadius
+                        )
+
+                        val label = formatCompactAmount(monthTotal.total, displayMillions = false)
+                        val textLayout = textMeasurer.measure(
+                            text = label,
+                            style = valueLabelStyle.copy(color = columnColor),
+                            maxLines = 1
+                        )
+                        val labelX = (slotWidth * index + (slotWidth - textLayout.size.width) / 2f)
+                            .coerceIn(0f, size.width - textLayout.size.width)
+                        val labelY = (top - 4.dp.toPx() - textLayout.size.height)
+                            .coerceAtLeast(0f)
+                        drawText(
+                            textLayoutResult = textLayout,
+                            topLeft = Offset(labelX, labelY)
                         )
                     }
                 }
+
                 if (averageValue > 0f) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val availableBarHeight = size.height - 30.dp.toPx()
-                        val y = size.height -
-                            (availableBarHeight * (averageValue / maxValue.toFloat()).coerceIn(0f, 1f))
-                        drawLine(
-                            color = averageLineColor,
-                            start = Offset(0f, y),
-                            end = Offset(size.width, y),
-                            strokeWidth = 2.dp.toPx(),
-                            cap = StrokeCap.Round
-                        )
-                    }
+                    val averageY = size.height -
+                        (chartAreaHeight * (averageValue / maxValue.toFloat()).coerceIn(0f, 1f))
+                    drawLine(
+                        color = averageLineColor,
+                        start = Offset(0f, averageY),
+                        end = Offset(size.width, averageY),
+                        strokeWidth = 2.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
                 }
             }
         }
@@ -240,46 +269,6 @@ private fun CategoryMonthlyBarChart(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun MonthlyBar(
-    total: Long,
-    maxValue: Long,
-    color: Color,
-    onClick: () -> Unit,
-    chartHeight: Dp,
-    modifier: Modifier = Modifier
-) {
-    val barHeight = ((chartHeight - 30.dp) * (total.toFloat() / maxValue.toFloat()).coerceIn(0f, 1f))
-
-    Column(
-        modifier = modifier
-            .height(chartHeight)
-            .clickable(onClick = onClick),
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (total > 0L) {
-            Text(
-                text = formatCompactAmount(total, displayMillions = false),
-                style = MaterialTheme.typography.labelLarge,
-                color = color,
-                maxLines = 1,
-                overflow = TextOverflow.Visible,
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = 6.sp,
-                    maxFontSize = 11.sp
-                )
-            )
-        }
-        Box(
-            modifier = Modifier
-                .width(42.dp)
-                .height(if (total > 0L) barHeight.coerceAtLeast(4.dp) else 0.dp)
-                .background(color, RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
-        )
     }
 }
 
