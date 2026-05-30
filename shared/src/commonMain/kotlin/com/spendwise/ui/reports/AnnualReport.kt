@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -130,9 +131,11 @@ private fun AnnualColumnChart(
 ) {
     val maxAmount = rows.maxOfOrNull { it.totalBaseAmountCents } ?: 0L
     val axisMax = maxAmount.coerceAtLeast(1L)
+    val averageAmount = rows.sumOf { it.totalBaseAmountCents }.toFloat() / rows.size.coerceAtLeast(1)
     val gridValues = listOf(axisMax, axisMax * 3 / 4, axisMax / 2, axisMax / 4, 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
     val barColor = Color(0xFF50A8E5)
+    val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val format = currencyDisplayFormat(currencyCode)
 
@@ -179,6 +182,17 @@ private fun AnnualColumnChart(
                             size = Size(barWidth, barHeight)
                         )
                     }
+                }
+                if (averageAmount > 0f) {
+                    val averageY = chartHeight -
+                        (chartHeight * (averageAmount / axisMax.toFloat()).coerceIn(0f, 1f))
+                    drawLine(
+                        color = averageLineColor,
+                        start = Offset(0f, averageY),
+                        end = Offset(chartWidth, averageY),
+                        strokeWidth = 2.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
                 }
             }
         }

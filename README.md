@@ -31,7 +31,7 @@ The app is designed around fast entry and fast retrieval: expenses can be tagged
 - Android SDK (compileSdk 37, minSdk 28, targetSdk 37)
 - Xcode 15+ (for iOS)
 
-### Useful Commands
+### Useful Verification Commands
 
 ```shell
 # Android debug APK
@@ -43,8 +43,6 @@ The app is designed around fast entry and fast retrieval: expenses can be tagged
 # iOS simulator framework
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
-
-Use the smallest relevant Gradle task for the files changed. Do not run the full `./gradlew build` by default.
 
 ## GitHub Release APK
 

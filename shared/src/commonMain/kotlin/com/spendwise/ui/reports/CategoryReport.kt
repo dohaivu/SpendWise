@@ -1,5 +1,6 @@
 package com.spendwise.ui.reports
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -164,7 +167,9 @@ private fun CategoryMonthlyBarChart(
 ) {
     val chartHeight = 230.dp
     val maxValue = niceChartMax(monthTotals.maxOfOrNull { it.total } ?: 0L)
+    val averageValue = monthTotals.sumOf { it.total }.toFloat() / monthTotals.size.coerceAtLeast(1)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
 
     Column(
         modifier = Modifier
@@ -199,6 +204,20 @@ private fun CategoryMonthlyBarChart(
                             onClick = { onMonthSelected(monthTotal.month) },
                             chartHeight = chartHeight,
                             modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                if (averageValue > 0f) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val availableBarHeight = size.height - 30.dp.toPx()
+                        val y = size.height -
+                            (availableBarHeight * (averageValue / maxValue.toFloat()).coerceIn(0f, 1f))
+                        drawLine(
+                            color = averageLineColor,
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = 2.dp.toPx(),
+                            cap = StrokeCap.Round
                         )
                     }
                 }

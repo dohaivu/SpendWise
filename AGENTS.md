@@ -4,7 +4,7 @@
 
 SpendWise is a Kotlin Multiplatform expense app targeting Android and iOS, with shared Compose UI in `shared`.
 
-## Common Commands
+## Verification Commands
 
 ```bash
 # Android app compile/package check
