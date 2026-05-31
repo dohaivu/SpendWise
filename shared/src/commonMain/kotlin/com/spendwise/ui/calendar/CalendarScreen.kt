@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -224,6 +225,7 @@ private fun MonthCalendar(
             outline = colorScheme.outline.copy(alpha = 0.22f),
             selectedBackground = colorScheme.primaryContainer.copy(alpha = 0.45f),
             defaultBackground = colorScheme.surface,
+            heatmapHighBackground = colorScheme.errorContainer,
             headerBackground = colorScheme.surfaceVariant,
             disabledDay = colorScheme.onSurface.copy(alpha = 0.32f),
             saturday = Color(0xFF249AC8),
@@ -407,12 +409,19 @@ private fun CalendarDayCell(
     }
     val totalColor = total?.let { dailyTotalColor(it.totalBaseAmountCents, currencyFormat) }
         ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val backgroundColor = calendarDayBackgroundColor(
+        totalBaseAmountCents = total?.totalBaseAmountCents,
+        currencyFormat = currencyFormat,
+        colors = colors,
+        isMonthDate = isMonthDate,
+        isSelected = isSelected
+    )
 
     Box(
         modifier = modifier
             .height(44.dp)
             .border(0.5.dp, colors.outline)
-            .background(if (isSelected) colors.selectedBackground else colors.defaultBackground)
+            .background(backgroundColor)
             .combinedClickable(
                 enabled = isMonthDate,
                 onClick = { onDateSelected(date) },
@@ -442,6 +451,39 @@ private fun CalendarDayCell(
             }
         }
     }
+}
+
+private fun calendarDayBackgroundColor(
+    totalBaseAmountCents: Long?,
+    currencyFormat: CurrencyDisplayFormat,
+    colors: CalendarCellColors,
+    isMonthDate: Boolean,
+    isSelected: Boolean
+): Color {
+    val baseBackground = if (isMonthDate && totalBaseAmountCents != null) {
+        val progress = calendarHeatmapProgress(totalBaseAmountCents, currencyFormat)
+        lerp(colors.defaultBackground, colors.heatmapHighBackground, progress)
+    } else {
+        colors.defaultBackground
+    }
+    return if (isSelected) {
+        lerp(baseBackground, colors.selectedBackground, 0.45f)
+    } else {
+        baseBackground
+    }
+}
+
+private fun calendarHeatmapProgress(
+    totalBaseAmountCents: Long,
+    currencyFormat: CurrencyDisplayFormat
+): Float {
+    val wholeAmount = (totalBaseAmountCents / 100).coerceAtLeast(0L)
+    val maxAmount = if (currencyFormat.fractionDigits > 0) {
+        1_000L
+    } else {
+        1_000_000L
+    }
+    return (wholeAmount.toDouble() / maxAmount).coerceIn(0.0, 1.0).toFloat()
 }
 
 @Composable
@@ -509,6 +551,7 @@ data class CalendarCellColors(
     val outline: Color,
     val selectedBackground: Color,
     val defaultBackground: Color,
+    val heatmapHighBackground: Color,
     val headerBackground: Color,
     val disabledDay: Color,
     val saturday: Color,
