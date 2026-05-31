@@ -62,6 +62,7 @@ import com.spendwise.ui.components.TransactionsByDateList
 import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.components.formatMoneyValue
+import com.spendwise.ui.components.spendingHeatmapBackgroundColor
 import com.spendwise.ui.firstDayOfMonth
 import com.spendwise.ui.firstHeaderIndexForMonth
 import com.spendwise.ui.isSameMonth
@@ -224,6 +225,7 @@ private fun MonthCalendar(
             outline = colorScheme.outline.copy(alpha = 0.22f),
             selectedBackground = colorScheme.primaryContainer.copy(alpha = 0.45f),
             defaultBackground = colorScheme.surface,
+            heatmapHighBackground = colorScheme.errorContainer,
             headerBackground = colorScheme.surfaceVariant,
             disabledDay = colorScheme.onSurface.copy(alpha = 0.32f),
             saturday = Color(0xFF249AC8),
@@ -407,12 +409,24 @@ private fun CalendarDayCell(
     }
     val totalColor = total?.let { dailyTotalColor(it.totalBaseAmountCents, currencyFormat) }
         ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val backgroundColor = if (isMonthDate) {
+        spendingHeatmapBackgroundColor(
+            totalBaseAmountCents = total?.totalBaseAmountCents,
+            currencyFormat = currencyFormat,
+            defaultBackground = colors.defaultBackground,
+            highBackground = colors.heatmapHighBackground,
+            overlayBackground = colors.selectedBackground.takeIf { isSelected },
+            overlayAlpha = 0.45f
+        )
+    } else {
+        colors.defaultBackground
+    }
 
     Box(
         modifier = modifier
             .height(44.dp)
             .border(0.5.dp, colors.outline)
-            .background(if (isSelected) colors.selectedBackground else colors.defaultBackground)
+            .background(backgroundColor)
             .combinedClickable(
                 enabled = isMonthDate,
                 onClick = { onDateSelected(date) },
@@ -509,6 +523,7 @@ data class CalendarCellColors(
     val outline: Color,
     val selectedBackground: Color,
     val defaultBackground: Color,
+    val heatmapHighBackground: Color,
     val headerBackground: Color,
     val disabledDay: Color,
     val saturday: Color,
