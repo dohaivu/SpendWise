@@ -2,6 +2,7 @@ package com.spendwise.ui.components
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import kotlin.math.sqrt
 
 internal fun spendingHeatmapBackgroundColor(
     totalBaseAmountCents: Long?,
@@ -29,10 +30,14 @@ private fun spendingHeatmapProgress(
     currencyFormat: CurrencyDisplayFormat
 ): Float {
     val wholeAmount = (totalBaseAmountCents / 100).coerceAtLeast(0L)
-    val maxAmount = if (currencyFormat.fractionDigits > 0) {
-        1_000L
+    val (minAmount, maxAmount) = if (currencyFormat.fractionDigits > 0) {
+        50L to 1_000L
     } else {
-        1_000_000L
+        50_000L to 1_000_000L
     }
-    return (wholeAmount.toDouble() / maxAmount).coerceIn(0.0, 1.0).toFloat()
+    if (wholeAmount < minAmount) return 0f
+    val linearProgress = ((wholeAmount - minAmount).toDouble() / (maxAmount - minAmount))
+        .coerceIn(0.0, 1.0)
+    return sqrt(linearProgress)
+        .toFloat()
 }
