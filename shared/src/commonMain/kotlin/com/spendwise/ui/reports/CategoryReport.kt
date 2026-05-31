@@ -40,7 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
-import com.spendwise.domain.usecase.filterByTransactionFilters
+import com.spendwise.domain.filterByTransactionFilters
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.MoneyText

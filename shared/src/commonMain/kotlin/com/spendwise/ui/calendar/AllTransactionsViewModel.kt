@@ -8,7 +8,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
-import com.spendwise.domain.usecase.filterByTransactionFilters
+import com.spendwise.domain.filterByTransactionFilters
 import com.spendwise.ui.AllTransactionsUiState
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.DateTransactionListItem
