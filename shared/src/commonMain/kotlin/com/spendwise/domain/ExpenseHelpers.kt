@@ -8,14 +8,17 @@ fun String.removeAccents(): String {
 
     return normalized.filter { char ->
         char.code !in 0x0300..0x036F
-    }
+    }.replace('đ', 'd')
+        .replace('Đ', 'D')
 }
 
 
 fun List<Expense>.filterByTransactionFilters(filters: TransactionFilters): List<Expense> {
+    val normalizedQuery = filters.query.removeAccents()
+
     return with(ReportCalculator) { filterByTags(filters.selectedTags) }
         .filter { filters.categoryId == null || it.categoryId == filters.categoryId }
-        .filter { filters.query.isBlank() || it.note.contains(filters.query, ignoreCase = true) }
+        .filter { normalizedQuery.isBlank() || it.note.removeAccents().contains(normalizedQuery, ignoreCase = true) }
 }
 
 fun List<Expense>.filterByTags(selectedTags: Set<String>): List<Expense> {

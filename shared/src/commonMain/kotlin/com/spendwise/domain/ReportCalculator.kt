@@ -1,6 +1,5 @@
 package com.spendwise.domain
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -56,10 +55,7 @@ object ReportCalculator {
         }
     }
 
-    fun Expense.localDate(timeZone: TimeZone): LocalDate =
-        Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
-
+    fun Expense.localDate(timeZone: TimeZone): LocalDate = kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
 
     fun LocalDate.monthKey(): Int = year * 100 + month.number
 }
