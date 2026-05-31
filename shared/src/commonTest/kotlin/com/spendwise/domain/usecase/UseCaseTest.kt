@@ -60,6 +60,22 @@ class UseCaseTest {
     }
 
     @Test
+    fun transactionFilterUseCaseMatchesNoteWithoutAccents() {
+        val useCase = GetTransactionsByFiltersUseCase()
+        val expenses = listOf(
+            expense(id = 1, categoryId = 1, note = "Đi chợ mua cà phê"),
+            expense(id = 2, categoryId = 1, note = "Mua sach")
+        )
+
+        val result = useCase(
+            expenses = expenses,
+            filters = TransactionFilters(query = "di cho")
+        )
+
+        assertEquals(listOf(1L), result.map { it.id })
+    }
+
+    @Test
     fun categoryReportUseCaseCalculatesRows() {
         val useCase = GetCategoryPieReportUseCase()
         val categories = listOf(Category(1, "Food", "F", 0xFFE76F51, 0))

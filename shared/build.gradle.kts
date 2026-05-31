@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -94,6 +93,7 @@ kotlin {
             implementation(libs.coil.ktor3)
             implementation(libs.vico.compose)
             implementation(libs.vico.compose.m3)
+            implementation(libs.doist.normalize)
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)

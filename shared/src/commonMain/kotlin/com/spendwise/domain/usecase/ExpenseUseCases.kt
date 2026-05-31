@@ -5,6 +5,7 @@ import com.spendwise.domain.AddExpenseInput
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ReportCalculator
 import com.spendwise.domain.TransactionFilters
+import com.spendwise.domain.filterByTransactionFilters
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -83,8 +84,3 @@ class GetTransactionsByFiltersUseCase {
     ): List<Expense> = expenses.filterByTransactionFilters(filters)
 }
 
-fun List<Expense>.filterByTransactionFilters(filters: TransactionFilters): List<Expense> {
-    return with(ReportCalculator) { filterByTags(filters.selectedTags) }
-        .filter { filters.categoryId == null || it.categoryId == filters.categoryId }
-        .filter { filters.query.isBlank() || it.note.contains(filters.query, ignoreCase = true) }
-}

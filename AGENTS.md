@@ -13,6 +13,9 @@ SpendWise is a Kotlin Multiplatform expense app targeting Android and iOS, with 
 # Shared KMP tests
 ./gradlew :shared:allTests
 
+# Shared Android host unit tests
+./gradlew :shared:testAndroidHostTest
+
 # iOS simulator framework check
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
@@ -22,7 +25,7 @@ Do not run the full `./gradlew build` by default. Use the smallest relevant task
 ## Verification
 
 - Docs-only changes: no build required.
-- Shared/business-logic changes: run `./gradlew :shared:allTests`.
+- Shared/business-logic changes: run `./gradlew :shared:testAndroidHostTest`; use `./gradlew :shared:allTests` when cross-target coverage is needed.
 - Android-impacting changes, including shared Compose UI: run `./gradlew :androidApp:assembleDebug`.
 - iOS-specific or KMP framework changes: run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64`.
 - If a requested verification task cannot run, report the failure and what completed successfully.
