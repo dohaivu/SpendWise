@@ -3,6 +3,7 @@ package com.spendwise.ui.settings
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,7 +43,9 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.spendwise.ui.AppColorSchemeMode
 import com.spendwise.ui.AppLanguage
+import com.spendwise.ui.AppThemeMode
 import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
@@ -167,6 +172,7 @@ internal fun SettingsScaffold(
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TinyTopAppBar(
                 title = {
@@ -205,6 +211,8 @@ private fun SettingsHomeScreen(
                 }
                 item { CurrencySettings(state, viewModel) }
                 item { LanguageSettings(state, viewModel) }
+                item { ThemeSettings(state, viewModel) }
+                item { ColorSchemeSettings(state, viewModel) }
                 item {
                     SettingsRow(
                         title = stringResource(Res.string.reminders),
@@ -319,6 +327,48 @@ private fun LanguageSettings(state: SettingsUiState, viewModel: SettingsViewMode
 }
 
 @Composable
+private fun ThemeSettings(state: SettingsUiState, viewModel: SettingsViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    SettingValueRow(
+        title = stringResource(Res.string.theme),
+        value = state.themeMode.label(),
+        onClick = { showDialog = true }
+    )
+    if (showDialog) {
+        ThemeSelectionDialog(
+            selected = state.themeMode,
+            onDismiss = { showDialog = false },
+            onSelected = { themeMode ->
+                viewModel.setThemeMode(themeMode)
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun ColorSchemeSettings(state: SettingsUiState, viewModel: SettingsViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    SettingValueRow(
+        title = stringResource(Res.string.color_scheme),
+        value = state.colorSchemeMode.label(),
+        onClick = { showDialog = true }
+    )
+    if (showDialog) {
+        ColorSchemeSelectionDialog(
+            selected = state.colorSchemeMode,
+            onDismiss = { showDialog = false },
+            onSelected = { colorSchemeMode ->
+                viewModel.setColorSchemeMode(colorSchemeMode)
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
 private fun SettingValueRow(
     title: String,
     value: String,
@@ -394,6 +444,76 @@ private fun LanguageSelectionDialog(
 }
 
 @Composable
+private fun ThemeSelectionDialog(
+    selected: AppThemeMode,
+    onDismiss: () -> Unit,
+    onSelected: (AppThemeMode) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.theme)) },
+        text = {
+            Column {
+                AppThemeMode.entries.forEach { themeMode ->
+                    SelectionRow(
+                        text = themeMode.label(),
+                        selected = selected == themeMode,
+                        onClick = { onSelected(themeMode) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun ColorSchemeSelectionDialog(
+    selected: AppColorSchemeMode,
+    onDismiss: () -> Unit,
+    onSelected: (AppColorSchemeMode) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.color_scheme)) },
+        text = {
+            Column {
+                AppColorSchemeMode.entries.forEach { colorSchemeMode ->
+                    SelectionRow(
+                        text = colorSchemeMode.label(),
+                        selected = selected == colorSchemeMode,
+                        onClick = { onSelected(colorSchemeMode) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun AppThemeMode.label(): String = when (this) {
+    AppThemeMode.System -> stringResource(Res.string.theme_system)
+    AppThemeMode.Light -> stringResource(Res.string.theme_light)
+    AppThemeMode.Dark -> stringResource(Res.string.theme_dark)
+}
+
+@Composable
+private fun AppColorSchemeMode.label(): String = when (this) {
+    AppColorSchemeMode.Sunset -> stringResource(Res.string.color_scheme_sunset)
+    AppColorSchemeMode.SkyBlue -> stringResource(Res.string.color_scheme_sky_blue)
+    AppColorSchemeMode.SystemDefault -> stringResource(Res.string.color_scheme_system_default)
+}
+
+@Composable
 private fun CurrencySelectionRow(
     currencyCode: String,
     selected: Boolean,
@@ -432,16 +552,46 @@ private fun SelectionRow(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    Card(onClick = onClick) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+            contentColor = if (selected) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
+            }
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
                 selected = selected,
                 onClick = onClick
             )
-            Text(text, modifier = Modifier.weight(1f))
+            Text(
+                text = text,
+                modifier = Modifier.weight(1f).padding(start = 8.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
         }
     }
 }

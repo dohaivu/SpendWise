@@ -19,9 +19,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -84,11 +86,25 @@ internal fun TagUsage(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         TagUsageSort.entries.forEach { sort ->
+                            val selected = state.tagUsageSort == sort
                             FilterChip(
-                                selected = state.tagUsageSort == sort,
+                                selected = selected,
                                 onClick = { viewModel.setTagUsageSort(sort) },
                                 label = { Text(sort.label()) },
-                                modifier = Modifier.height(40.dp)
+                                modifier = Modifier.height(36.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = selected,
+                                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary
+                                )
                             )
                         }
                     }
@@ -119,13 +135,27 @@ internal fun TagUsage(
                                 .padding(vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("#${usage.name}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                            Text(stringResource(Res.string.uses_count, usage.expenseCount), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "#${usage.name}",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                stringResource(Res.string.uses_count, usage.expenseCount),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                             Spacer(Modifier.width(14.dp))
-                            MoneyText(usage.totalBaseAmountCents, state.baseCurrency.code)
+                            MoneyText(
+                                usage.totalBaseAmountCents,
+                                state.baseCurrency.code,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
                         if (index < tagUsage.lastIndex) {
-                            HorizontalDivider()
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.62f))
                         }
                     }
                 }
@@ -202,6 +232,14 @@ private fun RenameTagDialog(
                 onValueChange = onValueChange,
                 label = { Text(stringResource(Res.string.tag)) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
         },

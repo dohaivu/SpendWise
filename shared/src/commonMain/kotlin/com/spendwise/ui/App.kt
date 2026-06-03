@@ -14,7 +14,9 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,6 +50,7 @@ import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsScreen
 import com.spendwise.ui.settings.SettingsViewModel
+import com.spendwise.ui.theme.SpendWiseTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -100,6 +103,12 @@ fun SpendWiseApp(
     val appLanguage by remember(settingsViewModel) {
         settingsViewModel.uiState.map { it.language }.distinctUntilChanged()
     }.collectAsState(AppLanguage.English)
+    val appThemeMode by remember(settingsViewModel) {
+        settingsViewModel.uiState.map { it.themeMode }.distinctUntilChanged()
+    }.collectAsState(AppThemeMode.System)
+    val appColorSchemeMode by remember(settingsViewModel) {
+        settingsViewModel.uiState.map { it.colorSchemeMode }.distinctUntilChanged()
+    }.collectAsState(AppColorSchemeMode.Sunset)
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
     val currentRoute = backStack.lastOrNull() ?: Routes.Expense
@@ -142,16 +151,20 @@ fun SpendWiseApp(
     )
 
     AppLocaleProvider(appLanguage.code) {
-        MaterialTheme {
+        SpendWiseTheme(themeMode = appThemeMode, colorSchemeMode = appColorSchemeMode) {
             Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
                     if (currentRoute !is Routes.CategoryReport &&
                         currentRoute != Routes.AnnualReport &&
                         currentRoute != Routes.AllTransactions
                     ) {
-                        NavigationBar {
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = NavigationBarDefaults.Elevation
+                        ) {
                             SpendWiseTab.entries.forEach { tab ->
                                 val route = tab.route()
                                 NavigationBarItem(
@@ -160,7 +173,14 @@ fun SpendWiseApp(
                                         resetTo(route)
                                     },
                                     icon = { Icon(tab.icon(), contentDescription = tab.label()) },
-                                    label = { Text(tab.label()) }
+                                    label = { Text(tab.label()) },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 )
                             }
                         }

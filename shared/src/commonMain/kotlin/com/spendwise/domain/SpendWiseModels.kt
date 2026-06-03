@@ -85,7 +85,9 @@ data class TransactionFilters(
 
 data class UserSettings(
     val baseCurrencyCode: String = "USD",
-    val languageCode: String = "en"
+    val languageCode: String = "en",
+    val themeModeCode: String = "system",
+    val colorSchemeModeCode: String = "sunset"
 )
 
 data class ExpenseReminder(

@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -25,13 +25,13 @@ fun TinyTopAppBar(
     containerColor: Color? = null,
     contentColor: Color? = null,
 ) {
-    val actualContentColor = contentColor ?: LocalContentColor.current
+    val actualContentColor = contentColor ?: MaterialTheme.colorScheme.onSurface
     CompositionLocalProvider(LocalContentColor provides actualContentColor) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = 56.dp)
-                .background(containerColor ?: TopAppBarDefaults.topAppBarColors().containerColor)
+                .background(containerColor ?: MaterialTheme.colorScheme.background)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.Companion.CenterVertically
         ) {

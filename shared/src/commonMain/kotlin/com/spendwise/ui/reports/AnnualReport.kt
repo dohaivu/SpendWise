@@ -64,6 +64,7 @@ internal fun AnnualReport(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TinyTopAppBar(
                 navigationIcon = {
@@ -136,7 +137,7 @@ private fun AnnualColumnChart(
     val axisMax = maxAmount.coerceAtLeast(1L)
     val gridValues = listOf(axisMax, axisMax * 3 / 4, axisMax / 2, axisMax / 4, 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
-    val barColor = Color(0xFF50A8E5)
+    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.86f)
     val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val format = currencyDisplayFormat(currencyCode)

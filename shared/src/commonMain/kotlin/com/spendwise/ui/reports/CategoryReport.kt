@@ -105,6 +105,7 @@ internal fun CategoryReport(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TinyTopAppBar(
                 navigationIcon = {

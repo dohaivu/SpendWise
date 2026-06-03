@@ -82,6 +82,8 @@ data class SettingsUiState(
     val categoryDraft: CategoryDraft = CategoryDraft(),
     val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val language: AppLanguage = AppLanguage.English,
+    val themeMode: AppThemeMode = AppThemeMode.System,
+    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val message: String? = null

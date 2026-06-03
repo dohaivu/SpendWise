@@ -78,7 +78,9 @@ class RoomExpenseRepository(
                 tagUsage = usage,
                 settings = UserSettings(
                     baseCurrencyCode = settings?.baseCurrencyCode ?: "USD",
-                    languageCode = settings?.languageCode ?: "en"
+                    languageCode = settings?.languageCode ?: "en",
+                    themeModeCode = settings?.themeModeCode ?: "system",
+                    colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset"
                 )
             )
         }
@@ -177,7 +179,9 @@ class RoomExpenseRepository(
         dao.upsertCurrencySettings(
             CurrencySettingsEntity(
                 baseCurrencyCode = settings.baseCurrencyCode,
-                languageCode = settings.languageCode
+                languageCode = settings.languageCode,
+                themeModeCode = settings.themeModeCode,
+                colorSchemeModeCode = settings.colorSchemeModeCode
             )
         )
     }

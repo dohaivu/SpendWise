@@ -96,6 +96,7 @@ internal fun CalendarScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             var showOverflowMenu by remember { mutableStateOf(false) }
             TinyTopAppBar(
@@ -225,7 +226,7 @@ private fun MonthCalendar(
             outline = colorScheme.outline.copy(alpha = 0.22f),
             selectedBackground = colorScheme.primaryContainer.copy(alpha = 0.45f),
             defaultBackground = colorScheme.surface,
-            heatmapHighBackground = colorScheme.errorContainer,
+            heatmapHighBackground = colorScheme.primaryContainer,
             headerBackground = colorScheme.surfaceVariant,
             disabledDay = colorScheme.onSurface.copy(alpha = 0.32f),
             saturday = Color(0xFF249AC8),

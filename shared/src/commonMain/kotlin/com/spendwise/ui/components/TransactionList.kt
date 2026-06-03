@@ -117,7 +117,7 @@ private fun TransactionRow(
         totalBaseAmountCents = expense.baseAmountCents,
         currencyFormat = currencyFormat,
         defaultBackground = colorScheme.surface,
-        highBackground = colorScheme.errorContainer
+        highBackground = colorScheme.primaryContainer
     )
 
     Row(

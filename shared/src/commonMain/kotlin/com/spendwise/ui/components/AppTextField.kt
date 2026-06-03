@@ -32,6 +32,13 @@ fun AppOutlinedTextField(
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val colors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        cursorColor = MaterialTheme.colorScheme.primary
+    )
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -65,12 +72,13 @@ fun AppOutlinedTextField(
                     }
                 },
                 contentPadding = contentPadding,
+                colors = colors,
                 container = {
                     OutlinedTextFieldDefaults.Container(
                         enabled = true,
                         isError = false,
                         interactionSource = interactionSource,
-                        colors = OutlinedTextFieldDefaults.colors(),
+                        colors = colors,
                         shape = RoundedCornerShape(14.dp),
                     )
                 }
