@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.FilterChip
@@ -43,14 +44,36 @@ internal fun ReportPeriodSwitcher(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().height(36.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier
+            .height(34.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         ReportPeriod.entries.forEach { period ->
             FilterChip(
                 selected = selectedPeriod == period,
                 onClick = { onPeriodSelected(period) },
-                label = { Text(period.label()) }
+                label = {
+                    Text(
+                        text = period.label(),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                modifier = Modifier.height(32.dp),
+                shape = RoundedCornerShape(999.dp),
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedPeriod == period,
+                    borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.72f),
+                    selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.72f)
+                )
             )
         }
     }
@@ -118,11 +141,12 @@ private fun PeriodHeader(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f), RoundedCornerShape(14.dp))
                 .pointerInput(onCurrentPeriod) {
                     detectTapGestures(onDoubleTap = { onCurrentPeriod() })
                 }
-                .padding(horizontal = 14.dp, vertical = 6.dp),
+                .padding(horizontal = 14.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

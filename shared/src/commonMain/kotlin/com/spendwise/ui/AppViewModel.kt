@@ -40,6 +40,48 @@ enum class AppLanguage(val label: String) {
     }
 }
 
+enum class AppThemeMode {
+    System,
+    Light,
+    Dark;
+
+    val code: String
+        get() = when (this) {
+            System -> "system"
+            Light -> "light"
+            Dark -> "dark"
+        }
+
+    companion object {
+        fun fromCode(code: String): AppThemeMode = when (code) {
+            "light" -> Light
+            "dark" -> Dark
+            else -> System
+        }
+    }
+}
+
+enum class AppColorSchemeMode {
+    Sunset,
+    SkyBlue,
+    SystemDefault;
+
+    val code: String
+        get() = when (this) {
+            Sunset -> "sunset"
+            SkyBlue -> "sky_blue"
+            SystemDefault -> "system_default"
+        }
+
+    companion object {
+        fun fromCode(code: String): AppColorSchemeMode = when (code) {
+            "sky_blue" -> SkyBlue
+            "system_default" -> SystemDefault
+            else -> Sunset
+        }
+    }
+}
+
 enum class TagUsageSort {
     MostUsed,
     HighestSpending,

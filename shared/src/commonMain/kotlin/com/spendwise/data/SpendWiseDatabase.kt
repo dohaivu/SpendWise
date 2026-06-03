@@ -94,7 +94,9 @@ data class CurrencySettingsEntity(
     @PrimaryKey
     val id: Int = 1,
     val baseCurrencyCode: String = "USD",
-    val languageCode: String = "en"
+    val languageCode: String = "en",
+    val themeModeCode: String = "system",
+    val colorSchemeModeCode: String = "sunset"
 )
 
 @Entity(tableName = "expense_reminders", indices = [Index(value = ["hour", "minute"], unique = true)])
@@ -127,7 +129,7 @@ data class ExchangeRateEntity(
         ExpenseReminderEntity::class,
         ExchangeRateEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @ConstructedBy(SpendWiseDatabaseConstructor::class)
@@ -145,6 +147,7 @@ fun buildSpendWiseDatabase(
 ): SpendWiseDatabase {
     return builder
         .addMigrations(MIGRATION_1_2)
+        .addMigrations(MIGRATION_2_4)
         .fallbackToDestructiveMigration(false)
         .fallbackToDestructiveMigrationOnDowngrade(false)
         .setQueryCoroutineContext(Dispatchers.IO)
@@ -165,5 +168,12 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
             """.trimIndent()
         )
         connection.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_expense_reminders_hour_minute ON expense_reminders(hour, minute)")
+    }
+}
+
+private val MIGRATION_2_4 = object : Migration(2, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE currency_settings ADD COLUMN themeModeCode TEXT NOT NULL DEFAULT 'system'")
+        connection.execSQL("ALTER TABLE currency_settings ADD COLUMN colorSchemeModeCode TEXT NOT NULL DEFAULT 'sunset'")
     }
 }

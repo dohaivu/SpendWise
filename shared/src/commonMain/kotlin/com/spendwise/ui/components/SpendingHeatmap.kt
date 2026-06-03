@@ -14,7 +14,7 @@ internal fun spendingHeatmapBackgroundColor(
 ): Color {
     val baseBackground = if (totalBaseAmountCents != null) {
         val progress = spendingHeatmapProgress(totalBaseAmountCents, currencyFormat)
-        lerp(defaultBackground, highBackground, progress)
+        lerp(defaultBackground, highBackground, progress * 0.82f)
     } else {
         defaultBackground
     }

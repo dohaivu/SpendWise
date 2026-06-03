@@ -24,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.ui.SettingsUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.categoryIconOptions
 import org.jetbrains.compose.resources.stringResource
@@ -87,7 +87,7 @@ internal fun Categories(
                         onMoveUp = { viewModel.moveCategoryUp(category.id) },
                         onMoveDown = { viewModel.moveCategoryDown(category.id) }
                     )
-                    HorizontalDivider()
+                    AppHorizontalDivider()
                 }
             }
         }
@@ -202,7 +202,7 @@ private fun CategoryTypeTabs() {
             Box(Modifier.weight(1f).height(3.dp).background(MaterialTheme.colorScheme.primary))
             Box(Modifier.weight(1f).height(3.dp).background(Color.Transparent))
         }
-        HorizontalDivider()
+        AppHorizontalDivider()
     }
 }
 

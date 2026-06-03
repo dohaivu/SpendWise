@@ -1,8 +1,12 @@
 package com.spendwise.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.AttachMoney
@@ -133,6 +137,28 @@ internal fun CategoryIcon(
     modifier: Modifier = Modifier,
     contentDescription: String? = null
 ) {
+    Box(
+        modifier = modifier
+            .background(tint.copy(alpha = 0.16f), CircleShape)
+            .padding(5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = categoryIconVector(iconKey),
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+internal fun PlainCategoryIcon(
+    iconKey: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null
+) {
     Icon(
         imageVector = categoryIconVector(iconKey),
         contentDescription = contentDescription,
@@ -151,7 +177,7 @@ internal fun CategoryLabel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        CategoryIcon(
+        PlainCategoryIcon(
             iconKey = category.icon,
             tint = Color(category.color.toInt()),
             modifier = Modifier.size(18.dp)

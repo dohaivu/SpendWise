@@ -89,6 +89,14 @@
     <string name="version">版本 %1$s</string>
     <string name="base_currency">基础货币</string>
     <string name="language">语言</string>
+    <string name="theme">主题</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="color_scheme">配色方案</string>
+    <string name="color_scheme_sunset">日落</string>
+    <string name="color_scheme_sky_blue">天空蓝</string>
+    <string name="color_scheme_system_default">系统默认</string>
     <string name="currency_title">货币</string>
     <string name="currency_value">%1$s %2$s</string>
     <string name="currency_option">%1$s • %2$s</string>

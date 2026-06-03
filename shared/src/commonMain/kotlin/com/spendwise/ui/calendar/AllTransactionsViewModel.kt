@@ -107,10 +107,7 @@ class AllTransactionsViewModel(
             .toList()
         val transactionItems = buildList {
             groupedTransactions.forEach { (date, dayExpenses) ->
-                add(DateTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
-                dayExpenses.forEach { expense ->
-                    add(DateTransactionListItem.Transaction(expense))
-                }
+                add(DateTransactionListItem(date, dayExpenses.sumOf { it.baseAmountCents }, dayExpenses))
             }
         }
 

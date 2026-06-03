@@ -15,11 +15,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +43,7 @@ import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
 import com.spendwise.domain.Expense
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
@@ -99,7 +100,7 @@ internal fun MonthCategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
-            HorizontalDivider()
+            AppHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
         }
     }
 }
@@ -148,7 +149,13 @@ internal fun CategoryPie(rows: List<CategoryReportRow>) {
         innerSize = PieSize.Inner.fixed(74.dp),
         spacing = 2.dp
     )
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.46f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -189,16 +196,15 @@ internal fun CategoryReportRowView(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
-            CategoryIcon(
-                iconKey = row.category.icon,
-                tint = Color(row.category.color.toInt()),
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        CategoryIcon(
+            iconKey = row.category.icon,
+            tint = Color(row.category.color.toInt()),
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             row.category.name,
             fontWeight = FontWeight.SemiBold,

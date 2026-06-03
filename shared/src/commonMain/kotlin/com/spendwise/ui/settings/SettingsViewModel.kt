@@ -18,6 +18,8 @@ import com.spendwise.domain.UserSettings
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.platform.ReminderScheduler
 import com.spendwise.ui.AppLanguage
+import com.spendwise.ui.AppColorSchemeMode
+import com.spendwise.ui.AppThemeMode
 import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.TagUsageSort
 import com.spendwise.ui.components.currencyDisplayFormat
@@ -50,6 +52,8 @@ class SettingsViewModel(
                         tagUsage = snapshot.tagUsage,
                         baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode),
                         language = AppLanguage.Companion.fromCode(snapshot.settings.languageCode),
+                        themeMode = AppThemeMode.Companion.fromCode(snapshot.settings.themeModeCode),
+                        colorSchemeMode = AppColorSchemeMode.Companion.fromCode(snapshot.settings.colorSchemeModeCode),
                         reminders = reminders
                     )
                 }
@@ -67,6 +71,16 @@ class SettingsViewModel(
 
     fun setLanguage(language: AppLanguage) {
         _uiState.update { it.copy(language = language) }
+        persistSettings()
+    }
+
+    fun setThemeMode(themeMode: AppThemeMode) {
+        _uiState.update { it.copy(themeMode = themeMode) }
+        persistSettings()
+    }
+
+    fun setColorSchemeMode(colorSchemeMode: AppColorSchemeMode) {
+        _uiState.update { it.copy(colorSchemeMode = colorSchemeMode) }
         persistSettings()
     }
 
@@ -282,7 +296,9 @@ class SettingsViewModel(
             repository.saveSettings(
                 UserSettings(
                     baseCurrencyCode = state.baseCurrency.code,
-                    languageCode = state.language.code
+                    languageCode = state.language.code,
+                    themeModeCode = state.themeMode.code,
+                    colorSchemeModeCode = state.colorSchemeMode.code
                 )
             )
         }

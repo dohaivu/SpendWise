@@ -46,6 +46,7 @@ internal fun AllTransactions(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TinyTopAppBar(
                 navigationIcon = {

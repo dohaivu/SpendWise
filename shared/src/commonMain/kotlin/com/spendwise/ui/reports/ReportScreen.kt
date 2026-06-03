@@ -44,6 +44,7 @@ internal fun ReportScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             var showOverflowMenu by remember { mutableStateOf(false) }
             TinyTopAppBar(

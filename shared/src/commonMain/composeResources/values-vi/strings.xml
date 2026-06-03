@@ -89,6 +89,14 @@
     <string name="version">Phiên bản %1$s</string>
     <string name="base_currency">Tiền tệ cơ sở</string>
     <string name="language">Ngôn ngữ</string>
+    <string name="theme">Giao diện</string>
+    <string name="theme_system">Theo hệ thống</string>
+    <string name="theme_light">Sáng</string>
+    <string name="theme_dark">Tối</string>
+    <string name="color_scheme">Bảng màu</string>
+    <string name="color_scheme_sunset">Hoàng hôn</string>
+    <string name="color_scheme_sky_blue">Xanh da trời</string>
+    <string name="color_scheme_system_default">Mặc định hệ thống</string>
     <string name="currency_title">Tiền tệ</string>
     <string name="currency_value">%1$s %2$s</string>
     <string name="currency_option">%1$s • %2$s</string>

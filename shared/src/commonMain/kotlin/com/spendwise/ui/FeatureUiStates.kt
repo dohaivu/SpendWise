@@ -54,16 +54,11 @@ data class CalendarData(
     val filteredMonthTotal: Long = 0L
 )
 
-sealed interface DateTransactionListItem {
-    data class Header(
-        val date: kotlinx.datetime.LocalDate,
-        val total: Long
-    ) : DateTransactionListItem
-
-    data class Transaction(
-        val expense: Expense
-    ) : DateTransactionListItem
-}
+data class DateTransactionListItem(
+    val date: kotlinx.datetime.LocalDate,
+    val total: Long,
+    val expenses: List<Expense>
+)
 
 data class ReportUiState(
     val expenses: List<Expense> = emptyList(),
@@ -82,6 +77,8 @@ data class SettingsUiState(
     val categoryDraft: CategoryDraft = CategoryDraft(),
     val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val language: AppLanguage = AppLanguage.English,
+    val themeMode: AppThemeMode = AppThemeMode.System,
+    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val message: String? = null

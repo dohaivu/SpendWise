@@ -15,15 +15,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -96,6 +98,7 @@ internal fun ExpenseScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TinyTopAppBar(
                 title = {
@@ -116,7 +119,7 @@ internal fun ExpenseScreen(
             modifier = modifier.fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 val currencyFormat = currencyDisplayFormat(state.draft.currencyCode)
@@ -130,7 +133,8 @@ internal fun ExpenseScreen(
                         label = { Text(stringResource(Res.string.amount)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = spendWiseTextFieldColors(),
                         visualTransformation = amountVisualTransformation,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (currencyFormat.fractionDigits > 0) {
@@ -155,7 +159,8 @@ internal fun ExpenseScreen(
                         label = { Text(stringResource(Res.string.rate_to, state.baseCurrency.code)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = spendWiseTextFieldColors(),
                     )
                 }
             }
@@ -206,7 +211,8 @@ internal fun ExpenseScreen(
                     },
                     label = { Text(stringResource(Res.string.note_with_tags)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = spendWiseTextFieldColors(),
                     minLines = 1,
                     maxLines = 3
                 )
@@ -245,7 +251,19 @@ internal fun ExpenseScreen(
                             selected = state.draft.categoryId == category.id,
                             onClick = { viewModel.updateCategory(category.id) },
                             label = { CategoryLabel(category) },
-                            modifier = Modifier.height(40.dp)
+                            modifier = Modifier.height(40.dp),
+                            shape = RoundedCornerShape(999.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = state.draft.categoryId == category.id,
+                                borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                 }
@@ -253,7 +271,15 @@ internal fun ExpenseScreen(
 
             item {
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = viewModel::saveExpense, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = viewModel::saveExpense,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
                     Text(
                         text = if (state.draft.editingExpenseId == null) {
                             stringResource(Res.string.save_expense)
@@ -285,25 +311,36 @@ private fun appendTagToNote(note: String, tag: String): String {
 }
 
 @Composable
+private fun spendWiseTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    cursorColor = MaterialTheme.colorScheme.primary
+)
+
+@Composable
 private fun DateAssistChip(
     selected: Boolean,
     onClick: () -> Unit,
     label: String
 ) {
-    AssistChip(
+    FilterChip(
+        selected = selected,
         onClick = onClick,
         label = { Text(label) },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
-            labelColor = if (selected) {
-                MaterialTheme.colorScheme.onSecondaryContainer
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
+        shape = RoundedCornerShape(999.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            selectedBorderColor = MaterialTheme.colorScheme.primary
         )
     )
 }
