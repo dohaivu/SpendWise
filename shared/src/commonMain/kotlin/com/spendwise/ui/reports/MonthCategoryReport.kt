@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +43,7 @@ import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
 import com.spendwise.domain.Expense
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
@@ -100,7 +100,7 @@ internal fun MonthCategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            AppHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
         }
     }
 }

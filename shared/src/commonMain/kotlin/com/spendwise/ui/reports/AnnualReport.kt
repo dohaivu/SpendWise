@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
@@ -119,7 +119,7 @@ internal fun AnnualReport(
                         currencyCode = state.baseCurrency.code,
                         onClick = { onMonthClick(LocalDate(year, row.monthNumber, 1)) }
                     )
-                    HorizontalDivider()
+                    AppHorizontalDivider()
                 }
             }
         }
@@ -287,5 +287,4 @@ private fun AnnualMonthRow(
 @Composable
 private fun SectionDivider() {
     Box(Modifier.fillMaxWidth().height(8.dp).background(MaterialTheme.colorScheme.surfaceVariant))
-//    HorizontalDivider()
 }

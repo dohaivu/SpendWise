@@ -18,7 +18,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -47,6 +46,7 @@ import com.spendwise.ui.AppColorSchemeMode
 import com.spendwise.ui.AppLanguage
 import com.spendwise.ui.AppThemeMode
 import com.spendwise.ui.SettingsUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
@@ -279,7 +279,7 @@ internal fun SettingsRow(
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null)
         }
-        HorizontalDivider()
+        AppHorizontalDivider()
     }
 }
 
@@ -383,7 +383,7 @@ private fun SettingValueRow(
             Text(value, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Icon(Icons.Default.ChevronRight, contentDescription = null)
         }
-        HorizontalDivider()
+        AppHorizontalDivider()
     }
 }
 

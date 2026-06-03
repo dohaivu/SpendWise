@@ -20,7 +20,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.spendwise.ui.SettingsUiState
 import com.spendwise.ui.TagUsageSort
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.MoneyText
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
@@ -155,7 +155,7 @@ internal fun TagUsage(
                             )
                         }
                         if (index < tagUsage.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.62f))
+                            AppHorizontalDivider()
                         }
                     }
                 }

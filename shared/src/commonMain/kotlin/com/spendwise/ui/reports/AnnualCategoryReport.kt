@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.YearHeader
 import kotlinx.datetime.TimeZone
 
@@ -56,7 +56,7 @@ internal fun AnnualCategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            AppHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
         }
     }
 }
