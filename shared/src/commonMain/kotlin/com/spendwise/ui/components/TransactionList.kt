@@ -3,7 +3,9 @@ package com.spendwise.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -125,13 +127,13 @@ private fun TransactionRow(
             .fillMaxWidth()
             .background(backgroundColor)
             .clickable { onExpenseClick(expense) }
-            .padding(horizontal = 14.dp, vertical = 7.dp),
+            .padding(horizontal = 14.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CategoryIcon(
             iconKey = category?.icon.orEmpty(),
             tint = category?.let { Color(it.color.toInt()) } ?: colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(end = 14.dp).size(28.dp)
+            modifier = Modifier.padding(end = 14.dp).size(32.dp)
         )
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(

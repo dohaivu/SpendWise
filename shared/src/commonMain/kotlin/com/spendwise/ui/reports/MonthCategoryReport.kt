@@ -196,13 +196,13 @@ internal fun CategoryReportRowView(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CategoryIcon(
             iconKey = row.category.icon,
             tint = Color(row.category.color.toInt()),
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(40.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
