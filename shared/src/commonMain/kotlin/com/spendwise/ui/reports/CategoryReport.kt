@@ -98,9 +98,8 @@ internal fun CategoryReport(
     val transactionItems = monthExpenses
         .groupBy { it.spentDate(timeZone) }
         .toList()
-        .flatMap { (date, expenses) ->
-            listOf(DateTransactionListItem.Header(date, expenses.sumOf { it.baseAmountCents })) +
-                expenses.map(DateTransactionListItem::Transaction)
+        .map { (date, expenses) ->
+            DateTransactionListItem(date, expenses.sumOf { it.baseAmountCents }, expenses)
         }
 
     Scaffold(
@@ -161,7 +160,7 @@ internal fun CategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
             )
         }
     }

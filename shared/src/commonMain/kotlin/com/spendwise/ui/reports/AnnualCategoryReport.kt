@@ -56,7 +56,7 @@ internal fun AnnualCategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
-            HorizontalDivider()
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
         }
     }
 }

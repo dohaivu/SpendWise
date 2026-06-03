@@ -100,7 +100,7 @@ internal fun MonthCategoryReport(
                 currencyCode = state.baseCurrency.code,
                 onClick = { onCategoryClick(row.category.id) }
             )
-            HorizontalDivider()
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
         }
     }
 }
@@ -196,7 +196,7 @@ internal fun CategoryReportRowView(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CategoryIcon(

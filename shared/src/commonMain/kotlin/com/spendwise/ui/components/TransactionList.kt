@@ -1,11 +1,12 @@
 package com.spendwise.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +42,11 @@ internal fun TransactionsByDateList(
     listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         if (transactionItems.isEmpty()) {
             item {
                 Text(
@@ -55,26 +61,50 @@ internal fun TransactionsByDateList(
         }
         items(
             items = transactionItems,
-            key = { item ->
-                when (item) {
-                    is DateTransactionListItem.Header -> "header-${item.date}"
-                    is DateTransactionListItem.Transaction -> item.expense.id
-                }
-            }
+            key = { item -> "date-${item.date}" }
         ) { item ->
-            when (item) {
-                is DateTransactionListItem.Header -> TransactionDateHeader(
-                    date = item.date,
-                    total = item.total,
-                    currencyCode = currencyCode
-                )
-                is DateTransactionListItem.Transaction -> TransactionRow(
-                    expense = item.expense,
-                    category = categoryById[item.expense.categoryId],
-                    currencyCode = currencyCode,
-                    onExpenseClick = onExpenseClick
-                )
-            }
+            DateTransactionListSection(
+                item = item,
+                categoryById = categoryById,
+                currencyCode = currencyCode,
+                onExpenseClick = onExpenseClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun DateTransactionListSection(
+    item: DateTransactionListItem,
+    categoryById: Map<Long, Category>,
+    currencyCode: String,
+    onExpenseClick: (Expense) -> Unit
+) {
+    val shape = MaterialTheme.shapes.small
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                shape = shape
+            )
+    ) {
+        TransactionDateHeader(
+            date = item.date,
+            total = item.total,
+            currencyCode = currencyCode
+        )
+        item.expenses.forEach { expense ->
+            TransactionRow(
+                expense = expense,
+                category = categoryById[expense.categoryId],
+                currencyCode = currencyCode,
+                onExpenseClick = onExpenseClick
+            )
         }
     }
 }

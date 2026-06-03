@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.spendwise.domain.Category
 import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
-import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.CurrencyDisplayFormat

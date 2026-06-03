@@ -165,17 +165,12 @@ class CalendarViewModel(
         }
         val transactionItems = buildList {
             groupedTransactions.forEach { (date, dayExpenses) ->
-                add(DateTransactionListItem.Header(date, dayExpenses.sumOf { it.baseAmountCents }))
-                dayExpenses.forEach { expense ->
-                    add(DateTransactionListItem.Transaction(expense))
-                }
+                add(DateTransactionListItem(date, dayExpenses.sumOf { it.baseAmountCents }, dayExpenses))
             }
         }
         val headerIndexes = buildMap {
             transactionItems.forEachIndexed { index, item ->
-                if (item is DateTransactionListItem.Header) {
-                    put(item.date, index)
-                }
+                put(item.date, index)
             }
         }
         val filteredMonthTotal = datedTransactions.sumOf { (expense, _) -> expense.baseAmountCents }

@@ -54,16 +54,11 @@ data class CalendarData(
     val filteredMonthTotal: Long = 0L
 )
 
-sealed interface DateTransactionListItem {
-    data class Header(
-        val date: kotlinx.datetime.LocalDate,
-        val total: Long
-    ) : DateTransactionListItem
-
-    data class Transaction(
-        val expense: Expense
-    ) : DateTransactionListItem
-}
+data class DateTransactionListItem(
+    val date: kotlinx.datetime.LocalDate,
+    val total: Long,
+    val expenses: List<Expense>
+)
 
 data class ReportUiState(
     val expenses: List<Expense> = emptyList(),
