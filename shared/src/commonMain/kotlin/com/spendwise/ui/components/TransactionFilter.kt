@@ -135,6 +135,9 @@ internal fun TransactionFiltersPanel(
         if (!showCategories) {
             return@Column
         }
+        val onCategoryClick = { categoryId: Long ->
+            onCategoryChange(categoryId.takeUnless { filters.categoryId == categoryId })
+        }
         if (singleLineCategories) {
             Row(
                 modifier = Modifier
@@ -143,20 +146,10 @@ internal fun TransactionFiltersPanel(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                FilterChip(
-                    selected = filters.categoryId == null,
-                    onClick = { onCategoryChange(null) },
-                    label = { Text(stringResource(Res.string.all)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
                 categories.forEach { category ->
                     FilterChip(
                         selected = filters.categoryId == category.id,
-                        onClick = { onCategoryChange(category.id) },
+                        onClick = { onCategoryClick(category.id) },
                         label = { CategoryLabel(category) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -172,21 +165,10 @@ internal fun TransactionFiltersPanel(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                FilterChip(
-                    selected = filters.categoryId == null,
-                    onClick = { onCategoryChange(null) },
-                    label = { Text(stringResource(Res.string.all)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier.height(32.dp)
-                )
                 categories.forEach { category ->
                     FilterChip(
                         selected = filters.categoryId == category.id,
-                        onClick = { onCategoryChange(category.id) },
+                        onClick = { onCategoryClick(category.id) },
                         label = { CategoryLabel(category) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
