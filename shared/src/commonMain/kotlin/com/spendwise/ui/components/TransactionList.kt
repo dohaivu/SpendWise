@@ -144,18 +144,18 @@ private fun TransactionRow(
     onExpenseClick: (Expense) -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val currencyFormat = currencyDisplayFormat(currencyCode)
-    val backgroundColor = spendingHeatmapBackgroundColor(
-        totalBaseAmountCents = expense.baseAmountCents,
-        currencyFormat = currencyFormat,
-        defaultBackground = colorScheme.surface,
-        highBackground = colorScheme.primaryContainer
-    )
+//    val currencyFormat = currencyDisplayFormat(currencyCode)
+//    val backgroundColor = spendingHeatmapBackgroundColor(
+//        totalBaseAmountCents = expense.baseAmountCents,
+//        currencyFormat = currencyFormat,
+//        defaultBackground = colorScheme.surface,
+//        highBackground = colorScheme.primaryContainer
+//    )
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
+//            .background(backgroundColor)
             .clickable { onExpenseClick(expense) }
             .padding(horizontal = 14.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
