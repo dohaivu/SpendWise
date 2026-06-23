@@ -96,7 +96,7 @@ data class CurrencySettingsEntity(
     val baseCurrencyCode: String = "USD",
     val languageCode: String = "en",
     val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sunset"
+    val colorSchemeModeCode: String = "sky_blue"
 )
 
 @Entity(tableName = "expense_reminders", indices = [Index(value = ["hour", "minute"], unique = true)])

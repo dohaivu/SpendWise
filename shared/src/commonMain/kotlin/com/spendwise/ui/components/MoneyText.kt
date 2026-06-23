@@ -12,7 +12,7 @@ import androidx.compose.ui.text.style.TextOverflow
 @Composable
 internal fun MoneyText(
     amountCents: Long,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
     fontWeight: FontWeight? = null,
@@ -21,7 +21,7 @@ internal fun MoneyText(
     overflow: TextOverflow = TextOverflow.Clip
 ) {
     Text(
-        text = formatMoney(amountCents, currencyCode),
+        text = formatMoney(amountCents, currencyFormat),
         modifier = modifier,
         style = style,
         fontWeight = fontWeight,

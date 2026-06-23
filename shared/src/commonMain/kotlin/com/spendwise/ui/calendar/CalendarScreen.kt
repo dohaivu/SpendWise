@@ -196,12 +196,12 @@ internal fun CalendarScreen(
             TotalRow(
                 total = state.calendarData.filteredMonthTotal,
                 transactionCount = state.calendarData.monthTransactionCount,
-                currencyCode = state.baseCurrency.code
+                currencyFormat = state.baseCurrency
             )
             TransactionsByDateList(
                 transactionItems = state.calendarData.transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrency.code,
+                currencyFormat = state.baseCurrency,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)
@@ -424,7 +424,7 @@ private fun CalendarDayCell(
 
     Box(
         modifier = modifier
-            .height(44.dp)
+            .height(42.dp)
             .border(0.5.dp, colors.outline)
             .background(backgroundColor)
             .combinedClickable(
@@ -459,7 +459,7 @@ private fun CalendarDayCell(
 }
 
 @Composable
-private fun dailyTotalColor(
+internal fun dailyTotalColor(
     totalBaseAmountCents: Long,
     currencyFormat: CurrencyDisplayFormat
 ): Color {
@@ -480,7 +480,7 @@ private fun dailyTotalColor(
 internal fun TotalRow(
     total: Long,
     transactionCount: Int,
-    currencyCode: String
+    currencyFormat: CurrencyDisplayFormat
 ) {
     Row(
         modifier = Modifier
@@ -496,7 +496,7 @@ internal fun TotalRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = formatMoney(-total, currencyCode),
+            text = formatMoney(-total, currencyFormat),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )

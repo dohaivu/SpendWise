@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.MonthlyExpenseTotal
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.AppHorizontalDivider
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
@@ -106,17 +107,17 @@ internal fun AnnualReport(
                 AnnualColumnChart(
                     rows = monthlyTotals,
                     averageAmount = averageAmount,
-                    currencyCode = state.baseCurrency.code,
+                    currencyFormat = state.baseCurrency,
                     modifier = Modifier.fillMaxWidth().height(230.dp)
                 )
             }
-            AnnualTotalRow(total = total, averageAmount = averageAmount, currencyCode = state.baseCurrency.code)
+            AnnualTotalRow(total = total, averageAmount = averageAmount, currencyFormat = state.baseCurrency)
             SectionDivider()
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(monthlyTotals, key = { it.monthNumber }) { row ->
                     AnnualMonthRow(
                         row = row,
-                        currencyCode = state.baseCurrency.code,
+                        currencyFormat = state.baseCurrency,
                         onClick = { onMonthClick(LocalDate(year, row.monthNumber, 1)) }
                     )
                     AppHorizontalDivider()
@@ -130,7 +131,7 @@ internal fun AnnualReport(
 private fun AnnualColumnChart(
     rows: List<MonthlyExpenseTotal>,
     averageAmount: Long,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     modifier: Modifier = Modifier
 ) {
     val maxAmount = rows.maxOfOrNull { it.totalBaseAmountCents } ?: 0L
@@ -140,7 +141,6 @@ private fun AnnualColumnChart(
     val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.86f)
     val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val format = currencyDisplayFormat(currencyCode)
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(modifier = Modifier.weight(1f)) {
@@ -151,7 +151,7 @@ private fun AnnualColumnChart(
             ) {
                 gridValues.forEach { value ->
                     Text(
-                        text = format.formatCompact(value),
+                        text = currencyFormat.formatCompact(value),
                         color = labelColor,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1
@@ -215,7 +215,7 @@ private fun AnnualColumnChart(
 }
 
 @Composable
-private fun AnnualTotalRow(total: Long, averageAmount: Long, currencyCode: String) {
+private fun AnnualTotalRow(total: Long, averageAmount: Long, currencyFormat: CurrencyDisplayFormat) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -229,7 +229,7 @@ private fun AnnualTotalRow(total: Long, averageAmount: Long, currencyCode: Strin
             )
             MoneyText(
                 amountCents = total,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -243,7 +243,7 @@ private fun AnnualTotalRow(total: Long, averageAmount: Long, currencyCode: Strin
             )
             MoneyText(
                 amountCents = averageAmount,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -259,7 +259,7 @@ private fun activeMonthlyAverage(rows: List<MonthlyExpenseTotal>): Long {
 @Composable
 private fun AnnualMonthRow(
     row: MonthlyExpenseTotal,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onClick: () -> Unit
 ) {
     Row(
@@ -277,7 +277,7 @@ private fun AnnualMonthRow(
         )
         MoneyText(
             amountCents = row.totalBaseAmountCents,
-            currencyCode = currencyCode,
+            currencyFormat = currencyFormat,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )

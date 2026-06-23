@@ -84,12 +84,12 @@ internal fun AllTransactions(
             TotalRow(
                 total = state.transactionData.filteredMonthTotal,
                 transactionCount = state.transactionData.monthTransactionCount,
-                currencyCode = state.baseCurrency.code
+                currencyFormat = state.baseCurrency
             )
             TransactionsByDateList(
                 transactionItems = state.transactionData.transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrency.code,
+                currencyFormat = state.baseCurrency,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f)
