@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.ui.DateTransactionListItem
+import com.spendwise.ui.calendar.dailyTotalColor
 import com.spendwise.ui.localizedCompactDateWithDayName
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
@@ -37,7 +38,7 @@ import spendwise.shared.generated.resources.no_transactions
 internal fun TransactionsByDateList(
     transactionItems: List<DateTransactionListItem>,
     categoryById: Map<Long, Category>,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onExpenseClick: (Expense) -> Unit,
     listState: LazyListState,
     modifier: Modifier = Modifier
@@ -66,7 +67,7 @@ internal fun TransactionsByDateList(
             DateTransactionListSection(
                 item = item,
                 categoryById = categoryById,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 onExpenseClick = onExpenseClick
             )
         }
@@ -77,7 +78,7 @@ internal fun TransactionsByDateList(
 private fun DateTransactionListSection(
     item: DateTransactionListItem,
     categoryById: Map<Long, Category>,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onExpenseClick: (Expense) -> Unit
 ) {
     val shape = MaterialTheme.shapes.small
@@ -96,13 +97,13 @@ private fun DateTransactionListSection(
         TransactionDateHeader(
             date = item.date,
             total = item.total,
-            currencyCode = currencyCode
+            currencyFormat = currencyFormat
         )
         item.expenses.forEach { expense ->
             TransactionRow(
                 expense = expense,
                 category = categoryById[expense.categoryId],
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 onExpenseClick = onExpenseClick
             )
         }
@@ -113,12 +114,12 @@ private fun DateTransactionListSection(
 private fun TransactionDateHeader(
     date: LocalDate,
     total: Long,
-    currencyCode: String
+    currencyFormat: CurrencyDisplayFormat
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f))
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -129,9 +130,10 @@ private fun TransactionDateHeader(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = formatMoney(-total, currencyCode),
+            text = formatMoney(-total, currencyFormat),
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = dailyTotalColor(total, currencyFormat)
         )
     }
 }
@@ -140,22 +142,14 @@ private fun TransactionDateHeader(
 private fun TransactionRow(
     expense: Expense,
     category: Category?,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onExpenseClick: (Expense) -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val currencyFormat = currencyDisplayFormat(currencyCode)
-    val backgroundColor = spendingHeatmapBackgroundColor(
-        totalBaseAmountCents = expense.baseAmountCents,
-        currencyFormat = currencyFormat,
-        defaultBackground = colorScheme.surface,
-        highBackground = colorScheme.primaryContainer
-    )
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
             .clickable { onExpenseClick(expense) }
             .padding(horizontal = 14.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -185,7 +179,7 @@ private fun TransactionRow(
         }
         MoneyText(
             amountCents = expense.baseAmountCents,
-            currencyCode = currencyCode,
+            currencyFormat = currencyFormat,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
             maxLines = 1

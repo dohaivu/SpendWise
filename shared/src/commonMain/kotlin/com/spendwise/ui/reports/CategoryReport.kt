@@ -43,6 +43,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.domain.filterByTransactionFilters
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
@@ -151,13 +152,13 @@ internal fun CategoryReport(
             CategoryTotalRow(
                 total = categoryPeriodTotal,
                 averageAmount = categoryPeriodAverage,
-                currencyCode = state.baseCurrency.code
+                currencyFormat = state.baseCurrency
             )
             Spacer(Modifier.height(4.dp))
             TransactionsByDateList(
                 transactionItems = transactionItems,
                 categoryById = categoryById,
-                currencyCode = state.baseCurrency.code,
+                currencyFormat = state.baseCurrency,
                 onExpenseClick = onExpenseClick,
                 listState = transactionListState,
                 modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
@@ -284,7 +285,7 @@ private fun CategoryMonthlyColumnChart(
 }
 
 @Composable
-private fun CategoryTotalRow(total: Long, averageAmount: Long, currencyCode: String) {
+private fun CategoryTotalRow(total: Long, averageAmount: Long, currencyFormat: CurrencyDisplayFormat) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -298,7 +299,7 @@ private fun CategoryTotalRow(total: Long, averageAmount: Long, currencyCode: Str
             )
             MoneyText(
                 amountCents = total,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -312,7 +313,7 @@ private fun CategoryTotalRow(total: Long, averageAmount: Long, currencyCode: Str
             )
             MoneyText(
                 amountCents = averageAmount,
-                currencyCode = currencyCode,
+                currencyFormat = currencyFormat,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

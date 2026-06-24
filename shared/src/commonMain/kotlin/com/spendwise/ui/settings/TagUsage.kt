@@ -148,8 +148,8 @@ internal fun TagUsage(
                             )
                             Spacer(Modifier.width(14.dp))
                             MoneyText(
-                                usage.totalBaseAmountCents,
-                                state.baseCurrency.code,
+                                amountCents = usage.totalBaseAmountCents,
+                                currencyFormat = state.baseCurrency,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Medium
                             )

@@ -45,6 +45,7 @@ import com.spendwise.domain.Expense
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CategoryIcon
+import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
 import com.spendwise.ui.isSameMonth
@@ -92,12 +93,12 @@ internal fun MonthCategoryReport(
             Box(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                 CategoryPie(rows)
             }
-            CategoryReportTotalRow(total = total, currencyCode = state.baseCurrency.code)
+            CategoryReportTotalRow(total = total, currencyFormat = state.baseCurrency)
         }
         items(rows, key = { it.category.id }) { row ->
             CategoryReportRowView(
                 row = row,
-                currencyCode = state.baseCurrency.code,
+                currencyFormat = state.baseCurrency,
                 onClick = { onCategoryClick(row.category.id) }
             )
             AppHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
@@ -106,7 +107,7 @@ internal fun MonthCategoryReport(
 }
 
 @Composable
-internal fun CategoryReportTotalRow(total: Long, currencyCode: String) {
+internal fun CategoryReportTotalRow(total: Long, currencyFormat: CurrencyDisplayFormat) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -121,7 +122,7 @@ internal fun CategoryReportTotalRow(total: Long, currencyCode: String) {
         )
         MoneyText(
             amountCents = total,
-            currencyCode = currencyCode,
+            currencyFormat = currencyFormat,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
@@ -189,7 +190,7 @@ internal fun CategoryPie(rows: List<CategoryReportRow>) {
 @Composable
 internal fun CategoryReportRowView(
     row: CategoryReportRow,
-    currencyCode: String,
+    currencyFormat: CurrencyDisplayFormat,
     onClick: () -> Unit
 ) {
     Row(
@@ -214,7 +215,7 @@ internal fun CategoryReportRowView(
         )
         MoneyText(
             amountCents = row.totalBaseAmountCents,
-            currencyCode = currencyCode,
+            currencyFormat = currencyFormat,
             fontWeight = FontWeight.Medium
         )
         Text(
