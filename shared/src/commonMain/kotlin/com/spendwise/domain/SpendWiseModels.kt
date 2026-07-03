@@ -93,7 +93,8 @@ data class UserSettings(
     val themeModeCode: String = "system",
     val colorSchemeModeCode: String = "sunset",
     val backupFolderUri: String? = null,
-    val backupFolderName: String? = null
+    val backupFolderName: String? = null,
+    val lastBackupAtMillis: Long? = null
 )
 
 @Serializable

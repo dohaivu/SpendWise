@@ -83,5 +83,6 @@ data class SettingsUiState(
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val backupFolderUri: String? = null,
     val backupFolderName: String? = null,
+    val lastBackupAtMillis: Long? = null,
     val message: String? = null
 )

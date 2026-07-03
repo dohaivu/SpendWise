@@ -50,6 +50,7 @@ import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.formatDateTime
 import com.spendwise.ui.supportedCurrencies
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
@@ -240,10 +241,13 @@ private fun SettingsHomeScreen(
                 }
                 if (onSelectBackupFolder != null) {
                     item {
+                        val lastBackup = state.lastBackupAtMillis?.let {
+                            "Last success: ${it.formatDateTime()}"
+                        } ?: "Never run"
                         SettingsRow(
                             title = "Cloud Backup Folder",
-                            subtitle = state.backupFolderName?.let { "Syncing to \"$it\"" } 
-                                ?: state.backupFolderUri?.let { "Syncing to selected folder" } 
+                            subtitle = state.backupFolderName?.let { "Syncing to \"$it\"\n$lastBackup" }
+                                ?: state.backupFolderUri?.let { "Syncing to selected folder\n$lastBackup" }
                                 ?: "Not set (Daily JSON backup)",
                             onClick = onSelectBackupFolder
                         )

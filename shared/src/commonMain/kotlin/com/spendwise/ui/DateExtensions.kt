@@ -53,3 +53,8 @@ fun today(): LocalDate =
     Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
 fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
+
+internal fun Long.formatDateTime(): String {
+    val dt = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${dt.day}/${dt.month.number}/${dt.year} ${dt.hour.toString().padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}"
+}

@@ -61,7 +61,8 @@ class SettingsViewModel(
                         colorSchemeMode = AppColorSchemeMode.Companion.fromCode(snapshot.settings.colorSchemeModeCode),
                         reminders = reminders,
                         backupFolderUri = snapshot.settings.backupFolderUri,
-                        backupFolderName = snapshot.settings.backupFolderName
+                        backupFolderName = snapshot.settings.backupFolderName,
+                        lastBackupAtMillis = snapshot.settings.lastBackupAtMillis
                     )
                 }
                 if (scheduledReminders != reminders) {

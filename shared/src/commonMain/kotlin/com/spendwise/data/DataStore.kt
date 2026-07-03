@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.spendwise.domain.UserSettings
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,8 @@ class AppDataStore(private val dataStore: DataStore<Preferences>) {
                 themeModeCode = prefs[KEY_THEME_MODE] ?: "system",
                 colorSchemeModeCode = prefs[KEY_COLOR_SCHEME] ?: "sunset",
                 backupFolderUri = prefs[KEY_BACKUP_FOLDER_URI],
-                backupFolderName = prefs[KEY_BACKUP_FOLDER_NAME]
+                backupFolderName = prefs[KEY_BACKUP_FOLDER_NAME],
+                lastBackupAtMillis = prefs[KEY_LAST_BACKUP_AT]
             )
         }
 
@@ -43,6 +45,11 @@ class AppDataStore(private val dataStore: DataStore<Preferences>) {
             } else {
                 prefs.remove(KEY_BACKUP_FOLDER_NAME)
             }
+            if (settings.lastBackupAtMillis != null) {
+                prefs[KEY_LAST_BACKUP_AT] = settings.lastBackupAtMillis
+            } else {
+                prefs.remove(KEY_LAST_BACKUP_AT)
+            }
         }
     }
 
@@ -53,6 +60,7 @@ class AppDataStore(private val dataStore: DataStore<Preferences>) {
         val KEY_COLOR_SCHEME = stringPreferencesKey("color_scheme_mode")
         val KEY_BACKUP_FOLDER_URI = stringPreferencesKey("backup_folder_uri")
         val KEY_BACKUP_FOLDER_NAME = stringPreferencesKey("backup_folder_name")
+        val KEY_LAST_BACKUP_AT = longPreferencesKey("last_backup_at")
     }
 }
 
