@@ -1,11 +1,15 @@
 package com.spendwise.infrastructure
 
 import androidx.room.RoomDatabase
+import com.spendwise.data.AppDataStore
+import com.spendwise.data.DataStoreSettingsRepository
 import com.spendwise.data.ExpenseRepository
 import com.spendwise.data.FrankfurterExchangeRateClient
 import com.spendwise.data.RoomExpenseRepository
+import com.spendwise.data.SettingsRepository
 import com.spendwise.data.SpendWiseDatabase
 import com.spendwise.data.buildSpendWiseDatabase
+import com.spendwise.data.createPreferencesDataStore
 import com.spendwise.data.provideSpendWiseDatabaseBuilder
 import com.spendwise.domain.usecase.AddExpenseUseCase
 import com.spendwise.domain.usecase.ConvertToBaseCurrencyUseCase
@@ -64,7 +68,8 @@ fun initKoin(config: KoinAppDeclaration? = null) =
 val provideInteractorModule = module {
     single { HttpClient() }
     single { FrankfurterExchangeRateClient(get()) }
-    single<ExpenseRepository> { RoomExpenseRepository(get(), get()) }
+    single<SettingsRepository> { DataStoreSettingsRepository(get()) }
+    single<ExpenseRepository> { RoomExpenseRepository(get(), get(), get()) }
     single { AddExpenseUseCase(get()) }
     single { UpdateExpenseUseCase(get()) }
     single { DeleteExpenseUseCase(get()) }
@@ -132,5 +137,5 @@ val provideViewModelModule = module {
     viewModel { CalendarViewModel(get()) }
     viewModel { AllTransactionsViewModel(get()) }
     viewModel { ReportViewModel(get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
 }

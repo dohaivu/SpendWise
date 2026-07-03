@@ -81,6 +81,9 @@ interface SpendWiseDao {
     @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
     fun observeExpenses(): Flow<List<ExpenseEntity>>
 
+    @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
+    suspend fun getAllExpensesOnce(): List<ExpenseEntity>
+
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpense(id: Long): ExpenseEntity?
 
@@ -206,15 +209,6 @@ interface SpendWiseDao {
     @Upsert
     suspend fun upsertExchangeRate(rate: ExchangeRateEntity)
 
-    @Query("SELECT * FROM currency_settings WHERE id = 1")
-    fun observeCurrencySettings(): Flow<CurrencySettingsEntity?>
-
-    @Query("SELECT * FROM currency_settings WHERE id = 1")
-    suspend fun getCurrencySettingsOnce(): CurrencySettingsEntity?
-
-    @Upsert
-    suspend fun upsertCurrencySettings(settings: CurrencySettingsEntity)
-
     @Query("SELECT * FROM expense_reminders ORDER BY hour, minute")
     fun observeExpenseReminders(): Flow<List<ExpenseReminderEntity>>
 
@@ -226,4 +220,40 @@ interface SpendWiseDao {
 
     @Query("DELETE FROM expense_reminders WHERE id = :id")
     suspend fun deleteExpenseReminder(id: Long)
+
+    @Query("DELETE FROM expenses")
+    suspend fun deleteAllExpenses()
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAllCategories()
+
+    @Query("DELETE FROM tags")
+    suspend fun deleteAllTags()
+
+    @Query("DELETE FROM expense_tags")
+    suspend fun deleteAllExpenseTags()
+
+    @Query("DELETE FROM exchange_rates")
+    suspend fun deleteAllExchangeRates()
+
+    @Insert
+    suspend fun insertExpenses(expenses: List<ExpenseEntity>)
+
+    @Transaction
+    suspend fun restoreData(
+        categories: List<CategoryEntity>,
+        expenses: List<ExpenseEntity>,
+        tags: List<TagEntity>,
+        expenseTags: List<ExpenseTagEntity>
+    ) {
+        deleteAllExpenseTags()
+        deleteAllExpenses()
+        deleteAllCategories()
+        deleteAllTags()
+        
+        insertCategories(categories)
+        insertExpenses(expenses)
+        upsertTags(tags)
+        insertExpenseTags(expenseTags)
+    }
 }

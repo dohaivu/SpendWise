@@ -50,6 +50,7 @@ import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.components.formatMoney
+import com.spendwise.ui.formatDateTime
 import com.spendwise.ui.supportedCurrencies
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
@@ -59,7 +60,9 @@ import spendwise.shared.generated.resources.*
 internal fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onTagClick: (String) -> Unit
+    onTagClick: (String) -> Unit,
+    onSelectBackupFolder: (() -> Unit)? = null,
+    onRestoreFromFolder: (() -> Unit)? = null
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(SettingsRoute.Home) }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -106,7 +109,9 @@ internal fun SettingsScreen(
                             },
                             onReminders = {
                                 push(SettingsRoute.Reminders)
-                            }
+                            },
+                            onSelectBackupFolder = onSelectBackupFolder,
+                            onRestoreFromFolder = onRestoreFromFolder
                         )
                     }
 
@@ -193,7 +198,9 @@ private fun SettingsHomeScreen(
     viewModel: SettingsViewModel,
     onEditCategories: () -> Unit,
     onTagUsage: () -> Unit,
-    onReminders: () -> Unit
+    onReminders: () -> Unit,
+    onSelectBackupFolder: (() -> Unit)? = null,
+    onRestoreFromFolder: (() -> Unit)? = null
 ) {
     SettingsScaffold(title = stringResource(Res.string.settings_title)) { contentModifier ->
         Column(
@@ -234,6 +241,29 @@ private fun SettingsHomeScreen(
                         subtitle = stringResource(Res.string.tracked_tags_count, state.tagUsage.size),
                         onClick = onTagUsage
                     )
+                }
+                if (onSelectBackupFolder != null) {
+                    item {
+                        val lastBackup = state.lastBackupAtMillis?.let {
+                            "Last success: ${it.formatDateTime()}"
+                        } ?: "Never run"
+                        SettingsRow(
+                            title = "Cloud Backup Folder",
+                            subtitle = state.backupFolderName?.let { "Syncing to \"$it\"\n$lastBackup" }
+                                ?: state.backupFolderUri?.let { "Syncing to selected folder\n$lastBackup" }
+                                ?: "Not set (Daily JSON backup)",
+                            onClick = onSelectBackupFolder
+                        )
+                    }
+                }
+                if (onRestoreFromFolder != null) {
+                    item {
+                        SettingsRow(
+                            title = "Cloud Restore",
+                            subtitle = "Select a folder to restore SpendWise_Backup.json",
+                            onClick = onRestoreFromFolder
+                        )
+                    }
                 }
                 item {
                     Column(modifier = Modifier.padding(top = 18.dp)) {

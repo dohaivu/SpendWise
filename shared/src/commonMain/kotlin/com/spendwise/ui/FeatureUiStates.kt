@@ -81,5 +81,8 @@ data class SettingsUiState(
     val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
+    val backupFolderUri: String? = null,
+    val backupFolderName: String? = null,
+    val lastBackupAtMillis: Long? = null,
     val message: String? = null
 )

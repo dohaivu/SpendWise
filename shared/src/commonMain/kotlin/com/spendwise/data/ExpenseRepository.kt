@@ -5,14 +5,14 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseReminder
+import com.spendwise.domain.SpendWiseBackup
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
-import com.spendwise.domain.UserSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -26,17 +26,20 @@ interface ExpenseRepository {
     suspend fun saveCategory(draft: CategoryDraft): Long
     suspend fun deleteCategory(id: Long)
     suspend fun moveCategory(id: Long, direction: Int)
-    suspend fun saveSettings(settings: UserSettings)
     suspend fun saveReminder(reminder: ExpenseReminder): Long
     suspend fun setReminderEnabled(id: Long, enabled: Boolean)
     suspend fun deleteReminder(id: Long)
     suspend fun renameTag(oldTag: String, newTag: String)
     suspend fun deleteTag(tag: String)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
+    suspend fun getBackupCsv(): String
+    suspend fun getBackupJson(): String
+    suspend fun restoreFromJson(json: String)
 }
 
 class RoomExpenseRepository(
     private val dao: SpendWiseDao,
+    private val settingsRepository: SettingsRepository,
     private val exchangeRateClient: FrankfurterExchangeRateClient
 ) : ExpenseRepository {
     override fun observeSnapshot(): Flow<SpendWiseSnapshot> {
@@ -45,7 +48,7 @@ class RoomExpenseRepository(
             dao.observeExpenses(),
             dao.observeTags(),
             dao.observeExpenseTags(),
-            dao.observeCurrencySettings()
+            settingsRepository.settings
         ) { categoryEntities, expenseEntities, tagEntities, refs, settings ->
             val tagsByExpense = refs.groupBy { it.expenseId }
                 .mapValues { (_, value) -> value.map { it.tagName }.sorted() }
@@ -76,12 +79,7 @@ class RoomExpenseRepository(
                 categories = categoryEntities.map { it.toDomain() },
                 expenses = expenses,
                 tagUsage = usage,
-                settings = UserSettings(
-                    baseCurrencyCode = settings?.baseCurrencyCode ?: "USD",
-                    languageCode = settings?.languageCode ?: "en",
-                    themeModeCode = settings?.themeModeCode ?: "system",
-                    colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset"
-                )
+                settings = settings
             )
         }
         return combine(snapshotWithoutReminders, dao.observeExpenseReminders()) { snapshot, reminderEntities ->
@@ -99,9 +97,6 @@ class RoomExpenseRepository(
                     sortOrder = index
                 )
             })
-        }
-        if (dao.getCurrencySettingsOnce() == null) {
-            dao.upsertCurrencySettings(CurrencySettingsEntity())
         }
     }
 
@@ -175,17 +170,6 @@ class RoomExpenseRepository(
         dao.moveCategory(id, direction)
     }
 
-    override suspend fun saveSettings(settings: UserSettings) {
-        dao.upsertCurrencySettings(
-            CurrencySettingsEntity(
-                baseCurrencyCode = settings.baseCurrencyCode,
-                languageCode = settings.languageCode,
-                themeModeCode = settings.themeModeCode,
-                colorSchemeModeCode = settings.colorSchemeModeCode
-            )
-        )
-    }
-
     override suspend fun saveReminder(reminder: ExpenseReminder): Long {
         return dao.upsertExpenseReminder(
             ExpenseReminderEntity(
@@ -230,6 +214,74 @@ class RoomExpenseRepository(
             return fetched.rate
         }
         return dao.getLatestExchangeRate(fromCurrencyCode, toCurrencyCode)?.rate
+    }
+
+    override suspend fun getBackupCsv(): String {
+        val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
+        val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
+        return formatSpendWiseCsv(expenses, categories)
+    }
+
+    override suspend fun getBackupJson(): String {
+        val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
+        val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
+        val settings = settingsRepository.settings.first()
+        
+        val backup = SpendWiseBackup(
+            expenses = expenses,
+            categories = categories,
+            settings = settings
+        )
+        return kotlinx.serialization.json.Json { 
+            prettyPrint = true 
+            encodeDefaults = true
+        }.encodeToString(SpendWiseBackup.serializer(), backup)
+    }
+
+    override suspend fun restoreFromJson(json: String) {
+        val backup = kotlinx.serialization.json.Json { 
+            ignoreUnknownKeys = true 
+        }.decodeFromString(SpendWiseBackup.serializer(), json)
+
+        val categories = backup.categories.map { 
+            CategoryEntity(it.id, it.name, it.icon, it.color, it.sortOrder) 
+        }
+        val expenses = backup.expenses.map { 
+            ExpenseEntity(
+                id = it.id,
+                originalAmountCents = it.originalAmountCents,
+                originalCurrencyCode = it.originalCurrencyCode,
+                baseAmountCents = it.baseAmountCents,
+                baseCurrencyCode = it.baseCurrencyCode,
+                exchangeRate = it.exchangeRate,
+                categoryId = it.categoryId,
+                note = it.note,
+                spentAtMillis = it.spentAtMillis,
+                createdAtMillis = it.createdAtMillis,
+                updatedAtMillis = it.updatedAtMillis
+            )
+        }
+        
+        val tagMap = mutableMapOf<String, TagEntity>()
+        val expenseTags = mutableListOf<ExpenseTagEntity>()
+        
+        backup.expenses.forEach { expense ->
+            expense.tags.forEach { tag ->
+                val normalized = TagParser.normalize(tag)
+                tagMap.getOrPut(normalized) {
+                    TagEntity(
+                        normalizedName = normalized,
+                        displayName = tag,
+                        createdAtMillis = expense.createdAtMillis,
+                        lastUsedAtMillis = expense.spentAtMillis
+                    )
+                }
+                expenseTags.add(ExpenseTagEntity(expense.id, normalized))
+            }
+        }
+
+        dao.restoreData(categories, expenses, tagMap.values.toList(), expenseTags)
+        settingsRepository.saveSettings(backup.settings)
     }
 
     private fun CategoryEntity.toDomain(): Category =
@@ -280,6 +332,6 @@ class RoomExpenseRepository(
 }
 
 private fun Long.monthMatches(monthStart: kotlinx.datetime.LocalDate, timeZone: TimeZone): Boolean {
-    val date = Instant.fromEpochMilliseconds(this).toLocalDateTime(timeZone).date
+    val date = kotlin.time.Instant.fromEpochMilliseconds(this).toLocalDateTime(timeZone).date
     return date.year == monthStart.year && date.month == monthStart.month
 }

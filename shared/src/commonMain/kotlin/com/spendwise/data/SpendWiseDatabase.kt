@@ -89,16 +89,6 @@ data class ExpenseTagEntity(
     val tagName: String
 )
 
-@Entity(tableName = "currency_settings")
-data class CurrencySettingsEntity(
-    @PrimaryKey
-    val id: Int = 1,
-    val baseCurrencyCode: String = "USD",
-    val languageCode: String = "en",
-    val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sky_blue"
-)
-
 @Entity(tableName = "expense_reminders", indices = [Index(value = ["hour", "minute"], unique = true)])
 data class ExpenseReminderEntity(
     @PrimaryKey(autoGenerate = true)
@@ -125,11 +115,10 @@ data class ExchangeRateEntity(
         ExpenseEntity::class,
         TagEntity::class,
         ExpenseTagEntity::class,
-        CurrencySettingsEntity::class,
         ExpenseReminderEntity::class,
         ExchangeRateEntity::class
     ],
-    version = 4,
+    version = 7,
     exportSchema = false
 )
 @ConstructedBy(SpendWiseDatabaseConstructor::class)
@@ -148,6 +137,9 @@ fun buildSpendWiseDatabase(
     return builder
         .addMigrations(MIGRATION_1_2)
         .addMigrations(MIGRATION_2_4)
+        .addMigrations(MIGRATION_4_5)
+        .addMigrations(MIGRATION_5_6)
+        .addMigrations(MIGRATION_6_7)
         .fallbackToDestructiveMigration(false)
         .fallbackToDestructiveMigrationOnDowngrade(false)
         .setQueryCoroutineContext(Dispatchers.IO)
@@ -175,5 +167,23 @@ private val MIGRATION_2_4 = object : Migration(2, 4) {
     override fun migrate(connection: SQLiteConnection) {
         connection.execSQL("ALTER TABLE currency_settings ADD COLUMN themeModeCode TEXT NOT NULL DEFAULT 'system'")
         connection.execSQL("ALTER TABLE currency_settings ADD COLUMN colorSchemeModeCode TEXT NOT NULL DEFAULT 'sunset'")
+    }
+}
+
+private val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE currency_settings ADD COLUMN backupFolderUri TEXT")
+    }
+}
+
+private val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE currency_settings ADD COLUMN backupFolderName TEXT")
+    }
+}
+
+private val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("DROP TABLE IF EXISTS currency_settings")
     }
 }
