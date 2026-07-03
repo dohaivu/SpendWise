@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,7 +28,18 @@ class MainActivity : ComponentActivity() {
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
-            settingsViewModel.setBackupFolderUri(uri.toString())
+            val folderName = getFolderName(uri)
+            settingsViewModel.setBackupFolderUri(uri.toString(), folderName)
+        }
+    }
+
+    private fun getFolderName(uri: Uri): String? {
+        val documentId = DocumentsContract.getTreeDocumentId(uri)
+        val treeUri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId)
+        return contentResolver.query(treeUri, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(0)
+            } else null
         }
     }
 

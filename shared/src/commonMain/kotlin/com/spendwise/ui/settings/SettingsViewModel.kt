@@ -58,7 +58,8 @@ class SettingsViewModel(
                         themeMode = AppThemeMode.Companion.fromCode(snapshot.settings.themeModeCode),
                         colorSchemeMode = AppColorSchemeMode.Companion.fromCode(snapshot.settings.colorSchemeModeCode),
                         reminders = reminders,
-                        backupFolderUri = snapshot.settings.backupFolderUri
+                        backupFolderUri = snapshot.settings.backupFolderUri,
+                        backupFolderName = snapshot.settings.backupFolderName
                     )
                 }
                 if (scheduledReminders != reminders) {
@@ -298,8 +299,8 @@ class SettingsViewModel(
         }
     }
 
-    fun setBackupFolderUri(uri: String?) {
-        _uiState.update { it.copy(backupFolderUri = uri) }
+    fun setBackupFolderUri(uri: String?, name: String?) {
+        _uiState.update { it.copy(backupFolderUri = uri, backupFolderName = name) }
         persistSettings()
     }
 
@@ -316,7 +317,8 @@ class SettingsViewModel(
                     languageCode = state.language.code,
                     themeModeCode = state.themeMode.code,
                     colorSchemeModeCode = state.colorSchemeMode.code,
-                    backupFolderUri = state.backupFolderUri
+                    backupFolderUri = state.backupFolderUri,
+                    backupFolderName = state.backupFolderName
                 )
             )
         }

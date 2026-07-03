@@ -242,7 +242,9 @@ private fun SettingsHomeScreen(
                     item {
                         SettingsRow(
                             title = "Cloud Backup Folder",
-                            subtitle = state.backupFolderUri?.let { "Syncing to selected folder" } ?: "Not set (Daily JSON backup)",
+                            subtitle = state.backupFolderName?.let { "Syncing to \"$it\"" } 
+                                ?: state.backupFolderUri?.let { "Syncing to selected folder" } 
+                                ?: "Not set (Daily JSON backup)",
                             onClick = onSelectBackupFolder
                         )
                     }

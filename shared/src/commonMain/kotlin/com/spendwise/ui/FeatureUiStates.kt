@@ -82,5 +82,6 @@ data class SettingsUiState(
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val backupFolderUri: String? = null,
+    val backupFolderName: String? = null,
     val message: String? = null
 )

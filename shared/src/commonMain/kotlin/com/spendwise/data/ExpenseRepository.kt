@@ -84,7 +84,8 @@ class RoomExpenseRepository(
                     languageCode = settings?.languageCode ?: "en",
                     themeModeCode = settings?.themeModeCode ?: "system",
                     colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset",
-                    backupFolderUri = settings?.backupFolderUri
+                    backupFolderUri = settings?.backupFolderUri,
+                    backupFolderName = settings?.backupFolderName
                 )
             )
         }
@@ -186,7 +187,8 @@ class RoomExpenseRepository(
                 languageCode = settings.languageCode,
                 themeModeCode = settings.themeModeCode,
                 colorSchemeModeCode = settings.colorSchemeModeCode,
-                backupFolderUri = settings.backupFolderUri
+                backupFolderUri = settings.backupFolderUri,
+                backupFolderName = settings.backupFolderName
             )
         )
     }
@@ -252,7 +254,8 @@ class RoomExpenseRepository(
                 languageCode = it.languageCode,
                 themeModeCode = it.themeModeCode,
                 colorSchemeModeCode = it.colorSchemeModeCode,
-                backupFolderUri = it.backupFolderUri
+                backupFolderUri = it.backupFolderUri,
+                backupFolderName = it.backupFolderName
             )
         } ?: UserSettings()
         
