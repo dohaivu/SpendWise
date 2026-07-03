@@ -16,6 +16,7 @@ import com.spendwise.domain.ExpenseReminder
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.UserSettings
 import com.spendwise.domain.usecase.SpendWiseUseCases
+import com.spendwise.platform.BackupScheduler
 import com.spendwise.platform.ReminderScheduler
 import com.spendwise.ui.AppLanguage
 import com.spendwise.ui.AppColorSchemeMode
@@ -34,6 +35,7 @@ class SettingsViewModel(
     private val repository: ExpenseRepository,
     private val useCases: SpendWiseUseCases,
     private val reminderScheduler: ReminderScheduler,
+    private val backupScheduler: BackupScheduler,
     private val appConfig: AppConfig,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -43,6 +45,7 @@ class SettingsViewModel(
     init {
         viewModelScope.launch {
             var scheduledReminders = emptyList<ExpenseReminder>()
+            var lastBackupFolderUri: String? = null
             repository.observeSnapshot().collect { snapshot ->
                 val reminders = snapshot.reminders.sortedBy { reminder -> reminder.minutesSinceMidnight }
                 _uiState.update {
@@ -54,12 +57,21 @@ class SettingsViewModel(
                         language = AppLanguage.Companion.fromCode(snapshot.settings.languageCode),
                         themeMode = AppThemeMode.Companion.fromCode(snapshot.settings.themeModeCode),
                         colorSchemeMode = AppColorSchemeMode.Companion.fromCode(snapshot.settings.colorSchemeModeCode),
-                        reminders = reminders
+                        reminders = reminders,
+                        backupFolderUri = snapshot.settings.backupFolderUri
                     )
                 }
                 if (scheduledReminders != reminders) {
                     scheduledReminders = reminders
                     reminderScheduler.schedule(reminders)
+                }
+                if (lastBackupFolderUri != snapshot.settings.backupFolderUri) {
+                    lastBackupFolderUri = snapshot.settings.backupFolderUri
+                    if (lastBackupFolderUri != null) {
+                        backupScheduler.scheduleDailyBackup()
+                    } else {
+                        backupScheduler.cancelDailyBackup()
+                    }
                 }
             }
         }
@@ -286,6 +298,11 @@ class SettingsViewModel(
         }
     }
 
+    fun setBackupFolderUri(uri: String?) {
+        _uiState.update { it.copy(backupFolderUri = uri) }
+        persistSettings()
+    }
+
     fun consumeMessage() {
         _uiState.update { it.copy(message = null) }
     }
@@ -298,7 +315,8 @@ class SettingsViewModel(
                     baseCurrencyCode = state.baseCurrency.code,
                     languageCode = state.language.code,
                     themeModeCode = state.themeMode.code,
-                    colorSchemeModeCode = state.colorSchemeMode.code
+                    colorSchemeModeCode = state.colorSchemeMode.code,
+                    backupFolderUri = state.backupFolderUri
                 )
             )
         }

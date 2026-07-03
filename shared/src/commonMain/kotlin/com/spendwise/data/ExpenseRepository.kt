@@ -33,6 +33,7 @@ interface ExpenseRepository {
     suspend fun renameTag(oldTag: String, newTag: String)
     suspend fun deleteTag(tag: String)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
+    suspend fun getBackupCsv(): String
 }
 
 class RoomExpenseRepository(
@@ -80,7 +81,8 @@ class RoomExpenseRepository(
                     baseCurrencyCode = settings?.baseCurrencyCode ?: "USD",
                     languageCode = settings?.languageCode ?: "en",
                     themeModeCode = settings?.themeModeCode ?: "system",
-                    colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset"
+                    colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset",
+                    backupFolderUri = settings?.backupFolderUri
                 )
             )
         }
@@ -181,7 +183,8 @@ class RoomExpenseRepository(
                 baseCurrencyCode = settings.baseCurrencyCode,
                 languageCode = settings.languageCode,
                 themeModeCode = settings.themeModeCode,
-                colorSchemeModeCode = settings.colorSchemeModeCode
+                colorSchemeModeCode = settings.colorSchemeModeCode,
+                backupFolderUri = settings.backupFolderUri
             )
         )
     }
@@ -230,6 +233,12 @@ class RoomExpenseRepository(
             return fetched.rate
         }
         return dao.getLatestExchangeRate(fromCurrencyCode, toCurrencyCode)?.rate
+    }
+
+    override suspend fun getBackupCsv(): String {
+        val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
+        val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
+        return formatSpendWiseCsv(expenses, categories)
     }
 
     private fun CategoryEntity.toDomain(): Category =

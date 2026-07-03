@@ -87,7 +87,8 @@ data class UserSettings(
     val baseCurrencyCode: String = "USD",
     val languageCode: String = "en",
     val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sunset"
+    val colorSchemeModeCode: String = "sunset",
+    val backupFolderUri: String? = null
 )
 
 data class ExpenseReminder(

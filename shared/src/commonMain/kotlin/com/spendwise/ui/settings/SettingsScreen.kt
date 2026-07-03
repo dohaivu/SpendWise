@@ -59,7 +59,8 @@ import spendwise.shared.generated.resources.*
 internal fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onTagClick: (String) -> Unit
+    onTagClick: (String) -> Unit,
+    onSelectBackupFolder: (() -> Unit)? = null
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(SettingsRoute.Home) }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -106,7 +107,8 @@ internal fun SettingsScreen(
                             },
                             onReminders = {
                                 push(SettingsRoute.Reminders)
-                            }
+                            },
+                            onSelectBackupFolder = onSelectBackupFolder
                         )
                     }
 
@@ -193,7 +195,8 @@ private fun SettingsHomeScreen(
     viewModel: SettingsViewModel,
     onEditCategories: () -> Unit,
     onTagUsage: () -> Unit,
-    onReminders: () -> Unit
+    onReminders: () -> Unit,
+    onSelectBackupFolder: (() -> Unit)? = null
 ) {
     SettingsScaffold(title = stringResource(Res.string.settings_title)) { contentModifier ->
         Column(
@@ -234,6 +237,15 @@ private fun SettingsHomeScreen(
                         subtitle = stringResource(Res.string.tracked_tags_count, state.tagUsage.size),
                         onClick = onTagUsage
                     )
+                }
+                if (onSelectBackupFolder != null) {
+                    item {
+                        SettingsRow(
+                            title = "Cloud Backup Folder",
+                            subtitle = state.backupFolderUri?.let { "Syncing to selected folder" } ?: "Not set (Daily CSV backup)",
+                            onClick = onSelectBackupFolder
+                        )
+                    }
                 }
                 item {
                     Column(modifier = Modifier.padding(top = 18.dp)) {

@@ -81,6 +81,9 @@ interface SpendWiseDao {
     @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
     fun observeExpenses(): Flow<List<ExpenseEntity>>
 
+    @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
+    suspend fun getAllExpensesOnce(): List<ExpenseEntity>
+
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpense(id: Long): ExpenseEntity?
 

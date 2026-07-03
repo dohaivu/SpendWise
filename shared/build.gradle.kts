@@ -49,6 +49,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.work.runtime)
+            implementation(libs.androidx.documentfile)
             implementation(libs.androidx.glance.appwidget)
             implementation(libs.androidx.glance.material3)
 
