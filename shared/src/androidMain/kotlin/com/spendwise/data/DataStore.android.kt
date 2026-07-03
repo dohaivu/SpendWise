@@ -1,8 +1,9 @@
-package com.spendwise.infrastructure
+package com.spendwise.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.spendwise.infrastructure.AndroidContextProvider
 
 fun getPreferencesDataStorePath(appContext: Context): String =
     appContext.filesDir.resolve(dataStoreFileName).absolutePath

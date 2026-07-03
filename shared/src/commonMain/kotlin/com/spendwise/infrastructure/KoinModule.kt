@@ -1,11 +1,13 @@
 package com.spendwise.infrastructure
 
 import androidx.room.RoomDatabase
+import com.spendwise.data.AppDataStore
 import com.spendwise.data.ExpenseRepository
 import com.spendwise.data.FrankfurterExchangeRateClient
 import com.spendwise.data.RoomExpenseRepository
 import com.spendwise.data.SpendWiseDatabase
 import com.spendwise.data.buildSpendWiseDatabase
+import com.spendwise.data.createPreferencesDataStore
 import com.spendwise.data.provideSpendWiseDatabaseBuilder
 import com.spendwise.domain.usecase.AddExpenseUseCase
 import com.spendwise.domain.usecase.ConvertToBaseCurrencyUseCase

@@ -1,4 +1,4 @@
-package com.spendwise.infrastructure
+package com.spendwise.data
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
