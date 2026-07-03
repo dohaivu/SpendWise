@@ -209,15 +209,6 @@ interface SpendWiseDao {
     @Upsert
     suspend fun upsertExchangeRate(rate: ExchangeRateEntity)
 
-    @Query("SELECT * FROM currency_settings WHERE id = 1")
-    fun observeCurrencySettings(): Flow<CurrencySettingsEntity?>
-
-    @Query("SELECT * FROM currency_settings WHERE id = 1")
-    suspend fun getCurrencySettingsOnce(): CurrencySettingsEntity?
-
-    @Upsert
-    suspend fun upsertCurrencySettings(settings: CurrencySettingsEntity)
-
     @Query("SELECT * FROM expense_reminders ORDER BY hour, minute")
     fun observeExpenseReminders(): Flow<List<ExpenseReminderEntity>>
 

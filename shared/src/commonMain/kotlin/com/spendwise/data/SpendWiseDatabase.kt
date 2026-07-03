@@ -89,18 +89,6 @@ data class ExpenseTagEntity(
     val tagName: String
 )
 
-@Entity(tableName = "currency_settings")
-data class CurrencySettingsEntity(
-    @PrimaryKey
-    val id: Int = 1,
-    val baseCurrencyCode: String = "USD",
-    val languageCode: String = "en",
-    val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sky_blue",
-    val backupFolderUri: String? = null,
-    val backupFolderName: String? = null
-)
-
 @Entity(tableName = "expense_reminders", indices = [Index(value = ["hour", "minute"], unique = true)])
 data class ExpenseReminderEntity(
     @PrimaryKey(autoGenerate = true)
@@ -127,11 +115,10 @@ data class ExchangeRateEntity(
         ExpenseEntity::class,
         TagEntity::class,
         ExpenseTagEntity::class,
-        CurrencySettingsEntity::class,
         ExpenseReminderEntity::class,
         ExchangeRateEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @ConstructedBy(SpendWiseDatabaseConstructor::class)
@@ -152,6 +139,7 @@ fun buildSpendWiseDatabase(
         .addMigrations(MIGRATION_2_4)
         .addMigrations(MIGRATION_4_5)
         .addMigrations(MIGRATION_5_6)
+        .addMigrations(MIGRATION_6_7)
         .fallbackToDestructiveMigration(false)
         .fallbackToDestructiveMigrationOnDowngrade(false)
         .setQueryCoroutineContext(Dispatchers.IO)
@@ -191,5 +179,11 @@ private val MIGRATION_4_5 = object : Migration(4, 5) {
 private val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(connection: SQLiteConnection) {
         connection.execSQL("ALTER TABLE currency_settings ADD COLUMN backupFolderName TEXT")
+    }
+}
+
+private val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("DROP TABLE IF EXISTS currency_settings")
     }
 }

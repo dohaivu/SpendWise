@@ -9,9 +9,9 @@ import com.spendwise.domain.SpendWiseBackup
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
-import com.spendwise.domain.UserSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -27,7 +27,6 @@ interface ExpenseRepository {
     suspend fun saveCategory(draft: CategoryDraft): Long
     suspend fun deleteCategory(id: Long)
     suspend fun moveCategory(id: Long, direction: Int)
-    suspend fun saveSettings(settings: UserSettings)
     suspend fun saveReminder(reminder: ExpenseReminder): Long
     suspend fun setReminderEnabled(id: Long, enabled: Boolean)
     suspend fun deleteReminder(id: Long)
@@ -40,6 +39,7 @@ interface ExpenseRepository {
 
 class RoomExpenseRepository(
     private val dao: SpendWiseDao,
+    private val settingsRepository: SettingsRepository,
     private val exchangeRateClient: FrankfurterExchangeRateClient
 ) : ExpenseRepository {
     override fun observeSnapshot(): Flow<SpendWiseSnapshot> {
@@ -48,7 +48,7 @@ class RoomExpenseRepository(
             dao.observeExpenses(),
             dao.observeTags(),
             dao.observeExpenseTags(),
-            dao.observeCurrencySettings()
+            settingsRepository.settings
         ) { categoryEntities, expenseEntities, tagEntities, refs, settings ->
             val tagsByExpense = refs.groupBy { it.expenseId }
                 .mapValues { (_, value) -> value.map { it.tagName }.sorted() }
@@ -79,14 +79,7 @@ class RoomExpenseRepository(
                 categories = categoryEntities.map { it.toDomain() },
                 expenses = expenses,
                 tagUsage = usage,
-                settings = UserSettings(
-                    baseCurrencyCode = settings?.baseCurrencyCode ?: "USD",
-                    languageCode = settings?.languageCode ?: "en",
-                    themeModeCode = settings?.themeModeCode ?: "system",
-                    colorSchemeModeCode = settings?.colorSchemeModeCode ?: "sunset",
-                    backupFolderUri = settings?.backupFolderUri,
-                    backupFolderName = settings?.backupFolderName
-                )
+                settings = settings
             )
         }
         return combine(snapshotWithoutReminders, dao.observeExpenseReminders()) { snapshot, reminderEntities ->
@@ -104,9 +97,6 @@ class RoomExpenseRepository(
                     sortOrder = index
                 )
             })
-        }
-        if (dao.getCurrencySettingsOnce() == null) {
-            dao.upsertCurrencySettings(CurrencySettingsEntity())
         }
     }
 
@@ -180,19 +170,6 @@ class RoomExpenseRepository(
         dao.moveCategory(id, direction)
     }
 
-    override suspend fun saveSettings(settings: UserSettings) {
-        dao.upsertCurrencySettings(
-            CurrencySettingsEntity(
-                baseCurrencyCode = settings.baseCurrencyCode,
-                languageCode = settings.languageCode,
-                themeModeCode = settings.themeModeCode,
-                colorSchemeModeCode = settings.colorSchemeModeCode,
-                backupFolderUri = settings.backupFolderUri,
-                backupFolderName = settings.backupFolderName
-            )
-        )
-    }
-
     override suspend fun saveReminder(reminder: ExpenseReminder): Long {
         return dao.upsertExpenseReminder(
             ExpenseReminderEntity(
@@ -248,16 +225,7 @@ class RoomExpenseRepository(
     override suspend fun getBackupJson(): String {
         val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
         val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
-        val settings = dao.getCurrencySettingsOnce()?.let {
-            UserSettings(
-                baseCurrencyCode = it.baseCurrencyCode,
-                languageCode = it.languageCode,
-                themeModeCode = it.themeModeCode,
-                colorSchemeModeCode = it.colorSchemeModeCode,
-                backupFolderUri = it.backupFolderUri,
-                backupFolderName = it.backupFolderName
-            )
-        } ?: UserSettings()
+        val settings = settingsRepository.settings.first()
         
         val backup = SpendWiseBackup(
             expenses = expenses,

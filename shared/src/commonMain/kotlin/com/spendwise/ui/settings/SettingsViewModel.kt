@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendwise.data.CsvExpenseRow
 import com.spendwise.data.ExpenseRepository
+import com.spendwise.data.SettingsRepository
 import com.spendwise.data.csvDuplicateKey
 import com.spendwise.data.formatSpendWiseCsv
 import com.spendwise.data.parseSpendWiseCsv
@@ -33,6 +34,7 @@ import kotlinx.datetime.TimeZone
 
 class SettingsViewModel(
     private val repository: ExpenseRepository,
+    private val settingsRepository: SettingsRepository,
     private val useCases: SpendWiseUseCases,
     private val reminderScheduler: ReminderScheduler,
     private val backupScheduler: BackupScheduler,
@@ -311,7 +313,7 @@ class SettingsViewModel(
     private fun persistSettings() {
         val state = _uiState.value
         viewModelScope.launch {
-            repository.saveSettings(
+            settingsRepository.saveSettings(
                 UserSettings(
                     baseCurrencyCode = state.baseCurrency.code,
                     languageCode = state.language.code,
