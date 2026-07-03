@@ -307,6 +307,19 @@ class SettingsViewModel(
         persistSettings()
     }
 
+    fun restoreFromBackup(jsonContent: String, folderUri: String, folderName: String?) {
+        viewModelScope.launch {
+            try {
+                repository.restoreFromJson(jsonContent)
+                // update backup settings as well
+                setBackupFolderUri(folderUri, folderName)
+                _uiState.update { it.copy(message = "Restore successful") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(message = "Restore failed: ${e.message}") }
+            }
+        }
+    }
+
     fun consumeMessage() {
         _uiState.update { it.copy(message = null) }
     }

@@ -35,6 +35,7 @@ interface ExpenseRepository {
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
     suspend fun getBackupCsv(): String
     suspend fun getBackupJson(): String
+    suspend fun restoreFromJson(json: String)
 }
 
 class RoomExpenseRepository(
@@ -236,6 +237,52 @@ class RoomExpenseRepository(
             prettyPrint = true 
             encodeDefaults = true
         }.encodeToString(SpendWiseBackup.serializer(), backup)
+    }
+
+    override suspend fun restoreFromJson(json: String) {
+        val backup = kotlinx.serialization.json.Json { 
+            ignoreUnknownKeys = true 
+        }.decodeFromString(SpendWiseBackup.serializer(), json)
+
+        val categories = backup.categories.map { 
+            CategoryEntity(it.id, it.name, it.icon, it.color, it.sortOrder) 
+        }
+        val expenses = backup.expenses.map { 
+            ExpenseEntity(
+                id = it.id,
+                originalAmountCents = it.originalAmountCents,
+                originalCurrencyCode = it.originalCurrencyCode,
+                baseAmountCents = it.baseAmountCents,
+                baseCurrencyCode = it.baseCurrencyCode,
+                exchangeRate = it.exchangeRate,
+                categoryId = it.categoryId,
+                note = it.note,
+                spentAtMillis = it.spentAtMillis,
+                createdAtMillis = it.createdAtMillis,
+                updatedAtMillis = it.updatedAtMillis
+            )
+        }
+        
+        val tagMap = mutableMapOf<String, TagEntity>()
+        val expenseTags = mutableListOf<ExpenseTagEntity>()
+        
+        backup.expenses.forEach { expense ->
+            expense.tags.forEach { tag ->
+                val normalized = TagParser.normalize(tag)
+                tagMap.getOrPut(normalized) {
+                    TagEntity(
+                        normalizedName = normalized,
+                        displayName = tag,
+                        createdAtMillis = expense.createdAtMillis,
+                        lastUsedAtMillis = expense.spentAtMillis
+                    )
+                }
+                expenseTags.add(ExpenseTagEntity(expense.id, normalized))
+            }
+        }
+
+        dao.restoreData(categories, expenses, tagMap.values.toList(), expenseTags)
+        settingsRepository.saveSettings(backup.settings)
     }
 
     private fun CategoryEntity.toDomain(): Category =

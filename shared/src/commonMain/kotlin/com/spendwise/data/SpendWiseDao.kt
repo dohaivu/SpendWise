@@ -220,4 +220,40 @@ interface SpendWiseDao {
 
     @Query("DELETE FROM expense_reminders WHERE id = :id")
     suspend fun deleteExpenseReminder(id: Long)
+
+    @Query("DELETE FROM expenses")
+    suspend fun deleteAllExpenses()
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAllCategories()
+
+    @Query("DELETE FROM tags")
+    suspend fun deleteAllTags()
+
+    @Query("DELETE FROM expense_tags")
+    suspend fun deleteAllExpenseTags()
+
+    @Query("DELETE FROM exchange_rates")
+    suspend fun deleteAllExchangeRates()
+
+    @Insert
+    suspend fun insertExpenses(expenses: List<ExpenseEntity>)
+
+    @Transaction
+    suspend fun restoreData(
+        categories: List<CategoryEntity>,
+        expenses: List<ExpenseEntity>,
+        tags: List<TagEntity>,
+        expenseTags: List<ExpenseTagEntity>
+    ) {
+        deleteAllExpenseTags()
+        deleteAllExpenses()
+        deleteAllCategories()
+        deleteAllTags()
+        
+        insertCategories(categories)
+        insertExpenses(expenses)
+        upsertTags(tags)
+        insertExpenseTags(expenseTags)
+    }
 }

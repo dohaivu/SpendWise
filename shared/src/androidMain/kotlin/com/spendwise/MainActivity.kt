@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.documentfile.provider.DocumentFile
 import com.spendwise.ui.SpendWiseApp
 import com.spendwise.ui.settings.SettingsViewModel
 import org.koin.android.ext.android.inject
@@ -30,6 +31,25 @@ class MainActivity : ComponentActivity() {
             )
             val folderName = getFolderName(uri)
             settingsViewModel.setBackupFolderUri(uri.toString(), folderName)
+        }
+    }
+
+    private val restoreFromFolder = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+        if (uri != null) {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            val folder = DocumentFile.fromTreeUri(this, uri)
+            val file = folder?.findFile("SpendWise_Backup.json")
+            if (file != null) {
+                contentResolver.openInputStream(file.uri)?.use { inputStream ->
+                    val content = inputStream.bufferedReader().use { it.readText() }
+                    settingsViewModel.restoreFromBackup(content, uri.toString(), getFolderName(uri))
+                }
+            } else {
+                settingsViewModel.showMessage("SpendWise_Backup.json not found in selected folder")
+            }
         }
     }
 
@@ -58,6 +78,9 @@ class MainActivity : ComponentActivity() {
             SpendWiseApp(
                 onSelectBackupFolder = {
                     openDocumentTree.launch(null)
+                },
+                onRestoreFromFolder = {
+                    restoreFromFolder.launch(null)
                 }
             )
         }

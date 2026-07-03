@@ -92,7 +92,8 @@ fun SpendWiseApp(
     allTransactionsViewModel: AllTransactionsViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel(),
-    onSelectBackupFolder: (() -> Unit)? = null
+    onSelectBackupFolder: (() -> Unit)? = null,
+    onRestoreFromFolder: (() -> Unit)? = null
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(Routes.Expense) }
     val expenseMessage by remember(expenseViewModel) {
@@ -286,7 +287,8 @@ fun SpendWiseApp(
                                         allTransactionsViewModel.showOnlyTag(tag)
                                         push(Routes.AllTransactions)
                                     },
-                                    onSelectBackupFolder = onSelectBackupFolder
+                                    onSelectBackupFolder = onSelectBackupFolder,
+                                    onRestoreFromFolder = onRestoreFromFolder
                                 )
                             }
                         }

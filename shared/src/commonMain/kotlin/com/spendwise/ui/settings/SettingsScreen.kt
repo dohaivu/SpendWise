@@ -61,7 +61,8 @@ internal fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
     onTagClick: (String) -> Unit,
-    onSelectBackupFolder: (() -> Unit)? = null
+    onSelectBackupFolder: (() -> Unit)? = null,
+    onRestoreFromFolder: (() -> Unit)? = null
 ) {
     val backStack = remember { mutableStateListOf<NavKey>(SettingsRoute.Home) }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -109,7 +110,8 @@ internal fun SettingsScreen(
                             onReminders = {
                                 push(SettingsRoute.Reminders)
                             },
-                            onSelectBackupFolder = onSelectBackupFolder
+                            onSelectBackupFolder = onSelectBackupFolder,
+                            onRestoreFromFolder = onRestoreFromFolder
                         )
                     }
 
@@ -197,7 +199,8 @@ private fun SettingsHomeScreen(
     onEditCategories: () -> Unit,
     onTagUsage: () -> Unit,
     onReminders: () -> Unit,
-    onSelectBackupFolder: (() -> Unit)? = null
+    onSelectBackupFolder: (() -> Unit)? = null,
+    onRestoreFromFolder: (() -> Unit)? = null
 ) {
     SettingsScaffold(title = stringResource(Res.string.settings_title)) { contentModifier ->
         Column(
@@ -250,6 +253,15 @@ private fun SettingsHomeScreen(
                                 ?: state.backupFolderUri?.let { "Syncing to selected folder\n$lastBackup" }
                                 ?: "Not set (Daily JSON backup)",
                             onClick = onSelectBackupFolder
+                        )
+                    }
+                }
+                if (onRestoreFromFolder != null) {
+                    item {
+                        SettingsRow(
+                            title = "Cloud Restore",
+                            subtitle = "Select a folder to restore SpendWise_Backup.json",
+                            onClick = onRestoreFromFolder
                         )
                     }
                 }
