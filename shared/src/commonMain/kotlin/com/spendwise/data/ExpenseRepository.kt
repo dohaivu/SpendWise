@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -333,6 +332,6 @@ class RoomExpenseRepository(
 }
 
 private fun Long.monthMatches(monthStart: kotlinx.datetime.LocalDate, timeZone: TimeZone): Boolean {
-    val date = Instant.fromEpochMilliseconds(this).toLocalDateTime(timeZone).date
+    val date = kotlin.time.Instant.fromEpochMilliseconds(this).toLocalDateTime(timeZone).date
     return date.year == monthStart.year && date.month == monthStart.month
 }
