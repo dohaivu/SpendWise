@@ -1,7 +1,9 @@
 package com.spendwise.domain
 
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Category(
     val id: Long,
     val name: String,
@@ -10,6 +12,7 @@ data class Category(
     val sortOrder: Int
 )
 
+@Serializable
 data class Expense(
     val id: Long,
     val originalAmountCents: Long,
@@ -83,12 +86,20 @@ data class TransactionFilters(
     val selectedTags: Set<String> = emptySet()
 )
 
+@Serializable
 data class UserSettings(
     val baseCurrencyCode: String = "USD",
     val languageCode: String = "en",
     val themeModeCode: String = "system",
     val colorSchemeModeCode: String = "sunset",
     val backupFolderUri: String? = null
+)
+
+@Serializable
+data class SpendWiseBackup(
+    val expenses: List<Expense>,
+    val categories: List<Category>,
+    val settings: UserSettings
 )
 
 data class ExpenseReminder(

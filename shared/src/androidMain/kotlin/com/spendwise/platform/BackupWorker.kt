@@ -22,20 +22,20 @@ class BackupWorker(
         val backupFolderUri = snapshot.settings.backupFolderUri ?: return Result.failure()
         
         return try {
-            val csvContent = repository.getBackupCsv()
+            val jsonContent = repository.getBackupJson()
             val folderUri = Uri.parse(backupFolderUri)
             val folder = DocumentFile.fromTreeUri(applicationContext, folderUri)
                 ?: return Result.failure()
 
-            val fileName = "SpendWise_Backup.csv"
+            val fileName = "SpendWise_Backup.json"
             var file = folder.findFile(fileName)
             if (file == null) {
-                file = folder.createFile("text/csv", fileName)
+                file = folder.createFile("application/json", fileName)
             }
 
             if (file != null) {
                 applicationContext.contentResolver.openOutputStream(file.uri)?.use { output ->
-                    output.write(csvContent.toByteArray())
+                    output.write(jsonContent.toByteArray())
                 }
                 Result.success()
             } else {

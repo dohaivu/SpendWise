@@ -5,6 +5,7 @@ import com.spendwise.domain.Category
 import com.spendwise.domain.CategoryDraft
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseReminder
+import com.spendwise.domain.SpendWiseBackup
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
@@ -34,6 +35,7 @@ interface ExpenseRepository {
     suspend fun deleteTag(tag: String)
     suspend fun getLatestExchangeRate(fromCurrencyCode: String, toCurrencyCode: String): Double?
     suspend fun getBackupCsv(): String
+    suspend fun getBackupJson(): String
 }
 
 class RoomExpenseRepository(
@@ -239,6 +241,30 @@ class RoomExpenseRepository(
         val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
         val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
         return formatSpendWiseCsv(expenses, categories)
+    }
+
+    override suspend fun getBackupJson(): String {
+        val expenses = dao.getAllExpensesOnce().map { it.toDomain(emptyList()) }
+        val categories = dao.getAllCategoriesOnce().map { it.toDomain() }
+        val settings = dao.getCurrencySettingsOnce()?.let {
+            UserSettings(
+                baseCurrencyCode = it.baseCurrencyCode,
+                languageCode = it.languageCode,
+                themeModeCode = it.themeModeCode,
+                colorSchemeModeCode = it.colorSchemeModeCode,
+                backupFolderUri = it.backupFolderUri
+            )
+        } ?: UserSettings()
+        
+        val backup = SpendWiseBackup(
+            expenses = expenses,
+            categories = categories,
+            settings = settings
+        )
+        return kotlinx.serialization.json.Json { 
+            prettyPrint = true 
+            encodeDefaults = true
+        }.encodeToString(SpendWiseBackup.serializer(), backup)
     }
 
     private fun CategoryEntity.toDomain(): Category =
