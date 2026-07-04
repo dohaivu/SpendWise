@@ -78,7 +78,7 @@ data class SettingsUiState(
     val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
     val language: AppLanguage = AppLanguage.English,
     val themeMode: AppThemeMode = AppThemeMode.System,
-    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
+    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.SkyBlue,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val backupFolderUri: String? = null,

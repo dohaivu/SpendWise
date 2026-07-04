@@ -117,7 +117,7 @@ fun SpendWiseApp(
     }.collectAsState(AppThemeMode.System)
     val appColorSchemeMode by remember(settingsViewModel) {
         settingsViewModel.uiState.map { it.colorSchemeMode }.distinctUntilChanged()
-    }.collectAsState(AppColorSchemeMode.Sunset)
+    }.collectAsState(AppColorSchemeMode.SkyBlue)
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
     val currentRoute = backStack.lastOrNull() ?: Routes.Expense

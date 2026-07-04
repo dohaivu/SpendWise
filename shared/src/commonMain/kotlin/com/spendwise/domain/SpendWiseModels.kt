@@ -91,7 +91,7 @@ data class UserSettings(
     val baseCurrencyCode: String = "USD",
     val languageCode: String = "en",
     val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sunset",
+    val colorSchemeModeCode: String = "sky_blue",
     val backupFolderUri: String? = null,
     val backupFolderName: String? = null,
     val lastBackupAtMillis: Long? = null

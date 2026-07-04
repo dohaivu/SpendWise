@@ -24,7 +24,7 @@ private val SpendWiseShapes = Shapes(
 @Composable
 fun SpendWiseTheme(
     themeMode: AppThemeMode = AppThemeMode.System,
-    colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
+    colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.SkyBlue,
     darkTheme: Boolean = when (themeMode) {
         AppThemeMode.System -> isSystemInDarkTheme()
         AppThemeMode.Light -> false
