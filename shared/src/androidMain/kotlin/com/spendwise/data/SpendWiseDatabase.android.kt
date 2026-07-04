@@ -1,8 +1,8 @@
 package com.spendwise.data
 
 import android.content.Context
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
 import com.spendwise.infrastructure.AndroidContextProvider
 
 fun getSpendWiseDatabaseBuilder(context: Context): RoomDatabase.Builder<SpendWiseDatabase> {
