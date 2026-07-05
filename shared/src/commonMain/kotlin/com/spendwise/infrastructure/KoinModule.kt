@@ -1,6 +1,6 @@
 package com.spendwise.infrastructure
 
-import androidx.room.RoomDatabase
+import androidx.room3.RoomDatabase
 import com.spendwise.data.AppDataStore
 import com.spendwise.data.DataStoreSettingsRepository
 import com.spendwise.data.ExpenseRepository

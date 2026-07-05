@@ -50,11 +50,13 @@ import com.spendwise.ui.reports.ReportScreen
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsScreen
 import com.spendwise.ui.settings.SettingsViewModel
+import com.spendwise.platform.BackupScheduler
 import com.spendwise.ui.theme.SpendWiseTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.compose.koinInject
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
 import spendwise.shared.generated.resources.tab_calendar
@@ -92,9 +94,14 @@ fun SpendWiseApp(
     allTransactionsViewModel: AllTransactionsViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel(),
+    backupScheduler: BackupScheduler = koinInject(),
     onSelectBackupFolder: (() -> Unit)? = null,
     onRestoreFromFolder: (() -> Unit)? = null
 ) {
+    LaunchedEffect(Unit) {
+        backupScheduler.backupNow()
+    }
+
     val backStack = remember { mutableStateListOf<NavKey>(Routes.Expense) }
     val expenseMessage by remember(expenseViewModel) {
         expenseViewModel.uiState.map { it.message }.distinctUntilChanged()
@@ -110,7 +117,7 @@ fun SpendWiseApp(
     }.collectAsState(AppThemeMode.System)
     val appColorSchemeMode by remember(settingsViewModel) {
         settingsViewModel.uiState.map { it.colorSchemeMode }.distinctUntilChanged()
-    }.collectAsState(AppColorSchemeMode.Sunset)
+    }.collectAsState(AppColorSchemeMode.SkyBlue)
     val snackbarHostState = remember { SnackbarHostState() }
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
     val currentRoute = backStack.lastOrNull() ?: Routes.Expense

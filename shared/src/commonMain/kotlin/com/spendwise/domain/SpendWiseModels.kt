@@ -66,7 +66,7 @@ data class SpendWiseSnapshot(
 data class ExpenseDraft(
     val editingExpenseId: Long? = null,
     val amountText: String = "",
-    val currencyCode: String = "USD",
+    val currencyCode: String = "VND",
     val categoryId: Long? = null,
     val note: String = "",
     val spentAtMillis: Long,
@@ -88,10 +88,10 @@ data class TransactionFilters(
 
 @Serializable
 data class UserSettings(
-    val baseCurrencyCode: String = "USD",
+    val baseCurrencyCode: String = "VND",
     val languageCode: String = "en",
     val themeModeCode: String = "system",
-    val colorSchemeModeCode: String = "sunset",
+    val colorSchemeModeCode: String = "sky_blue",
     val backupFolderUri: String? = null,
     val backupFolderName: String? = null,
     val lastBackupAtMillis: Long? = null

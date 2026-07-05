@@ -19,7 +19,7 @@ data class ExpenseUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val draft: ExpenseDraft = ExpenseDraft(spentAtMillis = Clock.System.now().toEpochMilliseconds()),
-    val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
+    val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val activeTagToken: ActiveTagToken? = null,
     val tagSuggestions: List<String> = emptyList(),
     val message: String? = null
@@ -29,7 +29,7 @@ data class CalendarUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
+    val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val selectedPeriod: ReportPeriod = ReportPeriod.Month,
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedDate: kotlinx.datetime.LocalDate = today(),
@@ -41,7 +41,7 @@ data class AllTransactionsUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
+    val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val transactionFilters: TransactionFilters = TransactionFilters(),
     val transactionData: CalendarData = CalendarData()
 )
@@ -64,7 +64,7 @@ data class ReportUiState(
     val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
-    val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
+    val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
     val transactionFilters: TransactionFilters = TransactionFilters()
@@ -75,10 +75,10 @@ data class SettingsUiState(
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val categoryDraft: CategoryDraft = CategoryDraft(),
-    val baseCurrency: CurrencyDisplayFormat = currencyDisplayFormat("USD"),
+    val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val language: AppLanguage = AppLanguage.English,
     val themeMode: AppThemeMode = AppThemeMode.System,
-    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.Sunset,
+    val colorSchemeMode: AppColorSchemeMode = AppColorSchemeMode.SkyBlue,
     val reminders: List<ExpenseReminder> = emptyList(),
     val tagUsageSort: TagUsageSort = TagUsageSort.MostUsed,
     val backupFolderUri: String? = null,

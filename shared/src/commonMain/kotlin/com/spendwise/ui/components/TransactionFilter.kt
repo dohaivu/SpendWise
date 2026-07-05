@@ -109,7 +109,7 @@ internal fun TransactionFiltersPanel(
                         selected = usage.name in filters.selectedTags,
                         onClick = { onTagClick(usage.name) },
                         label = { Text("#${usage.name}") },
-                        shape = RoundedCornerShape(999.dp),
+                        shape = CircleShape,
                         colors = FilterChipDefaults.filterChipColors(
                             labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -122,7 +122,8 @@ internal fun TransactionFiltersPanel(
                             borderColor = MaterialTheme.colorScheme.outlineVariant,
                             selectedBorderColor = MaterialTheme.colorScheme.primary
                         ),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(32.dp)
                     )
                 }
             }
@@ -151,12 +152,20 @@ internal fun TransactionFiltersPanel(
                         selected = filters.categoryId == category.id,
                         onClick = { onCategoryClick(category.id) },
                         label = { CategoryLabel(category) },
+                        shape = CircleShape,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
-                        contentPadding = PaddingValues(0.dp)
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = filters.categoryId == category.id,
+                            borderColor = MaterialTheme.colorScheme.outlineVariant,
+                            selectedBorderColor = MaterialTheme.colorScheme.primary
+                        ),
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(32.dp)
                     )
                 }
             }
@@ -170,10 +179,17 @@ internal fun TransactionFiltersPanel(
                         selected = filters.categoryId == category.id,
                         onClick = { onCategoryClick(category.id) },
                         label = { CategoryLabel(category) },
+                        shape = CircleShape,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = filters.categoryId == category.id,
+                            borderColor = MaterialTheme.colorScheme.outlineVariant,
+                            selectedBorderColor = MaterialTheme.colorScheme.primary
                         ),
                         contentPadding = PaddingValues(0.dp),
                         modifier = Modifier.height(32.dp)
