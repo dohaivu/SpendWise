@@ -19,10 +19,10 @@ class AppDataStore(private val dataStore: DataStore<Preferences>) {
         .catch { emit(emptyPreferences()) }
         .map { prefs ->
             UserSettings(
-                baseCurrencyCode = prefs[KEY_BASE_CURRENCY] ?: "USD",
+                baseCurrencyCode = prefs[KEY_BASE_CURRENCY] ?: "VND",
                 languageCode = prefs[KEY_LANGUAGE] ?: "en",
                 themeModeCode = prefs[KEY_THEME_MODE] ?: "system",
-                colorSchemeModeCode = prefs[KEY_COLOR_SCHEME] ?: "sunset",
+                colorSchemeModeCode = prefs[KEY_COLOR_SCHEME] ?: "sky_blue",
                 backupFolderUri = prefs[KEY_BACKUP_FOLDER_URI],
                 backupFolderName = prefs[KEY_BACKUP_FOLDER_NAME],
                 lastBackupAtMillis = prefs[KEY_LAST_BACKUP_AT]

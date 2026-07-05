@@ -55,6 +55,11 @@ data class CurrencyDisplayFormat(
             CurrencySymbolPosition.Suffix -> "$sign$compact$gap$symbol"
         }
     }
+    companion object {
+        fun default(): CurrencyDisplayFormat {
+            return currencyDisplayFormat("VND")
+        }
+    }
 }
 
 internal val currencyDisplayFormats = listOf(
