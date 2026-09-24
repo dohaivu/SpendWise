@@ -55,7 +55,7 @@ kotlin {
 
             implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.firebase.analytics)
-            implementation(libs.firebase.crashlytics.lib)
+            implementation(libs.firebase.crashlytics)
             implementation(libs.play.services.auth)
         }
         commonMain.dependencies {
