@@ -21,7 +21,7 @@ kotlin {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_25)
         }
         androidResources {
             enable = true
@@ -55,7 +55,7 @@ kotlin {
 
             implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.firebase.analytics)
-            implementation(libs.firebase.crashlytics.lib)
+            implementation(libs.firebase.crashlytics)
             implementation(libs.play.services.auth)
         }
         commonMain.dependencies {
@@ -114,7 +114,6 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.turbine)
             implementation(libs.koin.test)
             implementation(libs.compose.ui.test)
         }
