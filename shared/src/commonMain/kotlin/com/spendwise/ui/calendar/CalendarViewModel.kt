@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendwise.data.ExpenseRepository
 import com.spendwise.data.ExpenseWindow
+import com.spendwise.domain.ExpenseEntry
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TransactionFilters
+import com.spendwise.domain.prepareExpenseEntries
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.CalendarUiState
 import com.spendwise.ui.components.ReportPeriod
@@ -45,7 +47,7 @@ class CalendarViewModel(
     private val requestedWindow = MutableStateFlow(windowFor(_uiState.value))
 
     /** Expenses for [requestedWindow], prepared once per emission so filtering is allocation-free. */
-    private var entries: List<CalendarExpenseEntry> = emptyList()
+    private var entries: List<ExpenseEntry> = emptyList()
 
     private var queryRefreshJob: Job? = null
 
@@ -55,7 +57,7 @@ class CalendarViewModel(
                 .flatMapLatest { window -> repository.observeSnapshot(window).map { window to it } }
                 .collect { (window, snapshot) ->
                     val prepared = withContext(Dispatchers.Default) {
-                        CalendarDataBuilder.prepare(snapshot.expenses, timeZone)
+                        prepareExpenseEntries(snapshot.expenses, timeZone)
                     }
                     // A newer period superseded this one while the data was being prepared.
                     if (requestedWindow.value != window) return@collect

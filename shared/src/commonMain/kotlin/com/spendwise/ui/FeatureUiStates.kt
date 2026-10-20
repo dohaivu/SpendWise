@@ -7,6 +7,7 @@ import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.ExpenseReminder
+import com.spendwise.domain.ReportSummary
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.ui.components.CurrencyDisplayFormat
@@ -60,13 +61,13 @@ data class DateTransactionListItem(
 )
 
 data class ReportUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
-    val transactionFilters: TransactionFilters = TransactionFilters()
+    val transactionFilters: TransactionFilters = TransactionFilters(),
+    val report: ReportSummary = ReportSummary()
 )
 
 data class SettingsUiState(

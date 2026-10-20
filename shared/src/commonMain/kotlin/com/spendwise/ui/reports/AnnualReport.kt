@@ -44,7 +44,6 @@ import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.localizedMonthName
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
 import spendwise.shared.generated.resources.*
@@ -59,7 +58,7 @@ internal fun AnnualReport(
     onMonthClick: (LocalDate) -> Unit
 ) {
     val year = state.selectedMonth.year
-    val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
+    val monthlyTotals = state.report.annualMonthlyTotals
     val total = monthlyTotals.sumOf { it.totalBaseAmountCents }
     val averageAmount = activeMonthlyAverage(monthlyTotals)
 

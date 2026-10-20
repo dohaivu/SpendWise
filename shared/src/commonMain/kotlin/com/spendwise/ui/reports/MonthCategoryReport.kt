@@ -41,16 +41,12 @@ import com.patrykandpatrick.vico.compose.pie.data.PieChartModelProducer
 import com.patrykandpatrick.vico.compose.pie.data.pieSeries
 import com.patrykandpatrick.vico.compose.pie.rememberPieChart
 import com.spendwise.domain.CategoryReportRow
-import com.spendwise.domain.Expense
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CategoryIcon
 import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
 import com.spendwise.ui.components.MonthHeader
-import com.spendwise.ui.isSameMonth
-import com.spendwise.ui.spentDate
-import kotlinx.datetime.TimeZone
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
@@ -64,11 +60,7 @@ internal fun MonthCategoryReport(
     onCategoryClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val timeZone = TimeZone.currentSystemDefault()
-    val reportExpenses = state.expenses.filter { expense ->
-        expense.spentDate(timeZone).isSameMonth(state.selectedMonth)
-    }
-    val rows = reportViewModel.getCategoryReport(reportExpenses)
+    val rows = state.report.monthCategoryRows
     val total = rows.sumOf { it.totalBaseAmountCents }
 
     LazyColumn(

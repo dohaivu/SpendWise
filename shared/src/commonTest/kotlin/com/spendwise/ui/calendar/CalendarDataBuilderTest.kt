@@ -2,6 +2,7 @@ package com.spendwise.ui.calendar
 
 import com.spendwise.domain.Expense
 import com.spendwise.domain.TransactionFilters
+import com.spendwise.domain.prepareExpenseEntries
 import com.spendwise.ui.CalendarData
 import com.spendwise.ui.components.ReportPeriod
 import kotlinx.datetime.LocalDate
@@ -112,7 +113,7 @@ class CalendarDataBuilderTest {
             tags = listOf("Work")
         ).copy(spentAtMillis = millis)
 
-        val entries = CalendarDataBuilder.prepare(
+        val entries = prepareExpenseEntries(
             expenses = listOf(expense),
             timeZone = TimeZone.of("Asia/Ho_Chi_Minh")
         )
@@ -140,7 +141,7 @@ class CalendarDataBuilderTest {
         filters: TransactionFilters = TransactionFilters(),
         timeZone: TimeZone = TimeZone.UTC
     ): CalendarData = CalendarDataBuilder.build(
-        entries = CalendarDataBuilder.prepare(expenses, timeZone),
+        entries = prepareExpenseEntries(expenses, timeZone),
         period = period,
         month = month,
         filters = filters

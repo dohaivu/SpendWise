@@ -24,10 +24,11 @@ object ReportCalculator {
         categories: List<Category>
     ): List<CategoryReportRow> {
         val total = expenses.sumOf { it.baseAmountCents }.coerceAtLeast(1L)
+        val categoryById = categories.associateBy { it.id }
         return expenses
             .groupBy { it.categoryId }
             .mapNotNull { (categoryId, rows) ->
-                val category = categories.firstOrNull { it.id == categoryId } ?: return@mapNotNull null
+                val category = categoryById[categoryId] ?: return@mapNotNull null
                 val amount = rows.sumOf { it.baseAmountCents }
                 CategoryReportRow(
                     category = category,
@@ -43,19 +44,23 @@ object ReportCalculator {
         year: Int,
         timeZone: TimeZone
     ): List<MonthlyExpenseTotal> {
-        val filtered = expenses
-            .filter { expense -> expense.localDate(timeZone).year == year }
-        return (1..12).map { month ->
-            val monthExpenses = filtered.filter { expense -> expense.localDate(timeZone).month.number == month }
+        val amounts = LongArray(12)
+        val counts = IntArray(12)
+        for (expense in expenses) {
+            val date = expense.localDate(timeZone)
+            if (date.year != year) continue
+            val index = date.month.number - 1
+            amounts[index] += expense.baseAmountCents
+            counts[index]++
+        }
+        return List(12) { index ->
             MonthlyExpenseTotal(
-                monthNumber = month,
-                totalBaseAmountCents = monthExpenses.sumOf { it.baseAmountCents },
-                expenseCount = monthExpenses.size
+                monthNumber = index + 1,
+                totalBaseAmountCents = amounts[index],
+                expenseCount = counts[index]
             )
         }
     }
 
     fun Expense.localDate(timeZone: TimeZone): LocalDate = kotlin.time.Instant.fromEpochMilliseconds(spentAtMillis).toLocalDateTime(timeZone).date
-
-    fun LocalDate.monthKey(): Int = year * 100 + month.number
 }

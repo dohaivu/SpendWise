@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.YearHeader
-import kotlinx.datetime.TimeZone
 
 @Composable
 internal fun AnnualCategoryReport(
@@ -23,7 +22,7 @@ internal fun AnnualCategoryReport(
     modifier: Modifier = Modifier
 ) {
     val year = state.selectedMonth.year
-    val rows = reportViewModel.getYearlyCategoryReport(year, TimeZone.currentSystemDefault())
+    val rows = state.report.annualCategoryRows
     val total = rows.sumOf { it.totalBaseAmountCents }
 
     LazyColumn(

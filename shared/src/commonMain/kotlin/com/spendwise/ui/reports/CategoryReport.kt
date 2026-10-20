@@ -40,8 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
-import com.spendwise.domain.filterByTransactionFilters
-import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
@@ -52,10 +50,8 @@ import com.spendwise.ui.components.formatCompactAmount
 import com.spendwise.ui.components.formatMoney
 import com.spendwise.ui.isSameMonth
 import com.spendwise.ui.localizedShortMonthName
-import com.spendwise.ui.spentDate
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlin.math.ceil
@@ -75,33 +71,23 @@ internal fun CategoryReport(
     onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val timeZone = TimeZone.currentSystemDefault()
     var selectedMonth by remember(state.selectedMonth) { mutableStateOf(state.selectedMonth) }
-    val categoryExpenses = state.expenses
-        .filter { it.categoryId == category.id }
-        .filterByTransactionFilters(state.transactionFilters.copy(categoryId = null))
-    val monthExpenses = categoryExpenses
-        .filter { it.spentDate(timeZone).isSameMonth(selectedMonth) }
-        .sortedByDescending { it.spentAtMillis }
-    val monthTotal = monthExpenses.sumOf { it.baseAmountCents }
+    val monthTotals = remember(state.selectedMonth, state.report) {
+        recentMonths(state.selectedMonth, count = 12).map { month ->
+            CategoryMonthTotal(
+                month = month,
+                total = state.report.categoryMonthTotal(category.id, month)
+            )
+        }
+    }
+    val monthTotal = monthTotals.firstOrNull { it.month.isSameMonth(selectedMonth) }?.total ?: 0L
     val transactionListState = rememberLazyListState()
-    val categoryById = mapOf(category.id to category)
-    val monthTotals = recentMonths(state.selectedMonth, count = 12).map { month ->
-        CategoryMonthTotal(
-            month = month,
-            total = categoryExpenses
-                .filter { it.spentDate(timeZone).isSameMonth(month) }
-                .sumOf { it.baseAmountCents }
-        )
+    val categoryById = remember(category) { mapOf(category.id to category) }
+    val transactionItems = remember(state.report, state.transactionFilters, selectedMonth, category.id) {
+        reportViewModel.getCategoryTransactions(category.id, selectedMonth)
     }
     val categoryPeriodTotal = monthTotals.sumOf { it.total }
     val categoryPeriodAverage = activeCategoryMonthlyAverage(monthTotals)
-    val transactionItems = monthExpenses
-        .groupBy { it.spentDate(timeZone) }
-        .toList()
-        .map { (date, expenses) ->
-            DateTransactionListItem(date, expenses.sumOf { it.baseAmountCents }, expenses)
-        }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
