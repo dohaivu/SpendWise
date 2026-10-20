@@ -26,7 +26,6 @@ data class ExpenseUiState(
 )
 
 data class CalendarUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),

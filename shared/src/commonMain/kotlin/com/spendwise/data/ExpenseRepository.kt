@@ -9,17 +9,44 @@ import com.spendwise.domain.SpendWiseBackup
 import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
 import com.spendwise.domain.TagUsage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
+/**
+ * Epoch-millis window used to scope expense loading to the period a screen actually displays.
+ */
+data class ExpenseWindow(
+    val startMillis: Long,
+    val endMillis: Long
+) {
+    init {
+        require(endMillis > startMillis) { "ExpenseWindow must have a positive duration." }
+    }
+}
+
 interface ExpenseRepository {
     fun observeSnapshot(): Flow<SpendWiseSnapshot>
+
+    /**
+     * Observes a snapshot whose [SpendWiseSnapshot.expenses] only contains rows inside [window].
+     * Categories, settings and tag usage stay global so filters keep working while browsing.
+     */
+    fun observeSnapshot(window: ExpenseWindow): Flow<SpendWiseSnapshot>
+
     suspend fun seedDefaults()
     suspend fun saveExpense(input: AddExpenseInput): Long
     suspend fun deleteExpense(id: Long)
@@ -40,51 +67,71 @@ interface ExpenseRepository {
 class RoomExpenseRepository(
     private val dao: SpendWiseDao,
     private val settingsRepository: SettingsRepository,
-    private val exchangeRateClient: FrankfurterExchangeRateClient
+    private val exchangeRateClient: FrankfurterExchangeRateClient,
+    scope: CoroutineScope
 ) : ExpenseRepository {
-    override fun observeSnapshot(): Flow<SpendWiseSnapshot> {
-        val snapshotWithoutReminders = combine(
-            dao.observeCategories(),
-            dao.observeExpenses(),
-            dao.observeTags(),
-            dao.observeExpenseTags(),
-            settingsRepository.settings
-        ) { categoryEntities, expenseEntities, tagEntities, refs, settings ->
-            val tagsByExpense = refs.groupBy { it.expenseId }
-                .mapValues { (_, value) -> value.map { it.tagName }.sorted() }
-            val expenses = expenseEntities.map { it.toDomain(tagsByExpense[it.id].orEmpty()) }
-            val timeZone = TimeZone.currentSystemDefault()
-            val currentMonth = Clock.System.now().toLocalDateTime(timeZone).date.let { date ->
-                kotlinx.datetime.LocalDate(date.year, date.month, 1)
-            }
-            val previousMonth = currentMonth.minus(1, DateTimeUnit.MONTH)
-            val usage = tagEntities.map { tag ->
-                val taggedExpenseIds = refs.filter { it.tagName == tag.normalizedName }.map { it.expenseId }.toSet()
-                val taggedExpenses = expenses.filter { it.id in taggedExpenseIds }
-                TagUsage(
-                    name = tag.displayName,
-                    expenseCount = taggedExpenses.size,
-                    totalBaseAmountCents = taggedExpenses.sumOf { it.baseAmountCents },
-                    lastUsedAtMillis = tag.lastUsedAtMillis,
-                    currentMonthAmountCents = taggedExpenses
-                        .filter { it.spentAtMillis.monthMatches(currentMonth, timeZone) }
-                        .sumOf { it.baseAmountCents },
-                    previousMonthAmountCents = taggedExpenses
-                        .filter { it.spentAtMillis.monthMatches(previousMonth, timeZone) }
-                        .sumOf { it.baseAmountCents }
-                )
-            }.sortedWith(compareByDescending<TagUsage> { it.expenseCount }.thenBy { it.name })
+    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
 
+    // Multiple screens observe the full snapshot. Sharing the upstream keeps the expense mapping
+    // and tag aggregation from running once per collector.
+    private val snapshot: Flow<SpendWiseSnapshot> = buildSnapshot(
+        expensesFlow = dao.observeExpenses(),
+        refsFlow = dao.observeExpenseTags()
+    ).shareIn(scope, SharingStarted.WhileSubscribed(SNAPSHOT_STOP_TIMEOUT_MILLIS), replay = 1)
+
+    override fun observeSnapshot(): Flow<SpendWiseSnapshot> = snapshot
+
+    override fun observeSnapshot(window: ExpenseWindow): Flow<SpendWiseSnapshot> =
+        buildSnapshot(
+            expensesFlow = dao.observeExpensesInRange(window.startMillis, window.endMillis),
+            refsFlow = dao.observeExpenseTagsInRange(window.startMillis, window.endMillis)
+        )
+
+    private fun buildSnapshot(
+        expensesFlow: Flow<List<ExpenseEntity>>,
+        refsFlow: Flow<List<ExpenseTagEntity>>
+    ): Flow<SpendWiseSnapshot> {
+        val withoutReminders = combine(
+            dao.observeCategories(),
+            expensesFlow,
+            refsFlow,
+            observeTagUsage(),
+            settingsRepository.settings
+        ) { categoryEntities, expenseEntities, refs, tagUsageRows, settings ->
+            val tagsByExpense = refs.groupBy({ it.expenseId }, { it.tagName })
             SpendWiseSnapshot(
                 categories = categoryEntities.map { it.toDomain() },
-                expenses = expenses,
-                tagUsage = usage,
+                expenses = expenseEntities.map { entity ->
+                    entity.toDomain(tagsByExpense[entity.id]?.sorted().orEmpty())
+                },
+                tagUsage = tagUsageRows.map { it.toDomain() },
                 settings = settings
             )
         }
-        return combine(snapshotWithoutReminders, dao.observeExpenseReminders()) { snapshot, reminderEntities ->
+        return combine(withoutReminders, dao.observeExpenseReminders()) { snapshot, reminderEntities ->
             snapshot.copy(reminders = reminderEntities.map { it.toDomain() })
         }
+    }
+
+    private fun observeTagUsage(): Flow<List<TagUsageRow>> = flow {
+        val currentMonth = Clock.System.now()
+            .toLocalDateTime(timeZone)
+            .date
+            .let { LocalDate(it.year, it.month, 1) }
+        val currentMonthStartMillis = currentMonth.atStartOfDayIn(timeZone).toEpochMilliseconds()
+        emitAll(
+            dao.observeTagUsage(
+                currentMonthStartMillis = currentMonthStartMillis,
+                nextMonthStartMillis = currentMonth
+                    .plus(1, DateTimeUnit.MONTH)
+                    .atStartOfDayIn(timeZone)
+                    .toEpochMilliseconds(),
+                previousMonthStartMillis = currentMonth
+                    .minus(1, DateTimeUnit.MONTH)
+                    .atStartOfDayIn(timeZone)
+                    .toEpochMilliseconds()
+            )
+        )
     }
 
     override suspend fun seedDefaults() {
@@ -317,6 +364,16 @@ class RoomExpenseRepository(
             enabled = enabled
         )
 
+    private fun TagUsageRow.toDomain(): TagUsage =
+        TagUsage(
+            name = name,
+            expenseCount = (expenseCount ?: 0L).toInt(),
+            totalBaseAmountCents = totalBaseAmountCents ?: 0L,
+            lastUsedAtMillis = lastUsedAtMillis,
+            currentMonthAmountCents = currentMonthAmountCents ?: 0L,
+            previousMonthAmountCents = previousMonthAmountCents ?: 0L
+        )
+
     private val defaultCategories = listOf(
         Category(0L, "Food", "restaurant", 0xFFE76F51, 0),
         Category(0L, "Coffee", "local_cafe", 0xFF8D6E63, 1),
@@ -329,9 +386,8 @@ class RoomExpenseRepository(
         Category(0L, "Family", "home", 0xFFF4A261, 8),
         Category(0L, "Other", "other", 0xFF6C757D, 9)
     )
-}
 
-private fun Long.monthMatches(monthStart: kotlinx.datetime.LocalDate, timeZone: TimeZone): Boolean {
-    val date = kotlin.time.Instant.fromEpochMilliseconds(this).toLocalDateTime(timeZone).date
-    return date.year == monthStart.year && date.month == monthStart.month
+    private companion object {
+        const val SNAPSHOT_STOP_TIMEOUT_MILLIS = 5_000L
+    }
 }

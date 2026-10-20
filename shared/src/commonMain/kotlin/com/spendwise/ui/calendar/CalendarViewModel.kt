@@ -3,190 +3,205 @@ package com.spendwise.ui.calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendwise.data.ExpenseRepository
-import com.spendwise.domain.Category
-import com.spendwise.domain.DailyExpenseTotal
-import com.spendwise.domain.Expense
+import com.spendwise.data.ExpenseWindow
 import com.spendwise.domain.TagParser
-import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
-import com.spendwise.domain.filterByTransactionFilters
 import com.spendwise.ui.CalendarData
-import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.CalendarUiState
-import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.ReportPeriod
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.firstDayOfMonth
-import com.spendwise.ui.isSameMonth
-import com.spendwise.ui.spentDate
 import com.spendwise.ui.today
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CalendarViewModel(
     repository: ExpenseRepository
 ) : ViewModel() {
+    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
+
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
+    /** The period currently displayed. Changing it re-subscribes to a narrower database query. */
+    private val requestedWindow = MutableStateFlow(windowFor(_uiState.value))
+
+    /** Expenses for [requestedWindow], prepared once per emission so filtering is allocation-free. */
+    private var entries: List<CalendarExpenseEntry> = emptyList()
+
+    private var queryRefreshJob: Job? = null
+
     init {
         viewModelScope.launch {
-            repository.observeSnapshot().collect { snapshot ->
-                _uiState.update { state ->
-                    state.withCalendarData(
-                        expenses = snapshot.expenses,
-                        categories = snapshot.categories,
-                        tagUsage = snapshot.tagUsage,
-                        baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
-                    )
+            requestedWindow
+                .flatMapLatest { window -> repository.observeSnapshot(window).map { window to it } }
+                .collect { (window, snapshot) ->
+                    val prepared = withContext(Dispatchers.Default) {
+                        CalendarDataBuilder.prepare(snapshot.expenses, timeZone)
+                    }
+                    // A newer period superseded this one while the data was being prepared.
+                    if (requestedWindow.value != window) return@collect
+                    queryRefreshJob?.cancel()
+                    entries = prepared
+                    val baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+                    _uiState.update { state ->
+                        state.copy(
+                            categories = snapshot.categories,
+                            tagUsage = snapshot.tagUsage,
+                            baseCurrency = baseCurrency,
+                            calendarData = CalendarDataBuilder.build(
+                                entries = prepared,
+                                period = state.selectedPeriod,
+                                month = state.selectedMonth,
+                                filters = state.transactionFilters
+                            )
+                        )
+                    }
                 }
-            }
         }
     }
 
-    fun selectMonth(month: LocalDate) {
-        _uiState.update { it.withCalendarData(selectedMonth = month.firstDayOfMonth()) }
-    }
+    fun selectMonth(month: LocalDate) = changePeriod(selectedMonth = month.firstDayOfMonth())
 
-    fun previousMonth() {
-        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.MONTH)) }
-    }
+    fun previousMonth() = changePeriod(selectedMonth = _uiState.value.selectedMonth.minus(1, DateTimeUnit.MONTH))
 
-    fun nextMonth() {
-        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.MONTH)) }
-    }
+    fun nextMonth() = changePeriod(selectedMonth = _uiState.value.selectedMonth.plus(1, DateTimeUnit.MONTH))
 
-    fun previousYear() {
-        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.minus(1, DateTimeUnit.YEAR)) }
-    }
+    fun previousYear() = changePeriod(selectedMonth = _uiState.value.selectedMonth.minus(1, DateTimeUnit.YEAR))
 
-    fun nextYear() {
-        _uiState.update { it.withCalendarData(selectedMonth = it.selectedMonth.plus(1, DateTimeUnit.YEAR)) }
-    }
+    fun nextYear() = changePeriod(selectedMonth = _uiState.value.selectedMonth.plus(1, DateTimeUnit.YEAR))
 
-    fun selectPeriod(period: ReportPeriod) {
-        _uiState.update { it.withCalendarData(selectedPeriod = period) }
+    fun selectPeriod(period: ReportPeriod) = changePeriod(selectedPeriod = period)
+
+    fun resetToToday() {
+        val today = today()
+        changePeriod(selectedMonth = today.firstDayOfMonth(), selectedDate = today)
     }
 
     fun selectDate(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
     }
 
-    fun resetToToday() {
-        val today = today()
-        _uiState.update {
-            it.withCalendarData(
-                selectedMonth = today.firstDayOfMonth(),
-                selectedDate = today
-            )
-        }
-    }
-
     fun toggleTagFilter(tag: String) {
         val normalized = TagParser.normalize(tag)
-        _uiState.update {
-            val currentTags = it.transactionFilters.selectedTags
-            val next = if (normalized in currentTags) currentTags - normalized else currentTags + normalized
-            it.withCalendarData(transactionFilters = it.transactionFilters.copy(selectedTags = next))
+        updateFilters { filters ->
+            val next = if (normalized in filters.selectedTags) {
+                filters.selectedTags - normalized
+            } else {
+                filters.selectedTags + normalized
+            }
+            filters.copy(selectedTags = next)
         }
-    }
-
-    fun updateTransactionQuery(value: String) {
-        _uiState.update { it.withCalendarData(transactionFilters = it.transactionFilters.copy(query = value)) }
     }
 
     fun updateTransactionCategory(categoryId: Long?) {
-        _uiState.update { it.withCalendarData(transactionFilters = it.transactionFilters.copy(categoryId = categoryId)) }
+        updateFilters { it.copy(categoryId = categoryId) }
     }
 
-    private fun CalendarUiState.withCalendarData(
-        expenses: List<Expense> = this.expenses,
-        categories: List<Category> = this.categories,
-        tagUsage: List<TagUsage> = this.tagUsage,
-        baseCurrency: CurrencyDisplayFormat = this.baseCurrency,
-        selectedPeriod: ReportPeriod = this.selectedPeriod,
-        selectedMonth: LocalDate = this.selectedMonth,
-        selectedDate: LocalDate = this.selectedDate,
-        transactionFilters: TransactionFilters = this.transactionFilters
-    ): CalendarUiState {
-        return copy(
-            expenses = expenses,
-            categories = categories,
-            tagUsage = tagUsage,
-            baseCurrency = baseCurrency,
-            selectedPeriod = selectedPeriod,
-            selectedMonth = selectedMonth,
-            selectedDate = selectedDate,
-            transactionFilters = transactionFilters,
-            calendarData = buildCalendarData(
-                expenses = expenses,
-                period = selectedPeriod,
-                month = selectedMonth,
-                filters = transactionFilters,
-                timeZone = TimeZone.currentSystemDefault()
+    fun updateTransactionQuery(value: String) {
+        updateFilters(debounce = true) { it.copy(query = value) }
+    }
+
+    private fun changePeriod(
+        selectedMonth: LocalDate = _uiState.value.selectedMonth,
+        selectedDate: LocalDate = _uiState.value.selectedDate,
+        selectedPeriod: ReportPeriod = _uiState.value.selectedPeriod
+    ) {
+        queryRefreshJob?.cancel()
+        val state = _uiState.updateAndGet { current ->
+            val next = current.copy(
+                selectedMonth = selectedMonth,
+                selectedDate = selectedDate,
+                selectedPeriod = selectedPeriod
             )
+            next.copy(calendarData = buildFrom(next))
+        }
+        requestedWindow.value = windowFor(state)
+    }
+
+    private fun updateFilters(
+        debounce: Boolean = false,
+        transform: (TransactionFilters) -> TransactionFilters
+    ) {
+        _uiState.update { state ->
+            val filters = transform(state.transactionFilters)
+            val next = state.copy(transactionFilters = filters)
+            if (debounce) {
+                next
+            } else {
+                next.copy(calendarData = CalendarDataBuilder.build(entries, next.selectedPeriod, next.selectedMonth, filters))
+            }
+        }
+        queryRefreshJob?.cancel()
+        if (!debounce) return
+
+        queryRefreshJob = viewModelScope.launch {
+            delay(QUERY_DEBOUNCE_MILLIS)
+            val state = _uiState.value
+            val snapshotEntries = entries
+            val data = withContext(Dispatchers.Default) {
+                CalendarDataBuilder.build(
+                    entries = snapshotEntries,
+                    period = state.selectedPeriod,
+                    month = state.selectedMonth,
+                    filters = state.transactionFilters
+                )
+            }
+            _uiState.update { current ->
+                val isStillCurrent = entries === snapshotEntries &&
+                    current.transactionFilters == state.transactionFilters &&
+                    current.selectedMonth == state.selectedMonth &&
+                    current.selectedPeriod == state.selectedPeriod
+                if (isStillCurrent) current.copy(calendarData = data) else current
+            }
+        }
+    }
+
+    private fun buildFrom(state: CalendarUiState): CalendarData =
+        CalendarDataBuilder.build(
+            entries = entries,
+            period = state.selectedPeriod,
+            month = state.selectedMonth,
+            filters = state.transactionFilters
+        )
+
+    private fun windowFor(state: CalendarUiState): ExpenseWindow =
+        windowFor(state.selectedPeriod, state.selectedMonth)
+
+    private fun windowFor(period: ReportPeriod, month: LocalDate): ExpenseWindow {
+        val start = when (period) {
+            ReportPeriod.Month -> month.firstDayOfMonth()
+            ReportPeriod.Annual -> LocalDate(month.year, 1, 1)
+        }
+        val end = when (period) {
+            ReportPeriod.Month -> start.plus(1, DateTimeUnit.MONTH)
+            ReportPeriod.Annual -> start.plus(1, DateTimeUnit.YEAR)
+        }
+        return ExpenseWindow(
+            startMillis = start.atStartOfDayIn(timeZone).toEpochMilliseconds(),
+            endMillis = end.atStartOfDayIn(timeZone).toEpochMilliseconds()
         )
     }
 
-    private fun buildCalendarData(
-        expenses: List<Expense>,
-        period: ReportPeriod,
-        month: LocalDate,
-        filters: TransactionFilters,
-        timeZone: TimeZone
-    ): CalendarData {
-        val datedTransactions = expenses
-            .asSequence()
-            .map { expense -> expense to expense.spentDate(timeZone) }
-            .filter { (_, spentDate) -> spentDate.matchesPeriod(period, month) }
-            .map { (expense, _) -> expense }
-            .toList()
-            .filterByTransactionFilters(filters)
-            .sortedByDescending { it.spentAtMillis }
-            .map { expense -> expense to expense.spentDate(timeZone) }
-
-        val groupedTransactions = datedTransactions
-            .groupBy(keySelector = { (_, spentDate) -> spentDate }, valueTransform = { (expense, _) -> expense })
-            .toList()
-        val totalsByDate = groupedTransactions.associate { (date, dayExpenses) ->
-            date to DailyExpenseTotal(
-                date = date,
-                totalBaseAmountCents = dayExpenses.sumOf { it.baseAmountCents },
-                expenseCount = dayExpenses.size
-            )
-        }
-        val transactionItems = buildList {
-            groupedTransactions.forEach { (date, dayExpenses) ->
-                add(DateTransactionListItem(date, dayExpenses.sumOf { it.baseAmountCents }, dayExpenses))
-            }
-        }
-        val headerIndexes = buildMap {
-            transactionItems.forEachIndexed { index, item ->
-                put(item.date, index)
-            }
-        }
-        val filteredMonthTotal = datedTransactions.sumOf { (expense, _) -> expense.baseAmountCents }
-
-        return CalendarData(
-            monthTransactionCount = datedTransactions.size,
-            transactionItems = transactionItems,
-            totalsByDate = totalsByDate,
-            headerIndexes = headerIndexes,
-            filteredMonthTotal = filteredMonthTotal
-        )
+    private companion object {
+        const val QUERY_DEBOUNCE_MILLIS = 120L
     }
 }
-
-private fun LocalDate.matchesPeriod(period: ReportPeriod, month: LocalDate): Boolean =
-    when (period) {
-        ReportPeriod.Month -> isSameMonth(month)
-        ReportPeriod.Annual -> year == month.year
-    }

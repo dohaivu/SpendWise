@@ -41,6 +41,9 @@ import com.spendwise.ui.expense.ExpenseViewModel
 import com.spendwise.ui.reports.ReportViewModel
 import com.spendwise.ui.settings.SettingsViewModel
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
@@ -69,7 +72,8 @@ val provideInteractorModule = module {
     single { HttpClient() }
     single { FrankfurterExchangeRateClient(get()) }
     single<SettingsRepository> { DataStoreSettingsRepository(get()) }
-    single<ExpenseRepository> { RoomExpenseRepository(get(), get(), get()) }
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    single<ExpenseRepository> { RoomExpenseRepository(get(), get(), get(), get()) }
     single { AddExpenseUseCase(get()) }
     single { UpdateExpenseUseCase(get()) }
     single { DeleteExpenseUseCase(get()) }

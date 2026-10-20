@@ -81,6 +81,15 @@ interface SpendWiseDao {
     @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
     fun observeExpenses(): Flow<List<ExpenseEntity>>
 
+    @Query(
+        """
+        SELECT * FROM expenses
+        WHERE spentAtMillis >= :startMillis AND spentAtMillis < :endMillis
+        ORDER BY spentAtMillis DESC, id DESC
+        """
+    )
+    fun observeExpensesInRange(startMillis: Long, endMillis: Long): Flow<List<ExpenseEntity>>
+
     @Query("SELECT * FROM expenses ORDER BY spentAtMillis DESC, id DESC")
     suspend fun getAllExpensesOnce(): List<ExpenseEntity>
 
@@ -132,6 +141,49 @@ interface SpendWiseDao {
 
     @Query("SELECT * FROM expense_tags")
     fun observeExpenseTags(): Flow<List<ExpenseTagEntity>>
+
+    @Query(
+        """
+        SELECT expense_tags.* FROM expense_tags
+        INNER JOIN expenses ON expenses.id = expense_tags.expenseId
+        WHERE expenses.spentAtMillis >= :startMillis AND expenses.spentAtMillis < :endMillis
+        """
+    )
+    fun observeExpenseTagsInRange(startMillis: Long, endMillis: Long): Flow<List<ExpenseTagEntity>>
+
+    /**
+     * Aggregates tag statistics in a single pass instead of filtering the whole expense list once
+     * per tag. Month boundaries are passed in as epoch millis so month bucketing stays in the
+     * caller's time zone.
+     */
+    @Query(
+        """
+        SELECT tags.displayName AS name,
+               tags.lastUsedAtMillis AS lastUsedAtMillis,
+               COUNT(expenses.id) AS expenseCount,
+               COALESCE(SUM(expenses.baseAmountCents), 0) AS totalBaseAmountCents,
+               COALESCE(SUM(
+                   CASE WHEN expenses.spentAtMillis >= :currentMonthStartMillis
+                        AND expenses.spentAtMillis < :nextMonthStartMillis
+                        THEN expenses.baseAmountCents ELSE 0 END
+               ), 0) AS currentMonthAmountCents,
+               COALESCE(SUM(
+                   CASE WHEN expenses.spentAtMillis >= :previousMonthStartMillis
+                        AND expenses.spentAtMillis < :currentMonthStartMillis
+                        THEN expenses.baseAmountCents ELSE 0 END
+               ), 0) AS previousMonthAmountCents
+        FROM tags
+        LEFT JOIN expense_tags ON expense_tags.tagName = tags.normalizedName
+        LEFT JOIN expenses ON expenses.id = expense_tags.expenseId
+        GROUP BY tags.normalizedName, tags.displayName, tags.lastUsedAtMillis
+        ORDER BY expenseCount DESC, tags.displayName
+        """
+    )
+    fun observeTagUsage(
+        currentMonthStartMillis: Long,
+        nextMonthStartMillis: Long,
+        previousMonthStartMillis: Long
+    ): Flow<List<TagUsageRow>>
 
     @Transaction
     suspend fun insertExpenseWithTags(expense: ExpenseEntity, tags: List<TagEntity>): Long {
@@ -257,3 +309,12 @@ interface SpendWiseDao {
         insertExpenseTags(expenseTags)
     }
 }
+
+data class TagUsageRow(
+    val name: String,
+    val lastUsedAtMillis: Long,
+    val expenseCount: Long?,
+    val totalBaseAmountCents: Long?,
+    val currentMonthAmountCents: Long?,
+    val previousMonthAmountCents: Long?
+)
