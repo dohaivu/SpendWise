@@ -38,6 +38,16 @@ data class ExpenseWindow(
     }
 }
 
+/**
+ * Reference data needed to create or edit an expense. Unlike [SpendWiseSnapshot] it carries no
+ * expense rows, so screens that only need pickers and suggestions never load the history.
+ */
+data class ExpenseEditorSnapshot(
+    val categories: List<Category> = emptyList(),
+    val tagUsage: List<TagUsage> = emptyList(),
+    val baseCurrencyCode: String = "VND"
+)
+
 interface ExpenseRepository {
     fun observeSnapshot(): Flow<SpendWiseSnapshot>
 
@@ -46,6 +56,9 @@ interface ExpenseRepository {
      * Categories, settings and tag usage stay global so filters keep working while browsing.
      */
     fun observeSnapshot(window: ExpenseWindow): Flow<SpendWiseSnapshot>
+
+    /** Observes categories, tag usage and settings without loading any expense rows. */
+    fun observeEditorSnapshot(): Flow<ExpenseEditorSnapshot>
 
     suspend fun seedDefaults()
     suspend fun saveExpense(input: AddExpenseInput): Long
@@ -86,6 +99,19 @@ class RoomExpenseRepository(
             expensesFlow = dao.observeExpensesInRange(window.startMillis, window.endMillis),
             refsFlow = dao.observeExpenseTagsInRange(window.startMillis, window.endMillis)
         )
+
+    override fun observeEditorSnapshot(): Flow<ExpenseEditorSnapshot> =
+        combine(
+            dao.observeCategories(),
+            observeTagUsage(),
+            settingsRepository.settings
+        ) { categoryEntities, tagUsageRows, settings ->
+            ExpenseEditorSnapshot(
+                categories = categoryEntities.map { it.toDomain() },
+                tagUsage = tagUsageRows.map { it.toDomain() },
+                baseCurrencyCode = settings.baseCurrencyCode
+            )
+        }
 
     private fun buildSnapshot(
         expensesFlow: Flow<List<ExpenseEntity>>,

@@ -16,9 +16,11 @@ import com.spendwise.ui.components.currencyDisplayFormat
 import kotlin.time.Clock
 
 data class ExpenseUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
+    /** Tag statistics, already ordered by usage (heaviest first) by the repository query. */
     val tagUsage: List<TagUsage> = emptyList(),
+    /** All known tag names ordered by most recently used, precomputed for the chip row. */
+    val knownTags: List<String> = emptyList(),
     val draft: ExpenseDraft = ExpenseDraft(spentAtMillis = Clock.System.now().toEpochMilliseconds()),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val activeTagToken: ActiveTagToken? = null,

@@ -4,7 +4,6 @@ import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseReminder
-import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import kotlin.test.Test
@@ -21,15 +20,13 @@ class UseCaseTest {
     @Test
     fun autocompleteUseCaseSortsMatchingTagsByUsage() {
         val useCase = GetTagAutocompleteSuggestionsUseCase()
-        val snapshot = SpendWiseSnapshot(
-            tagUsage = listOf(
-                TagUsage("food", expenseCount = 1, totalBaseAmountCents = 100, lastUsedAtMillis = 1),
-                TagUsage("focus", expenseCount = 4, totalBaseAmountCents = 200, lastUsedAtMillis = 2),
-                TagUsage("work", expenseCount = 9, totalBaseAmountCents = 300, lastUsedAtMillis = 3)
-            )
+        val tagUsage = listOf(
+            TagUsage("food", expenseCount = 1, totalBaseAmountCents = 100, lastUsedAtMillis = 1),
+            TagUsage("focus", expenseCount = 4, totalBaseAmountCents = 200, lastUsedAtMillis = 2),
+            TagUsage("work", expenseCount = 9, totalBaseAmountCents = 300, lastUsedAtMillis = 3)
         )
 
-        val suggestions = useCase(ActiveTagToken(query = "fo", startIndex = 0, endIndex = 3), snapshot)
+        val suggestions = useCase(ActiveTagToken(query = "fo", startIndex = 0, endIndex = 3), tagUsage)
 
         assertEquals(listOf("focus", "food"), suggestions)
     }

@@ -199,11 +199,7 @@ internal fun ExpenseScreen(
                 }
             }
             item {
-                val tagChips = state.tagSuggestions.ifEmpty {
-                    state.tagUsage
-                        .sortedByDescending { it.lastUsedAtMillis }
-                        .map { it.name }
-                }
+                val tagChips = state.tagSuggestions.ifEmpty { state.knownTags }
                 OutlinedTextField(
                     value = noteField,
                     onValueChange = { value ->
