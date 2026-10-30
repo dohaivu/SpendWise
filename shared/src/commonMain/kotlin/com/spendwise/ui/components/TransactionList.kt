@@ -100,7 +100,8 @@ private fun DateTransactionListSection(
         TransactionDateHeader(
             date = item.date,
             total = item.total,
-            currencyFormat = currencyFormat
+            currencyFormat = currencyFormat,
+            monthColor = monthBorderColor
         )
         item.expenses.forEach { expense ->
             TransactionRow(
@@ -117,12 +118,13 @@ private fun DateTransactionListSection(
 private fun TransactionDateHeader(
     date: LocalDate,
     total: Long,
-    currencyFormat: CurrencyDisplayFormat
+    currencyFormat: CurrencyDisplayFormat,
+    monthColor: Color
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f))
+            .background(monthColor.copy(alpha = 0.25f))
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
