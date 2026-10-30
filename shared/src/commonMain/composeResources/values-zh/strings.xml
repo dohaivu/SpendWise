@@ -37,6 +37,8 @@
     <string name="open_transaction_filters_active">打开交易筛选，筛选已启用</string>
     <string name="collapse_filters">收起筛选</string>
     <string name="expand_filters">展开筛选</string>
+    <string name="min_amount">最小金额: %1$s</string>
+    <string name="min_amount_any">不限</string>
     <string name="monthly">按月</string>
     <string name="annual">按年</string>
     <string name="previous_month">上个月</string>

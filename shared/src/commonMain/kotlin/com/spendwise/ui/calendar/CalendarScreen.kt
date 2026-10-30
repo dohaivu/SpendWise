@@ -107,9 +107,11 @@ internal fun CalendarScreen(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
+                        currencyFormat = state.baseCurrency,
                         onTagClick = calendarViewModel::toggleTagFilter,
                         onQueryChange = calendarViewModel::updateTransactionQuery,
-                        onCategoryChange = calendarViewModel::updateTransactionCategory
+                        onCategoryChange = calendarViewModel::updateTransactionCategory,
+                        onMinAmountChange = calendarViewModel::updateTransactionMinAmount
                     )
                     Box {
                         IconButton(onClick = { showOverflowMenu = true }) {

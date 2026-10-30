@@ -84,9 +84,11 @@ internal fun AnnualReport(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
+                        currencyFormat = state.baseCurrency,
                         onTagClick = reportViewModel::toggleTagFilter,
                         onQueryChange = reportViewModel::updateTransactionQuery,
-                        onCategoryChange = reportViewModel::updateTransactionCategory
+                        onCategoryChange = reportViewModel::updateTransactionCategory,
+                        onMinAmountChange = reportViewModel::updateTransactionMinAmount
                     )
                 }
             )

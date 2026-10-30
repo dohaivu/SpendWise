@@ -46,12 +46,14 @@ fun prepareExpenseEntries(expenses: List<Expense>, timeZone: TimeZone): List<Exp
 internal class ExpenseMatcher private constructor(
     private val query: String,
     private val categoryId: Long?,
-    private val tags: Set<String>
+    private val tags: Set<String>,
+    private val minAmountCents: Long
 ) {
     fun matches(entry: ExpenseEntry): Boolean {
         if (categoryId != null && entry.expense.categoryId != categoryId) return false
         if (query.isNotEmpty() && !entry.searchText.contains(query)) return false
         if (tags.isNotEmpty() && entry.normalizedTags.none { it in tags }) return false
+        if (minAmountCents > 0L && entry.expense.baseAmountCents < minAmountCents) return false
         return true
     }
 
@@ -65,7 +67,12 @@ internal class ExpenseMatcher private constructor(
                     TagParser.normalize(tag).ifEmpty { null }
                 }
             }
-            return ExpenseMatcher(query = query, categoryId = filters.categoryId, tags = tags)
+            return ExpenseMatcher(
+                query = query,
+                categoryId = filters.categoryId,
+                tags = tags,
+                minAmountCents = filters.minAmountCents
+            )
         }
     }
 }

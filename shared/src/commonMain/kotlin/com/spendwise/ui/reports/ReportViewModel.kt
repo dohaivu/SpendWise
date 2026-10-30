@@ -114,6 +114,10 @@ class ReportViewModel(
         updateFilters { it.copy(categoryId = categoryId) }
     }
 
+    fun updateTransactionMinAmount(minAmountCents: Long) {
+        updateFilters { it.copy(minAmountCents = minAmountCents) }
+    }
+
     fun openReportCategory(categoryId: Long) {
         _uiState.update { it.copy(selectedReportCategoryId = categoryId) }
     }

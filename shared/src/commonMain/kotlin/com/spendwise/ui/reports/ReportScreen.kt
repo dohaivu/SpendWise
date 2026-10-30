@@ -56,9 +56,11 @@ internal fun ReportScreen(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
+                        currencyFormat = state.baseCurrency,
                         onTagClick = reportViewModel::toggleTagFilter,
                         onQueryChange = reportViewModel::updateTransactionQuery,
                         onCategoryChange = reportViewModel::updateTransactionCategory,
+                        onMinAmountChange = reportViewModel::updateTransactionMinAmount,
                         showCategories = false
                     )
                     Box {

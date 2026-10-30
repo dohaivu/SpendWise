@@ -122,6 +122,10 @@ class CalendarViewModel(
         updateFilters(debounce = true) { it.copy(query = value) }
     }
 
+    fun updateTransactionMinAmount(minAmountCents: Long) {
+        updateFilters { it.copy(minAmountCents = minAmountCents) }
+    }
+
     private fun changePeriod(
         selectedMonth: LocalDate = _uiState.value.selectedMonth,
         selectedDate: LocalDate = _uiState.value.selectedDate,

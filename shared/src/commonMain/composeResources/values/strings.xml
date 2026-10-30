@@ -39,6 +39,8 @@
     <string name="open_transaction_filters_active">Open transaction filters, filters active</string>
     <string name="collapse_filters">Collapse filters</string>
     <string name="expand_filters">Expand filters</string>
+    <string name="min_amount">Min amount: %1$s</string>
+    <string name="min_amount_any">Any</string>
     <string name="monthly">Monthly</string>
     <string name="annual">Annual</string>
     <string name="previous_month">Previous month</string>

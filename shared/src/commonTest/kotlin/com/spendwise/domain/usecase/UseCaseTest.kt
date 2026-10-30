@@ -73,6 +73,23 @@ class UseCaseTest {
     }
 
     @Test
+    fun transactionFilterUseCaseFiltersByMinimumAmount() {
+        val useCase = GetTransactionsByFiltersUseCase()
+        val expenses = listOf(
+            expense(id = 1, categoryId = 1, amount = 500, note = "Coffee"),
+            expense(id = 2, categoryId = 1, amount = 1_500, note = "Lunch"),
+            expense(id = 3, categoryId = 1, amount = 5_000, note = "Dinner")
+        )
+
+        val result = useCase(
+            expenses = expenses,
+            filters = TransactionFilters(minAmountCents = 1_000)
+        )
+
+        assertEquals(listOf(2L, 3L), result.map { it.id })
+    }
+
+    @Test
     fun categoryReportUseCaseCalculatesRows() {
         val useCase = GetCategoryPieReportUseCase()
         val categories = listOf(Category(1, "Food", "F", 0xFFE76F51, 0))
