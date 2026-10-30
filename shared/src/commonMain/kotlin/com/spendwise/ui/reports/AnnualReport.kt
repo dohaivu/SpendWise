@@ -266,6 +266,7 @@ private fun AnnualMonthRow(
     currencyFormat: CurrencyDisplayFormat,
     onClick: () -> Unit
 ) {
+    val mColor = monthColor(row.monthNumber)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -277,13 +278,15 @@ private fun AnnualMonthRow(
             localizedMonthName(row.monthNumber),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = mColor
         )
         MoneyText(
             amountCents = row.totalBaseAmountCents,
             currencyFormat = currencyFormat,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = mColor
         )
     }
 }
