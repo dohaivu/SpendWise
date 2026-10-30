@@ -1,5 +1,6 @@
 package com.spendwise.ui.calendar
 
+import com.spendwise.ui.monthColor
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -320,11 +321,23 @@ private fun YearMonthCell(
     modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val mColor = monthColor(month.month.number)
+    val backgroundColor = if (selected) {
+        mColor.copy(alpha = 0.3f)
+    } else {
+        mColor.copy(alpha = 0.1f)
+    }
+    val borderColor = if (selected) {
+        mColor
+    } else {
+        mColor.copy(alpha = 0.35f)
+    }
+
     Column(
         modifier = modifier
             .height(74.dp)
-            .border(0.5.dp, colorScheme.outline.copy(alpha = 0.22f))
-            .background(if (selected) colorScheme.primaryContainer.copy(alpha = 0.45f) else colorScheme.surface)
+            .border(if (selected) 1.5.dp else 0.5.dp, borderColor)
+            .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.SpaceBetween

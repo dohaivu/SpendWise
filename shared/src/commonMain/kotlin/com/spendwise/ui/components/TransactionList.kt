@@ -28,7 +28,9 @@ import com.spendwise.domain.Expense
 import com.spendwise.ui.DateTransactionListItem
 import com.spendwise.ui.calendar.dailyTotalColor
 import com.spendwise.ui.localizedCompactDateWithDayName
+import com.spendwise.ui.monthColor
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
 import spendwise.shared.generated.resources.category_fallback
@@ -82,6 +84,7 @@ private fun DateTransactionListSection(
     onExpenseClick: (Expense) -> Unit
 ) {
     val shape = MaterialTheme.shapes.small
+    val monthBorderColor = monthColor(item.date.month.number)
 
     Column(
         modifier = Modifier
@@ -90,7 +93,7 @@ private fun DateTransactionListSection(
             .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                color = monthBorderColor.copy(alpha = 0.65f),
                 shape = shape
             )
     ) {
