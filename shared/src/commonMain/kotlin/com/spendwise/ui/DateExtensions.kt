@@ -58,3 +58,25 @@ internal fun Long.formatDateTime(): String {
     val dt = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
     return "${dt.day}/${dt.month.number}/${dt.year} ${dt.hour.toString().padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}"
 }
+
+/**
+ * Returns a distinct color for each month (1 = Jan, 12 = Dec),
+ * arranged so that adjacent months alternate hues and contrasting tones.
+ */
+internal fun monthColor(monthNumber: Int): androidx.compose.ui.graphics.Color {
+    return when ((((monthNumber - 1) % 12) + 12) % 12) {
+        0 -> androidx.compose.ui.graphics.Color(0xFF0288D1)  // Jan: Ice Blue
+        1 -> androidx.compose.ui.graphics.Color(0xFFD81B60)  // Feb: Rose Pink
+        2 -> androidx.compose.ui.graphics.Color(0xFF43A047)  // Mar: Emerald Green
+        3 -> androidx.compose.ui.graphics.Color(0xFFFB8C00)  // Apr: Vibrant Orange
+        4 -> androidx.compose.ui.graphics.Color(0xFF5E35B1)  // May: Deep Violet
+        5 -> androidx.compose.ui.graphics.Color(0xFF7CB342)  // Jun: Fresh Lime
+        6 -> androidx.compose.ui.graphics.Color(0xFFE53935)  // Jul: Bright Red
+        7 -> androidx.compose.ui.graphics.Color(0xFF00ACC1)  // Aug: Deep Teal
+        8 -> androidx.compose.ui.graphics.Color(0xFFFDD835)  // Sep: Amber Gold
+        9 -> androidx.compose.ui.graphics.Color(0xFF3949AB)  // Oct: Royal Indigo
+        10 -> androidx.compose.ui.graphics.Color(0xFFD84315) // Nov: Burnt Terracotta
+        11 -> androidx.compose.ui.graphics.Color(0xFF8E24AA) // Dec: Magenta Purple
+        else -> androidx.compose.ui.graphics.Color(0xFF0288D1)
+    }
+}

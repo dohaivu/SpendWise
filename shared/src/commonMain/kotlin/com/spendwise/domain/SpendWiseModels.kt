@@ -83,7 +83,8 @@ data class CategoryDraft(
 data class TransactionFilters(
     val query: String = "",
     val categoryId: Long? = null,
-    val selectedTags: Set<String> = emptySet()
+    val selectedTags: Set<String> = emptySet(),
+    val minAmountCents: Long = 0L
 )
 
 @Serializable

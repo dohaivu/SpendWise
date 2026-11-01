@@ -37,6 +37,8 @@
     <string name="open_transaction_filters_active">Mở bộ lọc giao dịch, đang có bộ lọc</string>
     <string name="collapse_filters">Thu gọn bộ lọc</string>
     <string name="expand_filters">Mở rộng bộ lọc</string>
+    <string name="min_amount">Số tiền tối thiểu: %1$s</string>
+    <string name="min_amount_any">Tất cả</string>
     <string name="monthly">Theo tháng</string>
     <string name="annual">Theo năm</string>
     <string name="previous_month">Tháng trước</string>

@@ -4,7 +4,6 @@ import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.Category
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseReminder
-import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import kotlin.test.Test
@@ -21,15 +20,13 @@ class UseCaseTest {
     @Test
     fun autocompleteUseCaseSortsMatchingTagsByUsage() {
         val useCase = GetTagAutocompleteSuggestionsUseCase()
-        val snapshot = SpendWiseSnapshot(
-            tagUsage = listOf(
-                TagUsage("food", expenseCount = 1, totalBaseAmountCents = 100, lastUsedAtMillis = 1),
-                TagUsage("focus", expenseCount = 4, totalBaseAmountCents = 200, lastUsedAtMillis = 2),
-                TagUsage("work", expenseCount = 9, totalBaseAmountCents = 300, lastUsedAtMillis = 3)
-            )
+        val tagUsage = listOf(
+            TagUsage("food", expenseCount = 1, totalBaseAmountCents = 100, lastUsedAtMillis = 1),
+            TagUsage("focus", expenseCount = 4, totalBaseAmountCents = 200, lastUsedAtMillis = 2),
+            TagUsage("work", expenseCount = 9, totalBaseAmountCents = 300, lastUsedAtMillis = 3)
         )
 
-        val suggestions = useCase(ActiveTagToken(query = "fo", startIndex = 0, endIndex = 3), snapshot)
+        val suggestions = useCase(ActiveTagToken(query = "fo", startIndex = 0, endIndex = 3), tagUsage)
 
         assertEquals(listOf("focus", "food"), suggestions)
     }
@@ -73,6 +70,23 @@ class UseCaseTest {
         )
 
         assertEquals(listOf(1L), result.map { it.id })
+    }
+
+    @Test
+    fun transactionFilterUseCaseFiltersByMinimumAmount() {
+        val useCase = GetTransactionsByFiltersUseCase()
+        val expenses = listOf(
+            expense(id = 1, categoryId = 1, amount = 500, note = "Coffee"),
+            expense(id = 2, categoryId = 1, amount = 1_500, note = "Lunch"),
+            expense(id = 3, categoryId = 1, amount = 5_000, note = "Dinner")
+        )
+
+        val result = useCase(
+            expenses = expenses,
+            filters = TransactionFilters(minAmountCents = 1_000)
+        )
+
+        assertEquals(listOf(2L, 3L), result.map { it.id })
     }
 
     @Test

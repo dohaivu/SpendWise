@@ -2,13 +2,14 @@ package com.spendwise.ui.expense
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spendwise.data.ExpenseEditorSnapshot
 import com.spendwise.data.ExpenseRepository
 import com.spendwise.domain.ActiveTagToken
 import com.spendwise.domain.AddExpenseInput
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
-import com.spendwise.domain.SpendWiseSnapshot
 import com.spendwise.domain.TagParser
+import com.spendwise.domain.TagUsage
 import com.spendwise.domain.usecase.SpendWiseUseCases
 import com.spendwise.ui.ExpenseUiState
 import com.spendwise.ui.centsToAmountText
@@ -33,13 +34,17 @@ class ExpenseViewModel(
     repository: ExpenseRepository,
     private val useCases: SpendWiseUseCases
 ) : ViewModel() {
+    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
+
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.seedDefaults()
-            repository.observeSnapshot().collect { snapshot ->
+            // Only categories, tag usage and settings are needed to edit an expense; loading the
+            // expense history here would be wasted work on every database change.
+            repository.observeEditorSnapshot().collect { snapshot ->
                 _uiState.update { state -> state.mergeSnapshot(snapshot) }
             }
         }
@@ -80,7 +85,7 @@ class ExpenseViewModel(
             state.copy(
                 draft = state.draft.copy(note = value),
                 activeTagToken = token,
-                tagSuggestions = tagSuggestions(token, state)
+                tagSuggestions = tagSuggestions(token, state.tagUsage)
             )
         }
     }
@@ -110,7 +115,7 @@ class ExpenseViewModel(
     }
 
     fun selectDateForDraft(date: LocalDate) {
-        val millis = date.atStartOfDayIn(TimeZone.Companion.currentSystemDefault()).toEpochMilliseconds()
+        val millis = date.atStartOfDayIn(timeZone).toEpochMilliseconds()
         _uiState.update { it.copy(draft = it.draft.copy(spentAtMillis = millis)) }
     }
 
@@ -199,6 +204,8 @@ class ExpenseViewModel(
             _uiState.update {
                 it.copy(
                     draft = emptyDraft(it.baseCurrency.code, it.categories),
+                    activeTagToken = null,
+                    tagSuggestions = emptyList(),
                     message = "Expense deleted"
                 )
             }
@@ -228,34 +235,32 @@ class ExpenseViewModel(
         }
     }
 
-    private fun ExpenseUiState.mergeSnapshot(snapshot: SpendWiseSnapshot): ExpenseUiState {
+    private fun ExpenseUiState.mergeSnapshot(snapshot: ExpenseEditorSnapshot): ExpenseUiState {
         val categoryId = draft.categoryId ?: snapshot.categories.firstOrNull()?.id
         val nextDraft = if (draft.editingExpenseId == null && draft.amountText.isBlank() && draft.note.isBlank()) {
             draft.copy(
                 categoryId = categoryId,
-                currencyCode = snapshot.settings.baseCurrencyCode,
+                currencyCode = snapshot.baseCurrencyCode,
                 exchangeRateText = "1.0"
             )
         } else {
             draft.copy(categoryId = categoryId)
         }
         return copy(
-            expenses = snapshot.expenses,
             categories = snapshot.categories,
             tagUsage = snapshot.tagUsage,
+            knownTags = recentTagNames(snapshot.tagUsage),
             draft = nextDraft,
-            baseCurrency = currencyDisplayFormat(snapshot.settings.baseCurrencyCode)
+            baseCurrency = currencyDisplayFormat(snapshot.baseCurrencyCode),
+            tagSuggestions = tagSuggestions(activeTagToken, snapshot.tagUsage)
         )
     }
 
-    private fun tagSuggestions(token: ActiveTagToken?, state: ExpenseUiState): List<String> {
-        if (token == null) return emptyList()
-        return state.tagUsage
-            .asSequence()
-            .filter { it.name.startsWith(token.query, ignoreCase = true) }
-            .sortedByDescending { it.expenseCount }
+    private fun recentTagNames(tagUsage: List<TagUsage>): List<String> =
+        tagUsage
+            .sortedWith(compareByDescending<TagUsage> { it.lastUsedAtMillis }.thenBy { it.name })
             .map { it.name }
-            .take(5)
-            .toList()
-    }
+
+    private fun tagSuggestions(token: ActiveTagToken?, tagUsage: List<TagUsage>): List<String> =
+        useCases.getTagAutocompleteSuggestions(token, tagUsage)
 }

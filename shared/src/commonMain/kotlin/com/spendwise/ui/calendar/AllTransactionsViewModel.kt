@@ -71,6 +71,10 @@ class AllTransactionsViewModel(
         _uiState.update { it.withTransactionData(transactionFilters = it.transactionFilters.copy(categoryId = categoryId)) }
     }
 
+    fun updateTransactionMinAmount(minAmountCents: Long) {
+        _uiState.update { it.withTransactionData(transactionFilters = it.transactionFilters.copy(minAmountCents = minAmountCents)) }
+    }
+
     private fun AllTransactionsUiState.withTransactionData(
         expenses: List<Expense> = this.expenses,
         categories: List<Category> = this.categories,

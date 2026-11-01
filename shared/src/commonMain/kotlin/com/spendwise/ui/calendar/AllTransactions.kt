@@ -75,9 +75,11 @@ internal fun AllTransactions(
                 tagUsage = state.tagUsage,
                 filters = state.transactionFilters,
                 isCollapsed = false,
+                currencyFormat = state.baseCurrency,
                 onTagClick = viewModel::toggleTagFilter,
                 onQueryChange = viewModel::updateTransactionQuery,
                 onCategoryChange = viewModel::updateTransactionCategory,
+                onMinAmountChange = viewModel::updateTransactionMinAmount,
                 singleLineCategories = true
             )
             Spacer(modifier = Modifier.height(8.dp))

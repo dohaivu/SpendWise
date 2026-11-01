@@ -21,6 +21,7 @@ fun List<Expense>.filterByTransactionFilters(filters: TransactionFilters): List<
     return with(ReportCalculator) { filterByTags(filters.selectedTags) }
         .filter { filters.categoryId == null || it.categoryId == filters.categoryId }
         .filter { normalizedQuery.isBlank() || it.note.removeAccents().contains(normalizedQuery, ignoreCase = true) }
+        .filter { filters.minAmountCents <= 0L || it.baseAmountCents >= filters.minAmountCents }
 }
 
 fun List<Expense>.filterByTags(selectedTags: Set<String>): List<Expense> {

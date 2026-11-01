@@ -13,9 +13,13 @@ class ParseTagsFromNoteUseCase {
 }
 
 class GetTagAutocompleteSuggestionsUseCase {
-    operator fun invoke(token: ActiveTagToken?, snapshot: SpendWiseSnapshot, limit: Int = 5): List<String> {
+    operator fun invoke(
+        token: ActiveTagToken?,
+        tagUsage: List<TagUsage>,
+        limit: Int = 5
+    ): List<String> {
         if (token == null) return emptyList()
-        return snapshot.tagUsage
+        return tagUsage
             .asSequence()
             .filter { it.name.startsWith(token.query, ignoreCase = true) }
             .sortedByDescending { it.expenseCount }

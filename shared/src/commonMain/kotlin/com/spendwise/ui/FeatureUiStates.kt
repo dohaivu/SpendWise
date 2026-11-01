@@ -7,6 +7,7 @@ import com.spendwise.domain.DailyExpenseTotal
 import com.spendwise.domain.Expense
 import com.spendwise.domain.ExpenseDraft
 import com.spendwise.domain.ExpenseReminder
+import com.spendwise.domain.ReportSummary
 import com.spendwise.domain.TagUsage
 import com.spendwise.domain.TransactionFilters
 import com.spendwise.ui.components.CurrencyDisplayFormat
@@ -15,9 +16,11 @@ import com.spendwise.ui.components.currencyDisplayFormat
 import kotlin.time.Clock
 
 data class ExpenseUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
+    /** Tag statistics, already ordered by usage (heaviest first) by the repository query. */
     val tagUsage: List<TagUsage> = emptyList(),
+    /** All known tag names ordered by most recently used, precomputed for the chip row. */
+    val knownTags: List<String> = emptyList(),
     val draft: ExpenseDraft = ExpenseDraft(spentAtMillis = Clock.System.now().toEpochMilliseconds()),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val activeTagToken: ActiveTagToken? = null,
@@ -26,7 +29,6 @@ data class ExpenseUiState(
 )
 
 data class CalendarUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
@@ -61,13 +63,13 @@ data class DateTransactionListItem(
 )
 
 data class ReportUiState(
-    val expenses: List<Expense> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tagUsage: List<TagUsage> = emptyList(),
     val baseCurrency: CurrencyDisplayFormat = CurrencyDisplayFormat.default(),
     val selectedMonth: kotlinx.datetime.LocalDate = today().firstDayOfMonth(),
     val selectedReportCategoryId: Long? = null,
-    val transactionFilters: TransactionFilters = TransactionFilters()
+    val transactionFilters: TransactionFilters = TransactionFilters(),
+    val report: ReportSummary = ReportSummary()
 )
 
 data class SettingsUiState(

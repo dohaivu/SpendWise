@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -38,13 +39,13 @@ import com.spendwise.ui.ReportUiState
 import com.spendwise.ui.components.AppHorizontalDivider
 import com.spendwise.ui.components.CurrencyDisplayFormat
 import com.spendwise.ui.components.MoneyText
+import com.spendwise.ui.monthColor
 import com.spendwise.ui.components.TinyTopAppBar
 import com.spendwise.ui.components.TransactionFiltersMenu
 import com.spendwise.ui.components.YearHeader
 import com.spendwise.ui.components.currencyDisplayFormat
 import com.spendwise.ui.localizedMonthName
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.stringResource
 import spendwise.shared.generated.resources.Res
 import spendwise.shared.generated.resources.*
@@ -59,7 +60,7 @@ internal fun AnnualReport(
     onMonthClick: (LocalDate) -> Unit
 ) {
     val year = state.selectedMonth.year
-    val monthlyTotals = reportViewModel.getAnnualMonthlyReport(year, TimeZone.currentSystemDefault())
+    val monthlyTotals = state.report.annualMonthlyTotals
     val total = monthlyTotals.sumOf { it.totalBaseAmountCents }
     val averageAmount = activeMonthlyAverage(monthlyTotals)
 
@@ -85,9 +86,11 @@ internal fun AnnualReport(
                         categories = state.categories,
                         tagUsage = state.tagUsage,
                         filters = state.transactionFilters,
+                        currencyFormat = state.baseCurrency,
                         onTagClick = reportViewModel::toggleTagFilter,
                         onQueryChange = reportViewModel::updateTransactionQuery,
-                        onCategoryChange = reportViewModel::updateTransactionCategory
+                        onCategoryChange = reportViewModel::updateTransactionCategory,
+                        onMinAmountChange = reportViewModel::updateTransactionMinAmount
                     )
                 }
             )
@@ -138,7 +141,6 @@ private fun AnnualColumnChart(
     val axisMax = maxAmount.coerceAtLeast(1L)
     val gridValues = listOf(axisMax, axisMax * 3 / 4, axisMax / 2, axisMax / 4, 0L)
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
-    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.86f)
     val averageLineColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -176,13 +178,15 @@ private fun AnnualColumnChart(
                 val barWidth = slotWidth * 0.58f
                 rows.forEachIndexed { index, row ->
                     if (row.totalBaseAmountCents > 0L) {
+                        val mColor = monthColor(index + 1)
                         val fraction = row.totalBaseAmountCents.toFloat() / axisMax
                         val barHeight = chartHeight * fraction
                         val left = slotWidth * index + (slotWidth - barWidth) / 2f
-                        drawRect(
-                            color = barColor,
+                        drawRoundRect(
+                            color = mColor.copy(alpha = 0.6f),
                             topLeft = Offset(left, chartHeight - barHeight),
-                            size = Size(barWidth, barHeight)
+                            size = Size(barWidth, barHeight),
+                            cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx())
                         )
                     }
                 }
@@ -205,9 +209,9 @@ private fun AnnualColumnChart(
                     text = monthNumber.toString(),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
-                    color = labelColor,
+                    color = monthColor(monthNumber),
                     style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -262,6 +266,7 @@ private fun AnnualMonthRow(
     currencyFormat: CurrencyDisplayFormat,
     onClick: () -> Unit
 ) {
+    val mColor = monthColor(row.monthNumber)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -273,13 +278,15 @@ private fun AnnualMonthRow(
             localizedMonthName(row.monthNumber),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = mColor
         )
         MoneyText(
             amountCents = row.totalBaseAmountCents,
             currencyFormat = currencyFormat,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = mColor
         )
     }
 }
